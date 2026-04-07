@@ -7,36 +7,31 @@
     <title>Reporte Diario TECNO</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
-        :root { --tecno-blue: #0056b3; --tecno-green: #217346; --bg: #f4f7f9; }
+        :root {
+            --tecno-blue: #0056b3;
+            --tecno-green: #217346;
+            --bg: #f4f7f9;
+        }
         * { box-sizing: border-box; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
-        
         body { background-color: var(--bg); margin: 0; padding: 10px; color: #333; line-height: 1.5; }
         .container { background: white; max-width: 900px; margin: 0 auto; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
-        
         header { border-bottom: 3px solid var(--tecno-blue); margin-bottom: 25px; padding-bottom: 10px; text-align: center; }
         h1 { font-size: 1.5rem; color: var(--tecno-blue); margin: 0; text-transform: uppercase; }
-
         .section-title { background: #e9ecef; padding: 12px; font-weight: bold; margin-top: 25px; border-radius: 6px; border-left: 6px solid var(--tecno-blue); font-size: 1rem; display: flex; justify-content: space-between; align-items: center; }
-        
         .grid { display: grid; grid-template-columns: 1fr; gap: 15px; margin-top: 15px; }
         @media (min-width: 768px) { .grid { grid-template-columns: 1fr 1fr; } }
-
         .form-group { display: flex; flex-direction: column; }
         label { font-size: 12px; font-weight: 700; margin-bottom: 5px; color: #555; }
         input, textarea, select { padding: 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 16px; background: #fff; width: 100%; }
-        
+        input[type="file"] { font-size: 14px; padding: 8px; cursor: pointer; }
         .btn-add { background: var(--tecno-blue); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 14px; }
         .btn-remove { background: #dc3545; color: white; border: none; padding: 10px; border-radius: 6px; font-size: 12px; margin-top: 10px; width: 100%; cursor: pointer; }
-
         .store-block { border: 1px solid #e0e0e0; padding: 15px; margin-top: 10px; border-radius: 10px; background: #fdfdfd; }
-
         .image-preview-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-top: 15px; }
         .image-item { border: 1px solid #ddd; padding: 10px; border-radius: 10px; background: #fff; text-align: center; }
         .image-item img { width: 200px; height: 200px; object-fit: cover; border-radius: 6px; margin-bottom: 10px; }
-
         .btn-group { display: flex; flex-direction: column; gap: 12px; margin-top: 35px; }
         @media (min-width: 768px) { .btn-group { flex-direction: row; } }
-        
         .btn-final { flex: 1; padding: 18px; border: none; border-radius: 10px; color: white; font-weight: bold; font-size: 16px; cursor: pointer; }
     </style>
 </head>
@@ -85,9 +80,14 @@
             <textarea id="stockIssues" rows="2"></textarea>
         </div>
 
-        <div class="section-title">3. Analisis de Mercado</div>
+        <div class="section-title">3. Análisis de Mercado</div>
         <div class="grid">
-            <div class="form-group"><label>Acciones Realizadas por la Competencia</label><textarea id="competitorActions" rows="2"></textarea></div>
+            <div class="form-group">
+                <label>Acciones Realizadas por la Competencia</label>
+                <textarea id="competitorActions" rows="2"></textarea>
+                <label style="margin-top: 10px; color: var(--tecno-blue);">📸 Adjuntar Evidencia (Competencia)</label>
+                <input type="file" id="compImageInput" accept="image/*" multiple onchange="handleCompImages(event)">
+            </div>
             <div class="form-group"><label>Dinámica o Flujo de Mercado</label><textarea id="marketDynamics" rows="2"></textarea></div>
         </div>
 
@@ -97,7 +97,7 @@
         </div>
         <div id="stores-container"></div>
 
-        <div class="section-title">5. Evidencia Fotográfica</div>
+        <div class="section-title">5. Evidencia Fotográfica (Tiendas)</div>
         <div class="form-group" style="margin-top:10px;">
             <input type="file" id="imageInput" accept="image/*" multiple onchange="handleImages(event)">
         </div>
@@ -111,60 +111,48 @@
 </div>
 
 <script>
-
     async function enviarAGoogleSheets() {
-    const btn = event.target;
-    if (!document.getElementById('staffName').value) {
-        alert("Selecciona un especialista");
-        return;
-    }
-
-    btn.innerText = "Subiendo Datos y Fotos...";
-    btn.disabled = true;
-
-    const datos = {
-        fecha: document.getElementById('date').value,
-        especialista: document.getElementById('staffName').value,
-        cargo: document.getElementById('role').value,
-        region: document.getElementById('region').value,
-        retailer: document.getElementById('retailerName').value,
-        tiendasObjetivo: document.getElementById('shopsQty').value,
-        metaCamon: document.getElementById('salesTarget').value,
-        ventaHoy: document.getElementById('todaySales').value,
-        acumulado: document.getElementById('accumulatedSales').value,
-        dcr: document.getElementById('dcrRate').value,
-        covPro: document.getElementById('coverage50Pro').value,
-        covUltra: document.getElementById('coverage50Ultra').value,
-        probStock: document.getElementById('stockIssues').value,
-        competencia: document.getElementById('competitorActions').value,
-        dinamica: document.getElementById('marketDynamics').value,
+        const btn = event.target;
+        if (!document.getElementById('staffName').value) { alert("Selecciona un especialista"); return; }
         
-        // Aquí incluimos las tiendas y las fotos
-        tiendas: Array.from(document.querySelectorAll('.store-block')).map(b => ({
-            nombre: b.querySelector('.store-name').value,
-            estatus: b.querySelector('.store-status').value,
-            acciones: b.querySelector('.store-actions').value
-        })),
-        fotos: photos // Usamos el arreglo global definido en tu script original
-    };
+        btn.innerText = "Subiendo Datos y Fotos..."; btn.disabled = true;
 
-    const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbzjFY3EJICcNvQI3VNqUej7uTehPvjEWRKZiU9g_-of1vuMvfYWu650-mlhWwmR_cXzDg/exec";
+        const datos = {
+            fecha: document.getElementById('date').value,
+            especialista: document.getElementById('staffName').value,
+            cargo: document.getElementById('role').value,
+            region: document.getElementById('region').value,
+            retailer: document.getElementById('retailerName').value,
+            tiendasObjetivo: document.getElementById('shopsQty').value,
+            metaCamon: document.getElementById('salesTarget').value,
+            ventaHoy: document.getElementById('todaySales').value,
+            acumulado: document.getElementById('accumulatedSales').value,
+            dcr: document.getElementById('dcrRate').value,
+            covPro: document.getElementById('coverage50Pro').value,
+            covUltra: document.getElementById('coverage50Ultra').value,
+            probStock: document.getElementById('stockIssues').value,
+            competencia: document.getElementById('competitorActions').value,
+            dinamica: document.getElementById('marketDynamics').value,
+            tiendas: Array.from(document.querySelectorAll('.store-block')).map(b => ({
+                nombre: b.querySelector('.store-name').value,
+                estatus: b.querySelector('.store-status').value,
+                // NUEVO: Capturar dato de exhibición rotativa para Google Sheets
+                rotativa: b.querySelector('.store-rotativa').checked ? 'Sí' : 'No',
+                acciones: b.querySelector('.store-actions').value
+            })),
+            fotos: photos
+        };
 
-    try {
-        await fetch(WEBHOOK_URL, {
-            method: 'POST',
-            mode: 'no-cors', 
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(datos)
-        });
-        alert("¡Reporte y fotos sincronizados con éxito!");
-    } catch (e) {
-        alert("Error al subir la información.");
-    } finally {
-        btn.innerText = "Sincronizar Google Sheets";
-        btn.disabled = false;
+        const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbzjFY3EJICcNvQI3VNqUej7uTehPvjEWRKZiU9g_-of1vuMvfYWu650-mlhWwmR_cXzDg/exec";
+        try {
+            await fetch(WEBHOOK_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(datos) });
+            alert("¡Reporte y fotos sincronizados con éxito!");
+        } catch (e) {
+            alert("Error al subir la información.");
+        } finally {
+            btn.innerText = "Exportar Excel A La Nube"; btn.disabled = false;
+        }
     }
-}
 
     document.getElementById('date').valueAsDate = new Date();
     let photos = [];
@@ -178,6 +166,10 @@
             <div class="grid">
                 <div class="form-group"><label>Tienda</label><input type="text" class="store-name"></div>
                 <div class="form-group"><label>Estatus</label><select class="store-status"><option value="Cumplido">Cumplido</option><option value="Problemas">Problemas</option></select></div>
+            </div>
+            <div class="form-group" style="flex-direction: row; align-items: center; gap: 8px; margin-top: 12px;">
+                <input type="checkbox" class="store-rotativa" style="width: 18px; height: 18px; margin: 0; cursor: pointer;">
+                <label style="margin: 0; cursor: pointer;">Exhibición Rotativa</label>
             </div>
             <textarea class="store-actions" style="margin-top:10px;" placeholder="Acciones realizadas..."></textarea>
             <button type="button" class="btn-remove" onclick="document.getElementById('store-${id}').remove()">Eliminar</button>
@@ -197,115 +189,138 @@
         });
     }
 
+    // NUEVO: Función para manejar las fotos de la competencia
+    function handleCompImages(e) {
+        const files = Array.from(e.target.files);
+        files.forEach(file => {
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                photos.push({ src: ev.target.result, name: file.name, category: 'Competencia', tienda: 'Competencia' });
+                renderPhotos();
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
     function renderPhotos() {
         const container = document.getElementById('imagePreview');
         container.innerHTML = '';
         photos.forEach((p, i) => {
             const item = document.createElement('div');
             item.className = 'image-item';
+            // NUEVO: Se agregó la opción de 'Competencia' al select
             item.innerHTML = `
                 <img src="${p.src}">
                 <div class="image-controls">
-                    <input type="text" placeholder="Tienda" value="${p.tienda}" onchange="photos[${i}].tienda = this.value">
+                    <input type="text" placeholder="Tienda/Ref" value="${p.tienda}" onchange="photos[${i}].tienda = this.value">
                     <select onchange="photos[${i}].category = this.value">
                         <option value="Vitrina Antes" ${p.category === 'Vitrina Antes' ? 'selected' : ''}>Antes</option>
                         <option value="Vitrina Después" ${p.category === 'Vitrina Después' ? 'selected' : ''}>Después</option>
+                        <option value="Competencia" ${p.category === 'Competencia' ? 'selected' : ''}>Competencia</option>
                     </select>
-                    <button type="button" style="color:red; background:none; border:none;" onclick="photos.splice(${i},1); renderPhotos();">Borrar</button>
+                    <button type="button" style="color:red; background:none; border:none; margin-top:5px; cursor:pointer; width:100%;" onclick="photos.splice(${i},1); renderPhotos();">Borrar</button>
                 </div>
             `;
             container.appendChild(item);
         });
     }
 
+    // Se actualiza para exportar el dato de la exhibición rotativa a Excel
     function exportExcel() {
         const data = [
-            ["REPORTE TECNO"],
-            ["Fecha", document.getElementById('date').value],
+            ["REPORTE TECNO"], ["Fecha", document.getElementById('date').value],
             ["Especialista", document.getElementById('staffName').value],
             ["Venta Hoy", document.getElementById('todaySales').value],
-            ["DCR %", document.getElementById('dcrRate').value],
-            ["", ""],
-            ["DETALLE TIENDAS"],
-            ["Tienda", "Estatus", "Acciones"]
+            ["DCR %", document.getElementById('dcrRate').value], ["", ""],
+            ["DETALLE TIENDAS"], ["Tienda", "Estatus", "Exhibición Rotativa", "Acciones"]
         ];
         document.querySelectorAll('.store-block').forEach(b => {
-            data.push([b.querySelector('.store-name').value, b.querySelector('.store-status').value, b.querySelector('.store-actions').value]);
+            data.push([
+                b.querySelector('.store-name').value, 
+                b.querySelector('.store-status').value, 
+                b.querySelector('.store-rotativa').checked ? 'Sí' : 'No',
+                b.querySelector('.store-actions').value
+            ]);
         });
         data.push(["", ""], ["EVIDENCIA FOTOGRÁFICA"], ["Tienda", "Categoría", "Archivo"]);
         photos.forEach(p => data.push([p.tienda, p.category, p.name]));
 
-        const ws = XLSX.utils.aoa_to_sheet(data);
-        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.aoa_to_sheet(data); const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "Reporte");
         XLSX.writeFile(wb, `Reporte_TECNO_${document.getElementById('staffName').value}.xlsx`);
     }
 
     function exportWord() {
-        // Recolección limpia de datos
         const date = document.getElementById('date').value;
         const name = document.getElementById('staffName').value;
         const role = document.getElementById('role').value;
         const region = document.getElementById('region').value;
         const retailer = document.getElementById('retailerName').value;
         const qty = document.getElementById('shopsQty').value;
-        
+
         let storesHtml = "";
         document.querySelectorAll('.store-block').forEach(b => {
+            // NUEVO: Variables de la exhibición rotativa incluidas en el Word
+            const isRotativa = b.querySelector('.store-rotativa').checked ? 'Sí' : 'No';
             storesHtml += `
-                <div style="border: 1px solid #ccc; padding: 10px; margin-bottom: 10px;">
-                    <p><b>Tienda:</b> ${b.querySelector('.store-name').value}</p>
-                    <p><b>Estatus:</b> ${b.querySelector('.store-status').value}</p>
-                    <p><b>Acciones:</b> ${b.querySelector('.store-actions').value}</p>
-                </div>`;
+            <div style="border: 1px solid #ccc; padding: 10px; margin-bottom: 10px;">
+                <p><b>Tienda:</b> ${b.querySelector('.store-name').value}</p>
+                <p><b>Estatus:</b> ${b.querySelector('.store-status').value}</p>
+                <p><b>Exhibición Rotativa:</b> ${isRotativa}</p>
+                <p><b>Acciones:</b> ${b.querySelector('.store-actions').value}</p>
+            </div>`;
         });
 
         let photosHtml = "";
         photos.forEach(p => {
             photosHtml += `
-                <div style="margin-bottom: 20px; text-align: center;">
-                    <p><b>Tienda: ${p.tienda || 'N/A'} - ${p.category}</b></p>
-                    <img src="${p.src}" width="200" height="200" style="width:200px; height:200px; border:1px solid #000;">
-                </div>`;
+            <div style="margin-bottom: 20px; text-align: center;">
+                <p><b>${p.tienda || 'N/A'} - ${p.category}</b></p>
+                <img src="${p.src}" width="200" height="200" style="width:200px; height:200px; border:1px solid #000;">
+            </div>`;
         });
 
         const content = `
-            <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
-            <head><meta charset='utf-8'></head>
-            <body style="font-family: Arial, sans-serif; font-size: 11pt;">
-                <h2 style="color:#0056b3; text-align:center;">Reporte de Gestión Diario TECNO</h2>
-                <hr>
-                <h3>Información General</h3>
-                <p><b>Fecha:</b> ${date}</p>
-                <p><b>Especialista:</b> ${name} | <b>Cargo:</b> ${role}</p>
-                <p><b>Región/Ruta:</b> Barquisimeto | ${region}</p>
-                <p><b>Retailer Principal (KA):</b> ${retailer} | <b>Tiendas:</b> ${qty}</p>
-                
-                <h3>1. Ventas (Sell-Out)</h3>
-                <p><b>Meta CAMON 50:</b> ${document.getElementById('salesTarget').value}</p>
-                <p><b>Venta Hoy:</b> ${document.getElementById('todaySales').value} | <b>Total acumulado:</b> ${document.getElementById('accumulatedSales').value}</p>
-                <p><b>Totalidad de stock cargado al DCR:</b> ${document.getElementById('dcrRate').value}%</p>
+        <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+        <head><meta charset='utf-8'></head>
+        <body style="font-family: Arial, sans-serif; font-size: 11pt;">
+            <h2 style="color:#0056b3; text-align:center;">Reporte de Gestión Diario TECNO</h2>
+            <hr>
+            <h3>Información General</h3>
+            <p><b>Fecha:</b> ${date}</p>
+            <p><b>Especialista:</b> ${name} | <b>Cargo:</b> ${role}</p>
+            <p><b>Región/Ruta:</b> Barquisimeto | ${region}</p>
+            <p><b>Retailer Principal (KA):</b> ${retailer} | <b>Tiendas:</b> ${qty}</p>
+            
+            <h3>1. Ventas (Sell-Out)</h3>
+            <p><b>Meta CAMON 50:</b> ${document.getElementById('salesTarget').value}</p>
+            <p><b>Venta Hoy:</b> ${document.getElementById('todaySales').value} | <b>Total acumulado:</b> ${document.getElementById('accumulatedSales').value}</p>
+            <p><b>Totalidad de stock cargado al DCR:</b> ${document.getElementById('dcrRate').value}%</p>
 
-                <h3>2. Cobertura e Inventario</h3>
-                <p><b>Cobertura CN5c:</b> ${document.getElementById('coverage50Pro').value}</p>
-                <p><b>Cobertura CN7c:</b> ${document.getElementById('coverage50Ultra').value}</p>
-                <p><b>Problemas:</b> ${document.getElementById('stockIssues').value}</p>
+            <h3>2. Cobertura e Inventario</h3>
+            <p><b>Cobertura CN5c:</b> ${document.getElementById('coverage50Pro').value}</p>
+            <p><b>Cobertura CN7c:</b> ${document.getElementById('coverage50Ultra').value}</p>
+            <p><b>Problemas:</b> ${document.getElementById('stockIssues').value}</p>
 
-                <h3>3. Analisis de Mercado</h3>
-                <p><b>Competencia:</b> ${document.getElementById('competitorActions').value}</p>
-                <p><b>Mercado:</b> ${document.getElementById('marketDynamics').value}</p>
+            <h3>3. Análisis de Mercado</h3>
+            <p><b>Competencia:</b> ${document.getElementById('competitorActions').value}</p>
+            <p><b>Mercado:</b> ${document.getElementById('marketDynamics').value}</p>
 
-                <h3>4. Detalle por Tienda</h3>
-                ${storesHtml || "<p>No hay tiendas registradas.</p>"}
+            <h3>4. Detalle por Tienda</h3>
+            ${storesHtml || "<p>No hay tiendas registradas.</p>"}
 
-                <h3>5. Evidencia Fotográfica</h3>
-                ${photosHtml || "<p>No hay fotos adjuntas.</p>"}
-            </body></html>`;
+            <h3>5. Evidencia Fotográfica</h3>
+            ${photosHtml || "<p>No hay fotos adjuntas.</p>"}
+        </body></html>`;
 
         const blob = new Blob(['\ufeff', content], { type: 'application/msword' });
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
-        a.download = `Reporte_Diario_${name || '_TECNO'}.doc`;
+        
+        // NUEVO: Se agregó la fecha al nombre del documento Word
+        const currentDate = date || new Date().toISOString().split('T')[0];
+        a.download = `Reporte_Diario_${name || '_TECNO'}_${currentDate}.doc`;
+        
         a.click();
     }
 
