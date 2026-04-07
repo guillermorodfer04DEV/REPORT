@@ -10,6 +10,7 @@
         :root {
             --tecno-blue: #0056b3;
             --tecno-green: #217346;
+            --wsp-green: #25D366;
             --bg: #f4f7f9;
         }
         * { box-sizing: border-box; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
@@ -31,8 +32,8 @@
         .image-item { border: 1px solid #ddd; padding: 10px; border-radius: 10px; background: #fff; text-align: center; }
         .image-item img { width: 200px; height: 200px; object-fit: cover; border-radius: 6px; margin-bottom: 10px; }
         .btn-group { display: flex; flex-direction: column; gap: 12px; margin-top: 35px; }
-        @media (min-width: 768px) { .btn-group { flex-direction: row; } }
-        .btn-final { flex: 1; padding: 18px; border: none; border-radius: 10px; color: white; font-weight: bold; font-size: 16px; cursor: pointer; }
+        @media (min-width: 768px) { .btn-group { flex-direction: row; flex-wrap: wrap; } }
+        .btn-final { flex: 1; min-width: 200px; padding: 18px; border: none; border-radius: 10px; color: white; font-weight: bold; font-size: 16px; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -67,7 +68,7 @@
             <div class="form-group"><label>Meta Serie CAMON 50</label><input type="text" id="salesTarget"></div>
             <div class="form-group"><label>Venta Real Hoy</label><input type="number" id="todaySales"></div>
             <div class="form-group"><label>Acumulado del mes</label><input type="number" id="accumulatedSales"></div>
-            <div class="form-group"><label>Cargado al DCR (%)</label><input type="number" id="dcrRate"></div>
+            <div class="form-group"><label>Cargado al DCR (%)</label><input type="text" id="dcrRate"></div>
         </div>
 
         <div class="section-title">2. Cobertura y Stock (X cantidad de tiendas tienen, de X cantidad de tiendas)</div>
@@ -106,6 +107,7 @@
         <div class="btn-group">
             <button type="button" class="btn-final" style="background: var(--tecno-green);" onclick="enviarAGoogleSheets()">Exportar Excel A La Nube</button>
             <button type="button" class="btn-final" style="background: #2b579a;" onclick="exportWord()">Descargar Word</button>
+            <button type="button" class="btn-final" style="background: var(--wsp-green);" onclick="copiarWhatsApp()">Copiar para WhatsApp</button>
         </div>
     </form>
 </div>
@@ -136,7 +138,6 @@
             tiendas: Array.from(document.querySelectorAll('.store-block')).map(b => ({
                 nombre: b.querySelector('.store-name').value,
                 estatus: b.querySelector('.store-status').value,
-                // NUEVO: Capturar dato de exhibición rotativa para Google Sheets
                 rotativa: b.querySelector('.store-rotativa').checked ? 'Sí' : 'No',
                 acciones: b.querySelector('.store-actions').value
             })),
@@ -189,7 +190,6 @@
         });
     }
 
-    // NUEVO: Función para manejar las fotos de la competencia
     function handleCompImages(e) {
         const files = Array.from(e.target.files);
         files.forEach(file => {
@@ -208,7 +208,6 @@
         photos.forEach((p, i) => {
             const item = document.createElement('div');
             item.className = 'image-item';
-            // NUEVO: Se agregó la opción de 'Competencia' al select
             item.innerHTML = `
                 <img src="${p.src}">
                 <div class="image-controls">
@@ -225,7 +224,6 @@
         });
     }
 
-    // Se actualiza para exportar el dato de la exhibición rotativa a Excel
     function exportExcel() {
         const data = [
             ["REPORTE TECNO"], ["Fecha", document.getElementById('date').value],
@@ -260,7 +258,6 @@
 
         let storesHtml = "";
         document.querySelectorAll('.store-block').forEach(b => {
-            // NUEVO: Variables de la exhibición rotativa incluidas en el Word
             const isRotativa = b.querySelector('.store-rotativa').checked ? 'Sí' : 'No';
             storesHtml += `
             <div style="border: 1px solid #ccc; padding: 10px; margin-bottom: 10px;">
@@ -317,11 +314,84 @@
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
         
-        // NUEVO: Se agregó la fecha al nombre del documento Word
         const currentDate = date || new Date().toISOString().split('T')[0];
         a.download = `Reporte_Diario_${name || '_TECNO'}_${currentDate}.doc`;
         
         a.click();
+    }
+
+    // NUEVO: Función para generar y copiar texto para WhatsApp
+    function copiarWhatsApp() {
+        const date = document.getElementById('date').value || '[Fecha]';
+        const name = document.getElementById('staffName').value || '[Especialista]';
+        const role = document.getElementById('role').value || '[Cargo]';
+        const region = document.getElementById('region').value || '[Región/Ruta]';
+        const retailer = document.getElementById('retailerName').value || '[Retailer Principal]';
+        const qty = document.getElementById('shopsQty').value || '[Tiendas Objetivo]';
+
+        const salesTarget = document.getElementById('salesTarget').value || '[Meta]';
+        const todaySales = document.getElementById('todaySales').value || '[Venta Hoy]';
+        const accumulatedSales = document.getElementById('accumulatedSales').value || '[Acumulado]';
+        const dcrRate = document.getElementById('dcrRate').value || '[DCR]';
+
+        const coverage50Pro = document.getElementById('coverage50Pro').value || '[Cobertura Pro]';
+        const coverage50Ultra = document.getElementById('coverage50Ultra').value || '[Cobertura Ultra]';
+        const stockIssues = document.getElementById('stockIssues').value || '[Ninguno]';
+
+        const competitorActions = document.getElementById('competitorActions').value || '[Sin acciones]';
+        const marketDynamics = document.getElementById('marketDynamics').value || '[Sin novedades]';
+
+        let storesText = "";
+        document.querySelectorAll('.store-block').forEach((b, index) => {
+            const storeName = b.querySelector('.store-name').value || `Tienda ${index + 1}`;
+            const storeStatus = b.querySelector('.store-status').value || '[Estatus]';
+            const isRotativa = b.querySelector('.store-rotativa').checked ? 'Sí' : 'No';
+            const storeActions = b.querySelector('.store-actions').value || '[Sin acciones]';
+            
+            storesText += `\nTienda: *${storeName}*\nEstatus: ${storeStatus}\nExhibición Rotativa: ${isRotativa}\nAcciones: ${storeActions}\n`;
+        });
+
+        // La tabulación de este texto está pegada a la izquierda intencionalmente
+        // para que en WhatsApp no queden espacios en blanco extraños.
+        const whatsappText = `_*Reporte de Gestión Diario TECNO*_
+
+Información General
+
+* Fecha: ${date}
+* Especialista: ${name}
+* Cargo: ${role}
+* Región/Ruta: Barquisimeto | ${region}
+* Retailer Principal (KA): ${retailer}
+* Tiendas objetivo: ${qty}
+
+1. *Ventas:* Meta CAMON 50: ${salesTarget}
+Venta Hoy: ${todaySales}
+Total acumulado: ${accumulatedSales}
+Totalidad de stock cargado al DCR: ${dcrRate}%
+
+2. *Cobertura e Inventario:*
+
+Cobertura CN5c: ${coverage50Pro}
+Cobertura CN7c: ${coverage50Ultra}
+
+Problemas: ${stockIssues}
+
+3. *Analisis de Mercado:*
+
+_Competencia:_
+${competitorActions}
+
+_Mercado:_ 
+${marketDynamics}
+
+4. *Detalle por Tienda:*
+${storesText || '\n[Sin tiendas registradas]'}`;
+
+        navigator.clipboard.writeText(whatsappText).then(() => {
+            alert("¡Texto copiado al portapapeles! Ya puedes ir a WhatsApp y pegarlo.");
+        }).catch(err => {
+            alert("No se pudo copiar automáticamente. Por favor, revisa los permisos de tu navegador.");
+        });
     }
 
     addStore();
