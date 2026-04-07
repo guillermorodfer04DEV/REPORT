@@ -24,7 +24,6 @@
         .form-group { display: flex; flex-direction: column; }
         label { font-size: 12px; font-weight: 700; margin-bottom: 5px; color: #555; }
         input, textarea, select { padding: 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 16px; background: #fff; width: 100%; }
-        input[type="file"] { font-size: 14px; padding: 8px; cursor: pointer; }
         .btn-add { background: var(--tecno-blue); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 14px; }
         .btn-remove { background: #dc3545; color: white; border: none; padding: 10px; border-radius: 6px; font-size: 12px; margin-top: 10px; width: 100%; cursor: pointer; }
         .store-block { border: 1px solid #e0e0e0; padding: 15px; margin-top: 10px; border-radius: 10px; background: #fdfdfd; }
@@ -71,7 +70,7 @@
             <div class="form-group"><label>Cargado al DCR (%)</label><input type="text" id="dcrRate"></div>
         </div>
 
-        <div class="section-title">2. Cobertura y Stock (X cantidad de tiendas tienen, de X cantidad de tiendas)</div>
+        <div class="section-title">2. Cobertura y Stock</div>
         <div class="grid">
             <div class="form-group"><label>Cobertura CN5c (C50 Pro)</label><input type="text" id="coverage50Pro"></div>
             <div class="form-group"><label>Cobertura CN7c (C50 Ultra)</label><input type="text" id="coverage50Ultra"></div>
@@ -113,51 +112,10 @@
 </div>
 
 <script>
-    async function enviarAGoogleSheets() {
-        const btn = event.target;
-        if (!document.getElementById('staffName').value) { alert("Selecciona un especialista"); return; }
-        
-        btn.innerText = "Subiendo Datos y Fotos..."; btn.disabled = true;
-
-        const datos = {
-            fecha: document.getElementById('date').value,
-            especialista: document.getElementById('staffName').value,
-            cargo: document.getElementById('role').value,
-            region: document.getElementById('region').value,
-            retailer: document.getElementById('retailerName').value,
-            tiendasObjetivo: document.getElementById('shopsQty').value,
-            metaCamon: document.getElementById('salesTarget').value,
-            ventaHoy: document.getElementById('todaySales').value,
-            acumulado: document.getElementById('accumulatedSales').value,
-            dcr: document.getElementById('dcrRate').value,
-            covPro: document.getElementById('coverage50Pro').value,
-            covUltra: document.getElementById('coverage50Ultra').value,
-            probStock: document.getElementById('stockIssues').value,
-            competencia: document.getElementById('competitorActions').value,
-            dinamica: document.getElementById('marketDynamics').value,
-            tiendas: Array.from(document.querySelectorAll('.store-block')).map(b => ({
-                nombre: b.querySelector('.store-name').value,
-                estatus: b.querySelector('.store-status').value,
-                rotativa: b.querySelector('.store-rotativa').checked ? 'Sí' : 'No',
-                acciones: b.querySelector('.store-actions').value
-            })),
-            fotos: photos
-        };
-
-        const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbzjFY3EJICcNvQI3VNqUej7uTehPvjEWRKZiU9g_-of1vuMvfYWu650-mlhWwmR_cXzDg/exec";
-        try {
-            await fetch(WEBHOOK_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(datos) });
-            alert("¡Reporte y fotos sincronizados con éxito!");
-        } catch (e) {
-            alert("Error al subir la información.");
-        } finally {
-            btn.innerText = "Exportar Excel A La Nube"; btn.disabled = false;
-        }
-    }
-
     document.getElementById('date').valueAsDate = new Date();
     let photos = [];
 
+    // Función para añadir tienda con menú desplegable
     function addStore() {
         const id = Date.now();
         const div = document.createElement('div');
@@ -165,7 +123,18 @@
         div.id = `store-${id}`;
         div.innerHTML = `
             <div class="grid">
-                <div class="form-group"><label>Tienda</label><input type="text" class="store-name"></div>
+                <div class="form-group">
+                    <label>Tienda</label>
+                    <select class="store-select" onchange="checkOtherShop(this, ${id})">
+                        <option value="GLOBAL CELL">GLOBAL CELL</option>
+                        <option value="TECNO CORP">TECNO CORP</option>
+                        <option value="NC PHONE">NC PHONE</option>
+                        <option value="DAMASCO">DAMASCO</option>
+                        <option value="CANGURO">CANGURO</option>
+                        <option value="OTHER SHOP">OTHER SHOP</option>
+                    </select>
+                    <input type="text" class="store-name-custom" id="custom-name-${id}" style="display:none; margin-top:10px;" placeholder="Escriba el nombre de la tienda...">
+                </div>
                 <div class="form-group"><label>Estatus</label><select class="store-status"><option value="Cumplido">Cumplido</option><option value="Problemas">Problemas</option></select></div>
             </div>
             <div class="form-group" style="flex-direction: row; align-items: center; gap: 8px; margin-top: 12px;">
@@ -178,6 +147,18 @@
         document.getElementById('stores-container').appendChild(div);
     }
 
+    function checkOtherShop(select, id) {
+        const customInput = document.getElementById(`custom-name-${id}`);
+        customInput.style.display = (select.value === "OTHER SHOP") ? "block" : "none";
+    }
+
+    function getStoreName(block) {
+        const select = block.querySelector('.store-select');
+        const custom = block.querySelector('.store-name-custom');
+        return (select.value === "OTHER SHOP") ? custom.value : select.value;
+    }
+
+    // Manejo de imágenes
     function handleImages(e) {
         const files = Array.from(e.target.files);
         files.forEach(file => {
@@ -224,174 +205,108 @@
         });
     }
 
+    // ENVÍO A LA NUBE (Actualizado para carpetas dinámicas)
+    async function enviarAGoogleSheets() {
+        const btn = event.target;
+        if (!document.getElementById('staffName').value) { alert("Selecciona un especialista"); return; }
+        
+        btn.innerText = "Sincronizando..."; btn.disabled = true;
+
+        const tiendasData = Array.from(document.querySelectorAll('.store-block')).map(b => {
+            const selectVal = b.querySelector('.store-select').value;
+            const nombreFinal = getStoreName(b);
+            return {
+                nombre: nombreFinal,
+                estatus: b.querySelector('.store-status').value,
+                rotativa: b.querySelector('.store-rotativa').checked ? 'Sí' : 'No',
+                acciones: b.querySelector('.store-actions').value,
+                destino_carpeta: (selectVal === "OTHER SHOP") ? "Carpeta_Especial" : "Principal"
+            };
+        });
+
+        // Marcamos las fotos según la tienda a la que pertenecen
+        const fotosData = photos.map(p => {
+            const esOther = tiendasData.some(t => t.nombre === p.tienda && t.destino_carpeta === "Carpeta_Especial");
+            return { ...p, destino: esOther ? "Carpeta_Especial" : "Principal" };
+        });
+
+        const datos = {
+            fecha: document.getElementById('date').value,
+            especialista: document.getElementById('staffName').value,
+            cargo: document.getElementById('role').value,
+            region: document.getElementById('region').value,
+            retailer: document.getElementById('retailerName').value,
+            tiendasObjetivo: document.getElementById('shopsQty').value,
+            metaCamon: document.getElementById('salesTarget').value,
+            ventaHoy: document.getElementById('todaySales').value,
+            acumulado: document.getElementById('accumulatedSales').value,
+            dcr: document.getElementById('dcrRate').value,
+            covPro: document.getElementById('coverage50Pro').value,
+            covUltra: document.getElementById('coverage50Ultra').value,
+            probStock: document.getElementById('stockIssues').value,
+            competencia: document.getElementById('competitorActions').value,
+            dinamica: document.getElementById('marketDynamics').value,
+            tiendas: tiendasData,
+            fotos: fotosData
+        };
+
+        const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbzjFY3EJICcNvQI3VNqUej7uTehPvjEWRKZiU9g_-of1vuMvfYWu650-mlhWwmR_cXzDg/exec";
+        try {
+            await fetch(WEBHOOK_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(datos) });
+            alert("¡Sincronización completa!");
+        } catch (e) {
+            alert("Error de conexión.");
+        } finally {
+            btn.innerText = "Exportar Excel A La Nube"; btn.disabled = false;
+        }
+    }
+
+    // EXPORTACIÓN EXCEL
     function exportExcel() {
         const data = [
             ["REPORTE TECNO"], ["Fecha", document.getElementById('date').value],
             ["Especialista", document.getElementById('staffName').value],
-            ["Venta Hoy", document.getElementById('todaySales').value],
-            ["DCR %", document.getElementById('dcrRate').value], ["", ""],
-            ["DETALLE TIENDAS"], ["Tienda", "Estatus", "Exhibición Rotativa", "Acciones"]
+            ["Venta Hoy", document.getElementById('todaySales').value], ["", ""],
+            ["DETALLE TIENDAS"], ["Tienda", "Estatus", "Rotativa", "Acciones"]
         ];
         document.querySelectorAll('.store-block').forEach(b => {
-            data.push([
-                b.querySelector('.store-name').value, 
-                b.querySelector('.store-status').value, 
-                b.querySelector('.store-rotativa').checked ? 'Sí' : 'No',
-                b.querySelector('.store-actions').value
-            ]);
+            data.push([getStoreName(b), b.querySelector('.store-status').value, b.querySelector('.store-rotativa').checked ? 'Sí' : 'No', b.querySelector('.store-actions').value]);
         });
-        data.push(["", ""], ["EVIDENCIA FOTOGRÁFICA"], ["Tienda", "Categoría", "Archivo"]);
-        photos.forEach(p => data.push([p.tienda, p.category, p.name]));
-
         const ws = XLSX.utils.aoa_to_sheet(data); const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "Reporte");
         XLSX.writeFile(wb, `Reporte_TECNO_${document.getElementById('staffName').value}.xlsx`);
     }
 
+    // EXPORTACIÓN WORD
     function exportWord() {
         const date = document.getElementById('date').value;
         const name = document.getElementById('staffName').value;
-        const role = document.getElementById('role').value;
-        const region = document.getElementById('region').value;
-        const retailer = document.getElementById('retailerName').value;
-        const qty = document.getElementById('shopsQty').value;
-
         let storesHtml = "";
         document.querySelectorAll('.store-block').forEach(b => {
-            const isRotativa = b.querySelector('.store-rotativa').checked ? 'Sí' : 'No';
-            storesHtml += `
-            <div style="border: 1px solid #ccc; padding: 10px; margin-bottom: 10px;">
-                <p><b>Tienda:</b> ${b.querySelector('.store-name').value}</p>
-                <p><b>Estatus:</b> ${b.querySelector('.store-status').value}</p>
-                <p><b>Exhibición Rotativa:</b> ${isRotativa}</p>
-                <p><b>Acciones:</b> ${b.querySelector('.store-actions').value}</p>
-            </div>`;
+            storesHtml += `<p><b>Tienda:</b> ${getStoreName(b)}<br><b>Estatus:</b> ${b.querySelector('.store-status').value}</p>`;
         });
 
-        let photosHtml = "";
-        photos.forEach(p => {
-            photosHtml += `
-            <div style="margin-bottom: 20px; text-align: center;">
-                <p><b>${p.tienda || 'N/A'} - ${p.category}</b></p>
-                <img src="${p.src}" width="200" height="200" style="width:200px; height:200px; border:1px solid #000;">
-            </div>`;
-        });
-
-        const content = `
-        <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
-        <head><meta charset='utf-8'></head>
-        <body style="font-family: Arial, sans-serif; font-size: 11pt;">
-            <h2 style="color:#0056b3; text-align:center;">Reporte de Gestión Diario TECNO</h2>
-            <hr>
-            <h3>Información General</h3>
-            <p><b>Fecha:</b> ${date}</p>
-            <p><b>Especialista:</b> ${name} | <b>Cargo:</b> ${role}</p>
-            <p><b>Región/Ruta:</b> Barquisimeto | ${region}</p>
-            <p><b>Retailer Principal (KA):</b> ${retailer} | <b>Tiendas:</b> ${qty}</p>
-            
-            <h3>1. Ventas (Sell-Out)</h3>
-            <p><b>Meta CAMON 50:</b> ${document.getElementById('salesTarget').value}</p>
-            <p><b>Venta Hoy:</b> ${document.getElementById('todaySales').value} | <b>Total acumulado:</b> ${document.getElementById('accumulatedSales').value}</p>
-            <p><b>Totalidad de stock cargado al DCR:</b> ${document.getElementById('dcrRate').value}%</p>
-
-            <h3>2. Cobertura e Inventario</h3>
-            <p><b>Cobertura CN5c:</b> ${document.getElementById('coverage50Pro').value}</p>
-            <p><b>Cobertura CN7c:</b> ${document.getElementById('coverage50Ultra').value}</p>
-            <p><b>Problemas:</b> ${document.getElementById('stockIssues').value}</p>
-
-            <h3>3. Análisis de Mercado</h3>
-            <p><b>Competencia:</b> ${document.getElementById('competitorActions').value}</p>
-            <p><b>Mercado:</b> ${document.getElementById('marketDynamics').value}</p>
-
-            <h3>4. Detalle por Tienda</h3>
-            ${storesHtml || "<p>No hay tiendas registradas.</p>"}
-
-            <h3>5. Evidencia Fotográfica</h3>
-            ${photosHtml || "<p>No hay fotos adjuntas.</p>"}
-        </body></html>`;
+        const content = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+        <body style="font-family:Arial;"><h2>Reporte TECNO - ${date}</h2>${storesHtml}</body></html>`;
 
         const blob = new Blob(['\ufeff', content], { type: 'application/msword' });
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
-        
-        const currentDate = date || new Date().toISOString().split('T')[0];
-        a.download = `Reporte_Diario_${name || '_TECNO'}_${currentDate}.doc`;
-        
+        a.download = `Reporte_${name}_${date}.doc`;
         a.click();
     }
 
-    // NUEVO: Función para generar y copiar texto para WhatsApp
+    // COPIAR PARA WHATSAPP
     function copiarWhatsApp() {
-        const date = document.getElementById('date').value || '[Fecha]';
-        const name = document.getElementById('staffName').value || '[Especialista]';
-        const role = document.getElementById('role').value || '[Cargo]';
-        const region = document.getElementById('region').value || '[Región/Ruta]';
-        const retailer = document.getElementById('retailerName').value || '[Retailer Principal]';
-        const qty = document.getElementById('shopsQty').value || '[Tiendas Objetivo]';
-
-        const salesTarget = document.getElementById('salesTarget').value || '[Meta]';
-        const todaySales = document.getElementById('todaySales').value || '[Venta Hoy]';
-        const accumulatedSales = document.getElementById('accumulatedSales').value || '[Acumulado]';
-        const dcrRate = document.getElementById('dcrRate').value || '[DCR]';
-
-        const coverage50Pro = document.getElementById('coverage50Pro').value || '[Cobertura Pro]';
-        const coverage50Ultra = document.getElementById('coverage50Ultra').value || '[Cobertura Ultra]';
-        const stockIssues = document.getElementById('stockIssues').value || '[Ninguno]';
-
-        const competitorActions = document.getElementById('competitorActions').value || '[Sin acciones]';
-        const marketDynamics = document.getElementById('marketDynamics').value || '[Sin novedades]';
-
+        const date = document.getElementById('date').value;
+        const name = document.getElementById('staffName').value;
         let storesText = "";
-        document.querySelectorAll('.store-block').forEach((b, index) => {
-            const storeName = b.querySelector('.store-name').value || `Tienda ${index + 1}`;
-            const storeStatus = b.querySelector('.store-status').value || '[Estatus]';
-            const isRotativa = b.querySelector('.store-rotativa').checked ? 'Sí' : 'No';
-            const storeActions = b.querySelector('.store-actions').value || '[Sin acciones]';
-            
-            storesText += `\nTienda: *${storeName}*\nEstatus: ${storeStatus}\nExhibición Rotativa: ${isRotativa}\nAcciones: ${storeActions}\n`;
+        document.querySelectorAll('.store-block').forEach(b => {
+            storesText += `\nTienda: *${getStoreName(b)}*\nEstatus: ${b.querySelector('.store-status').value}\nAcciones: ${b.querySelector('.store-actions').value}\n`;
         });
 
-        // La tabulación de este texto está pegada a la izquierda intencionalmente
-        // para que en WhatsApp no queden espacios en blanco extraños.
-        const whatsappText = `_*Reporte de Gestión Diario TECNO*_
-
-Información General
-
-* Fecha: ${date}
-* Especialista: ${name}
-* Cargo: ${role}
-* Región/Ruta: Barquisimeto | ${region}
-* Retailer Principal (KA): ${retailer}
-* Tiendas objetivo: ${qty}
-
-1. *Ventas:* Meta CAMON 50: ${salesTarget}
-Venta Hoy: ${todaySales}
-Total acumulado: ${accumulatedSales}
-Totalidad de stock cargado al DCR: ${dcrRate}%
-
-2. *Cobertura e Inventario:*
-
-Cobertura CN5c: ${coverage50Pro}
-Cobertura CN7c: ${coverage50Ultra}
-
-Problemas: ${stockIssues}
-
-3. *Analisis de Mercado:*
-
-_Competencia:_
-${competitorActions}
-
-_Mercado:_ 
-${marketDynamics}
-
-4. *Detalle por Tienda:*
-${storesText || '\n[Sin tiendas registradas]'}`;
-
-        navigator.clipboard.writeText(whatsappText).then(() => {
-            alert("¡Texto copiado al portapapeles! Ya puedes ir a WhatsApp y pegarlo.");
-        }).catch(err => {
-            alert("No se pudo copiar automáticamente. Por favor, revisa los permisos de tu navegador.");
-        });
+        const text = `_*Reporte de Gestión Diario TECNO*_\n\n*Fecha:* ${date}\n*Especialista:* ${name}\n\n*Detalle por Tienda:*${storesText}`;
+        navigator.clipboard.writeText(text).then(() => alert("Copiado al portapapeles"));
     }
 
     addStore();
