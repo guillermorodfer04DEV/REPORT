@@ -33,6 +33,7 @@
         .btn-group { display: flex; flex-direction: column; gap: 12px; margin-top: 35px; }
         @media (min-width: 768px) { .btn-group { flex-direction: row; flex-wrap: wrap; } }
         .btn-final { flex: 1; min-width: 200px; padding: 18px; border: none; border-radius: 10px; color: white; font-weight: bold; font-size: 16px; cursor: pointer; }
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
@@ -70,7 +71,7 @@
             <div class="form-group"><label>Cargado al DCR (%)</label><input type="text" id="dcrRate"></div>
         </div>
 
-        <div class="section-title">2. Cobertura y Stock</div>
+        <div class="section-title">2. Cobertura e Inventario</div>
         <div class="grid">
             <div class="form-group"><label>Cobertura CN5c (C50 Pro)</label><input type="text" id="coverage50Pro"></div>
             <div class="form-group"><label>Cobertura CN7c (C50 Ultra)</label><input type="text" id="coverage50Ultra"></div>
@@ -92,7 +93,7 @@
         </div>
 
         <div class="section-title">
-            4. Exhibición en Tienda
+            4. Resumen en tiendas
             <button type="button" class="btn-add" onclick="addStore()">+ Añadir</button>
         </div>
         <div id="stores-container"></div>
@@ -115,7 +116,7 @@
     document.getElementById('date').valueAsDate = new Date();
     let photos = [];
 
-    // Función para añadir tienda con menú desplegable
+    // Función principal para añadir tiendas con lógica dinámica
     function addStore() {
         const id = Date.now();
         const div = document.createElement('div');
@@ -133,18 +134,58 @@
                         <option value="CANGURO">CANGURO</option>
                         <option value="OTHER SHOP">OTHER SHOP</option>
                     </select>
-                    <input type="text" class="store-name-custom" id="custom-name-${id}" style="display:none; margin-top:10px;" placeholder="Escriba el nombre de la tienda...">
+                    <input type="text" class="store-name-custom" id="custom-name-${id}" style="display:none; margin-top:10px;" placeholder="Escriba el nombre...">
                 </div>
-                <div class="form-group"><label>Estatus</label><select class="store-status"><option value="Cumplido">Cumplido</option><option value="Problemas">Problemas</option></select></div>
+                <div class="form-group">
+                    <label>Estatus</label>
+                    <select class="store-status" onchange="toggleStoreFields(this, ${id})">
+                        <option value="Informacion recopilada">Información recopilada</option>
+                        <option value="Vitrina arreglada">Vitrina arreglada</option>
+                        <option value="Problemas en vitrina">Problemas en vitrina</option>
+                        <option value="Entrega de obsequios a tienda">Entrega de obsequios a tienda</option>
+                        <option value="Ventas">Ventas</option>
+                        <option value="Carga de stock">Carga de stock</option>
+                    </select>
+                </div>
             </div>
-            <div class="form-group" style="flex-direction: row; align-items: center; gap: 8px; margin-top: 12px;">
+
+            <div class="form-group hidden" id="qty-container-${id}" style="margin-top:12px;">
+                <label>Cantidad</label>
+                <input type="number" class="store-qty" placeholder="Ingrese cantidad numérica">
+            </div>
+
+            <div class="form-group hidden" id="rotative-container-${id}" style="flex-direction: row; align-items: center; gap: 8px; margin-top: 12px;">
                 <input type="checkbox" class="store-rotativa" style="width: 18px; height: 18px; margin: 0; cursor: pointer;">
                 <label style="margin: 0; cursor: pointer;">Exhibición Rotativa</label>
             </div>
+
             <textarea class="store-actions" style="margin-top:10px;" placeholder="Acciones realizadas..."></textarea>
             <button type="button" class="btn-remove" onclick="document.getElementById('store-${id}').remove()">Eliminar</button>
         `;
         document.getElementById('stores-container').appendChild(div);
+    }
+
+    // Lógica para mostrar/ocultar campos según estatus
+    function toggleStoreFields(select, id) {
+        const val = select.value;
+        const rotativeContainer = document.getElementById(`rotative-container-${id}`);
+        const qtyContainer = document.getElementById(`qty-container-${id}`);
+
+        // Lógica de Vitrinas
+        if (val === "Vitrina arreglada" || val === "Problemas en vitrina") {
+            rotativeContainer.classList.remove('hidden');
+        } else {
+            rotativeContainer.classList.add('hidden');
+            rotativeContainer.querySelector('input').checked = false;
+        }
+
+        // Lógica de Cantidades
+        if (val === "Ventas" || val === "Carga de stock") {
+            qtyContainer.classList.remove('hidden');
+        } else {
+            qtyContainer.classList.add('hidden');
+            qtyContainer.querySelector('input').value = "";
+        }
     }
 
     function checkOtherShop(select, id) {
@@ -158,7 +199,7 @@
         return (select.value === "OTHER SHOP") ? custom.value : select.value;
     }
 
-    // Manejo de imágenes
+    // MANEJO DE IMÁGENES
     function handleImages(e) {
         const files = Array.from(e.target.files);
         files.forEach(file => {
@@ -205,7 +246,7 @@
         });
     }
 
-    // ENVÍO A LA NUBE (Actualizado para carpetas dinámicas)
+    // EXPORTACIÓN A LA NUBE (RESTAURADA Y ADAPTADA)
     async function enviarAGoogleSheets() {
         const btn = event.target;
         if (!document.getElementById('staffName').value) { alert("Selecciona un especialista"); return; }
@@ -215,16 +256,17 @@
         const tiendasData = Array.from(document.querySelectorAll('.store-block')).map(b => {
             const selectVal = b.querySelector('.store-select').value;
             const nombreFinal = getStoreName(b);
+            const qty = b.querySelector('.store-qty').value;
             return {
                 nombre: nombreFinal,
                 estatus: b.querySelector('.store-status').value,
                 rotativa: b.querySelector('.store-rotativa').checked ? 'Sí' : 'No',
+                cantidad: qty || "N/A",
                 acciones: b.querySelector('.store-actions').value,
                 destino_carpeta: (selectVal === "OTHER SHOP") ? "Carpeta_Especial" : "Principal"
             };
         });
 
-        // Marcamos las fotos según la tienda a la que pertenecen
         const fotosData = photos.map(p => {
             const esOther = tiendasData.some(t => t.nombre === p.tienda && t.destino_carpeta === "Carpeta_Especial");
             return { ...p, destino: esOther ? "Carpeta_Especial" : "Principal" };
@@ -250,7 +292,7 @@
             fotos: fotosData
         };
 
-        const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbzhfY9b4jIeUHK9zBnGwxOcPWncWVnlY7HElQBzeeTwDaPCY9rU0R_8QfqGCAHJxVXRUg/exec";
+        const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbzjFY3EJICcNvQI3VNqUej7uTehPvjEWRKZiU9g_-of1vuMvfYWu650-mlhWwmR_cXzDg/exec";
         try {
             await fetch(WEBHOOK_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(datos) });
             alert("¡Sincronización completa!");
@@ -261,52 +303,95 @@
         }
     }
 
-    // EXPORTACIÓN EXCEL
-    function exportExcel() {
-        const data = [
-            ["REPORTE TECNO"], ["Fecha", document.getElementById('date').value],
-            ["Especialista", document.getElementById('staffName').value],
-            ["Venta Hoy", document.getElementById('todaySales').value], ["", ""],
-            ["DETALLE TIENDAS"], ["Tienda", "Estatus", "Rotativa", "Acciones"]
-        ];
-        document.querySelectorAll('.store-block').forEach(b => {
-            data.push([getStoreName(b), b.querySelector('.store-status').value, b.querySelector('.store-rotativa').checked ? 'Sí' : 'No', b.querySelector('.store-actions').value]);
-        });
-        const ws = XLSX.utils.aoa_to_sheet(data); const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Reporte");
-        XLSX.writeFile(wb, `Reporte_TECNO_${document.getElementById('staffName').value}.xlsx`);
-    }
-
-    // EXPORTACIÓN WORD
+    // EXPORTACIÓN WORD (RESTAURADA CON FECHA)
     function exportWord() {
-        const date = document.getElementById('date').value;
-        const name = document.getElementById('staffName').value;
+        const date = document.getElementById('date').value || new Date().toISOString().split('T')[0];
+        const name = document.getElementById('staffName').value || 'Especialista';
+        
         let storesHtml = "";
         document.querySelectorAll('.store-block').forEach(b => {
-            storesHtml += `<p><b>Tienda:</b> ${getStoreName(b)}<br><b>Estatus:</b> ${b.querySelector('.store-status').value}</p>`;
+            const qty = b.querySelector('.store-qty').value;
+            storesHtml += `
+                <div style="border:1px solid #ccc; padding:10px; margin-bottom:10px;">
+                    <p><b>Tienda:</b> ${getStoreName(b)}</p>
+                    <p><b>Estatus:</b> ${b.querySelector('.store-status').value}</p>
+                    ${qty ? `<p><b>Cantidad:</b> ${qty}</p>` : ''}
+                    <p><b>Rotativa:</b> ${b.querySelector('.store-rotativa').checked ? 'Sí' : 'No'}</p>
+                    <p><b>Acciones:</b> ${b.querySelector('.store-actions').value}</p>
+                </div>`;
         });
 
-        const content = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
-        <body style="font-family:Arial;"><h2>Reporte TECNO - ${date}</h2>${storesHtml}</body></html>`;
+        let photosHtml = "";
+        photos.forEach(p => {
+            photosHtml += `<div style="text-align:center;"><p><b>${p.tienda} - ${p.category}</b></p><img src="${p.src}" width="250"></div>`;
+        });
+
+        const content = `
+        <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+        <head><meta charset='utf-8'></head>
+        <body style="font-family:Arial;">
+            <h2 style="color:#0056b3; text-align:center;">Reporte de Gestión TECNO</h2>
+            <p><b>Fecha:</b> ${date} | <b>Especialista:</b> ${name}</p>
+            <h3>Detalle por Tienda</h3>
+            ${storesHtml}
+            <h3>Evidencia</h3>
+            ${photosHtml}
+        </body></html>`;
 
         const blob = new Blob(['\ufeff', content], { type: 'application/msword' });
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
-        a.download = `Reporte_${name}_${date}.doc`;
+        a.download = `Reporte_TECNO_${name}_${date}.doc`;
         a.click();
     }
 
-    // COPIAR PARA WHATSAPP
+    // COPIAR PARA WHATSAPP (RESTAURADA CON PLANTILLA EXACTA)
     function copiarWhatsApp() {
         const date = document.getElementById('date').value;
         const name = document.getElementById('staffName').value;
+        const region = document.getElementById('region').value;
+
         let storesText = "";
         document.querySelectorAll('.store-block').forEach(b => {
-            storesText += `\nTienda: *${getStoreName(b)}*\nEstatus: ${b.querySelector('.store-status').value}\nAcciones: ${b.querySelector('.store-actions').value}\n`;
+            const qty = b.querySelector('.store-qty').value;
+            storesText += `\nTienda: *${getStoreName(b)}*\nEstatus: ${b.querySelector('.store-status').value}${qty ? ' (Cant: '+qty+')' : ''}\n`;
         });
 
-        const text = `_*Reporte de Gestión Diario TECNO*_\n\n*Fecha:* ${date}\n*Especialista:* ${name}\n\n*Detalle por Tienda:*${storesText}`;
-        navigator.clipboard.writeText(text).then(() => alert("Copiado al portapapeles"));
+        const text = `_*Reporte de Gestión Diario TECNO*_
+
+Información General
+
+* Fecha: ${date}
+* Especialista: ${name}
+* Cargo: ${document.getElementById('role').value}
+* Región/Ruta: Barquisimeto | ${region}
+* Retailer Principal (KA): ${document.getElementById('retailerName').value}
+* Tiendas objetivo: ${document.getElementById('shopsQty').value}
+
+1. *Ventas:* Meta CAMON 50: ${document.getElementById('salesTarget').value}
+Venta Hoy: ${document.getElementById('todaySales').value}
+Total acumulado: ${document.getElementById('accumulatedSales').value}
+Totalidad de stock cargado al DCR: ${document.getElementById('dcrRate').value}%
+
+2. *Cobertura e Inventario:*
+
+Cobertura CN5c: ${document.getElementById('coverage50Pro').value}
+Cobertura CN7c: ${document.getElementById('coverage50Ultra').value}
+
+Problemas: ${document.getElementById('stockIssues').value}
+
+3. *Analisis de Mercado:*
+
+_Competencia:_
+${document.getElementById('competitorActions').value}
+
+_Mercado:_ 
+${document.getElementById('marketDynamics').value}
+
+4. *Detalle por Tienda:*
+${storesText}`;
+
+        navigator.clipboard.writeText(text).then(() => alert("¡Copiado para WhatsApp!"));
     }
 
     addStore();
