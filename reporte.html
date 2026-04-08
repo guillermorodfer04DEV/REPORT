@@ -131,8 +131,8 @@ body {
 
         <div class="grid" style="margin-top:10px;">
     <div class="form-group">
-        <label>Minorista Objetivo (Retailer) <button type="button" class="btn-add" style="padding: 2px 8px; margin-left: 10px;" onclick="toggleSecondRetailer()">+</button></label>
-        <select id="retailerName">
+        <label>Minorista Objetivo 1 (R1) <button type="button" class="btn-add" style="padding: 2px 8px; margin-left: 10px;" onclick="toggleSecondRetailer()">+ Añadir Retailer</button></label>
+        <select id="retailerName" onchange="updateRetailerTitles()">
             <option value="">Seleccione Retailer...</option>
             <option value="GLOBAL CELL">GLOBAL CELL</option>
             <option value="TECNO CORP">TECNO CORP</option>
@@ -141,14 +141,14 @@ body {
             <option value="CANGURO">CANGURO</option>
         </select>
     </div>
-    <div class="form-group"><label>Cant. Tiendas Objetivo</label><input type="number" id="shopsQty"></div>
+    <div class="form-group"><label>Cant. Tiendas Objetivo (R1)</label><input type="number" id="shopsQty"></div>
 </div>
 
-<div id="second-retailer-container" class="hidden">
-    <div class="grid" style="margin-top:10px; border-top: 2px dashed var(--tecno-blue); padding-top: 15px;">
+<div id="row-retailer-2" class="hidden" style="margin-top:10px; border-left: 4px solid #ff922b; padding-left: 10px;">
+    <div class="grid">
         <div class="form-group">
-            <label>Segundo Minorista Objetivo (Opcional)</label>
-            <select id="retailerName2">
+            <label style="color: #e67e22;">Minorista Objetivo 2 (R2)</label>
+            <select id="retailerName2" onchange="updateRetailerTitles()">
                 <option value="">Seleccione Retailer...</option>
                 <option value="GLOBAL CELL">GLOBAL CELL</option>
                 <option value="TECNO CORP">TECNO CORP</option>
@@ -157,8 +157,9 @@ body {
                 <option value="CANGURO">CANGURO</option>
             </select>
         </div>
-        <div class="form-group"><label>Cant. Tiendas Objetivo (R2)</label><input type="number" id="shopsQty2"></div>
+        <div class="form-group"><label style="color: #e67e22;">Cant. Tiendas Objetivo (R2)</label><input type="number" id="shopsQty2"></div>
     </div>
+</div>
 
     <div class="section-title">1.2 Desempeño de Ventas (Retailer 2)</div>
     <div class="grid">
@@ -176,7 +177,8 @@ body {
 </div>
       
 
-        <div class="section-title">1. Desempeño de Ventas (Sell-Out)</div>
+        <div class="section-title">
+    1. Desempeño de Ventas - <span id="display-name-r1">Retailer 1</span>
         <div class="grid">
             <div class="form-group"><label>Meta Serie CAMON 50</label><input type="text" id="salesTarget"></div>
             <div class="form-group"><label>Venta Real Hoy</label><input type="number" id="todaySales"></div>
@@ -184,7 +186,8 @@ body {
             <div class="form-group"><label>Cargado al DCR (%)</label><input type="text" id="dcrRate"></div>
         </div>
 
-        <div class="section-title">2. Cobertura e Inventario</div>
+        <div class="section-title">
+    2. Cobertura e Inventario - <span id="display-name-r1-cov">Retailer 1</span>
         <div class="grid">
             <div class="form-group"><label>Cobertura CN5c (C50 Pro)</label><input type="text" id="coverage50Pro"></div>
             <div class="form-group"><label>Cobertura CN7c (C50 Ultra)</label><input type="text" id="coverage50Ultra"></div>
@@ -193,6 +196,25 @@ body {
             <label>Problemas de Inventario</label>
             <textarea id="stockIssues" rows="2"></textarea>
         </div>
+
+    <div id="sections-retailer-2" class="hidden">
+    <div class="section-title" style="border-left-color: #ff922b; background: #fff3e0;">
+        1.1 Desempeño de Ventas - <span id="display-name-r2">Retailer 2</span>
+    <div class="section-title" style="border-left-color: #ff922b; background: #fff3e0;">1.1 Desempeño de Ventas (R2)</div>
+    <div class="grid">
+        <div class="form-group"><label>Meta Serie CAMON 50 (R2)</label><input type="text" id="salesTarget2"></div>
+        <div class="form-group"><label>Venta Real Hoy (R2)</label><input type="number" id="todaySales2"></div>
+        <div class="form-group"><label>Acumulado del mes (R2)</label><input type="number" id="accumulatedSales2"></div>
+        <div class="form-group"><label>Cargado al DCR (%) (R2)</label><input type="text" id="dcrRate2"></div>
+    </div>
+
+    <div class="section-title" style="border-left-color: #ff922b; background: #fff3e0;">
+        2.1 Cobertura e Inventario - <span id="display-name-r2-cov">Retailer 2</span>
+    <div class="grid">
+        <div class="form-group"><label>Cobertura CN5c (R2)</label><input type="text" id="coverage50Pro2"></div>
+        <div class="form-group"><label>Cobertura CN7c (R2)</label><input type="text" id="coverage50Ultra2"></div>
+    </div>
+</div>
 
         <div class="section-title">3. Análisis de Mercado</div>
         <div class="grid">
@@ -295,6 +317,21 @@ body {
         `;
         document.getElementById('stores-container').appendChild(div);
     }
+
+    function updateRetailerTitles() {
+    const r1 = document.getElementById('retailerName').value;
+    const r2 = document.getElementById('retailerName2').value;
+
+    // Actualizar textos del Retailer 1
+    const label1 = r1 ? r1 : "Retailer 1";
+    document.getElementById('display-name-r1').innerText = label1;
+    document.getElementById('display-name-r1-cov').innerText = label1;
+
+    // Actualizar textos del Retailer 2
+    const label2 = r2 ? r2 : "Retailer 2";
+    document.getElementById('display-name-r2').innerText = label2;
+    document.getElementById('display-name-r2-cov').innerText = label2;
+}
 
     function toggleStoreFields(select, id) {
         const val = select.value;
@@ -600,6 +637,21 @@ ${storesText}`;
     }
 
     addStore();
+
+    function toggleSecondRetailer() {
+    const rowName = document.getElementById('row-retailer-2');
+    const sections = document.getElementById('sections-retailer-2');
+    
+    rowName.classList.toggle('hidden');
+    sections.classList.toggle('hidden');
+    
+    if (rowName.classList.contains('hidden')) {
+        // Limpiar campos si se oculta para evitar errores de envío
+        document.getElementById('retailerName2').value = "";
+        document.getElementById('todaySales2').value = "";
+    }
+}
+    
 </script>
 </body>
 </html>
