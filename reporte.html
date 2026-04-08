@@ -477,17 +477,19 @@
         text += `* Fecha: ${document.getElementById('date').value}\n`;
         text += `* Especialista: ${document.getElementById('staffName').value}\n`;
         text += `* Cargo: ${document.getElementById('role').value}\n`;
-        text += `* Región/Ruta: Barquisimeto | ${document.getElementById('region').value}\n`;
+        text += `* Región/Ruta: Barquisimeto | ${document.getElementById('region').value}\n\n`;
 
+        text += `1. *Ventas:*\n\n`;
+        
         text += `_*Info sobre: ${document.getElementById('retailerName').value}*_\n`;
         text += `* Tiendas objetivo: ${document.getElementById('shopsQty').value}\n\n`;
-        text += `1. *Ventas:*\n\n`;
+        
         text += `Meta CAMON 50: ${document.getElementById('salesTarget').value}\n`;
         text += `Venta Hoy: ${document.getElementById('todaySales').value}\n`;
         text += `Total acumulado: ${document.getElementById('accumulatedSales').value}\n`;
         text += `Totalidad de stock cargado al DCR: ${document.getElementById('dcrRate').value}%\n\n`;
 
-        text += `2. *Cobertura e Inventario:*\n\n`;
+        text += `-- *Cobertura e Inventario:* --\n\n`;
         text += `Cobertura CN5c: ${document.getElementById('coverage50Pro').value}\n`;
         text += `Cobertura CN7c: ${document.getElementById('coverage50Ultra').value}\n\n`;
         text += `Problemas de stock: ${document.getElementById('stockIssues').value}\n\n`;
@@ -496,12 +498,13 @@
         if (isR2Active() && document.getElementById('retailerName2').value !== "") {
             text += `_*Info sobre: ${document.getElementById('retailerName2').value}*_\n`;
             text += `* Tiendas objetivo: ${document.getElementById('shopsQty2').value}\n\n`;
-            text += `*Ventas (R2):*\n`;
+            
             text += `Meta CAMON 50: ${document.getElementById('salesTarget2').value}\n`;
             text += `Venta Hoy: ${document.getElementById('todaySales2').value}\n`;
             text += `Total acumulado: ${document.getElementById('accumulatedSales2').value}\n`;
             text += `Totalidad de stock cargado al DCR: ${document.getElementById('dcrRate2').value}%\n\n`;
-            text += `*Cobertura (R2):*\n`;
+            
+            text += `-- *Cobertura e Inventario:* --\n\n`;
             text += `Cobertura CN5c: ${document.getElementById('coverage50Pro2').value}\n`;
             text += `Cobertura CN7c: ${document.getElementById('coverage50Ultra2').value}\n\n`;
             text += `Problemas de stock: ${document.getElementById('stockIssues2').value}\n\n`;
@@ -519,7 +522,7 @@
             
             // Estructura exigida: *BARQUI* - Carga de stock (2) \n ↳ _BARQUI_
             text += `*${getStoreName(b)}* - ${b.querySelector('.store-status').value}`;
-            if(qty) text += ` (${qty})`;
+            if(qty) text += ` (${qty} unidades)`;
             text += `\n`;
             if(act) text += `   ↳ _${act}_\n`;
             text += `\n`;
