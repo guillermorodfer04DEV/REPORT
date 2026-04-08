@@ -33,19 +33,15 @@
         .image-item img { width: 200px; height: 200px; object-fit: cover; border-radius: 6px; margin-bottom: 10px; }
         .btn-group { display: flex; flex-direction: column; gap: 12px; margin-top: 35px; }
         @media (min-width: 768px) { .btn-group { flex-direction: row; flex-wrap: wrap; } }
-        .btn-final { flex: 1; min-width: 200px; padding: 18px; border: none; border-radius: 10px; color: white; font-weight: bold; font-size: 16px; cursor: pointer; }
+        .btn-final { flex: 1; min-width: 200px; padding: 18px; border: none; border-radius: 10px; color: white; font-weight: bold; font-size: 16px; cursor: pointer; text-align: center; text-decoration: none; }
         .hidden { display: none !important; }
 
-        .navbar { display: flex; justify-content: space-between; align-items: center; background-color: #ffffff; padding: 10px 40px; border-bottom: 2px solid #0056b3; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        .btn-back-menu { position: fixed; top: 15px; left: 15px; z-index: 9999; text-decoration: none; background-color: #f0f4f8; color: #0056b3; padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; transition: all 0.3s ease; border: 2px solid #0056b3; box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
-        .btn-back-menu:hover { background-color: #0056b3; color: #ffffff; transform: scale(1.05); }
+        .btn-back-menu { position: fixed; top: 15px; left: 15px; z-index: 9999; text-decoration: none; background-color: #f0f4f8; color: #0056b3; padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; border: 2px solid #0056b3; box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
     </style>
 </head>
 <body>
 
-<nav class="navbar">
-    <a href="index.html" class="btn-back-menu">Volver al inicio</a>
-</nav>
+<a href="index.html" class="btn-back-menu">Volver al inicio</a>
 
 <div class="container">
     <header><h1>Reporte Diario TECNO</h1></header>
@@ -123,13 +119,13 @@
 
             <div class="section-title" style="border-left-color: var(--tecno-orange); background: #fff3e0;">2.1 Cobertura e Inventario - <span id="display-name-r2-cov">Retailer 2</span></div>
             <div class="grid">
-                <div class="form-group"><label>Cobertura CN5c</label><input type="text" id="coverage50Pro2"></div>
-                <div class="form-group"><label>Cobertura CN7c</label><input type="text" id="coverage50Ultra2"></div>
+                <div class="form-group"><label>Cobertura CN5c (R2)</label><input type="text" id="coverage50Pro2"></div>
+                <div class="form-group"><label>Cobertura CN7c (R2)</label><input type="text" id="coverage50Ultra2"></div>
             </div>
         </div>
 
         <div class="form-group" style="margin-top:15px;">
-            <label>Problemas de Inventario General</label>
+            <label>Problemas de Inventario</label>
             <textarea id="stockIssues" rows="2"></textarea>
         </div>
 
@@ -156,6 +152,12 @@
             <button type="button" class="btn-final" style="background: #2b579a;" onclick="exportWord()">Descargar Word</button>
             <button type="button" class="btn-final" style="background: var(--wsp-green);" onclick="copiarWhatsApp()">Copiar para WhatsApp</button>
         </div>
+
+        <div class="btn-group2">
+            <a href="https://docs.google.com/spreadsheets/d/168u-0pUmNMGVExY8duQJksMGCAjfxyPd44q0P-ESoKk/edit?gid=0#gid=0" class="btn-final" style="background: #4dabf7; margin-top: 25px; display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                Ir a la Nube
+            </a>
+        </div>
     </form>
 </div>
 
@@ -163,6 +165,7 @@
     document.getElementById('date').valueAsDate = new Date();
     let photos = [];
 
+    // Lógica Retailer 2
     function toggleSecondRetailer() {
         const rowName = document.getElementById('row-retailer-2');
         const sections = document.getElementById('sections-retailer-2');
@@ -173,13 +176,13 @@
     function updateRetailerTitles() {
         const r1 = document.getElementById('retailerName').value || "Retailer 1";
         const r2 = document.getElementById('retailerName2').value || "Retailer 2";
-        
         document.getElementById('display-name-r1').innerText = r1;
         document.getElementById('display-name-r1-cov').innerText = r1;
         document.getElementById('display-name-r2').innerText = r2;
         document.getElementById('display-name-r2-cov').innerText = r2;
     }
 
+    // Tiendas
     function addStore() {
         const id = Date.now();
         const div = document.createElement('div');
@@ -203,22 +206,14 @@
                     <label>Estatus</label>
                     <select class="store-status" onchange="toggleStoreFields(this, ${id})">
                         <option value="Informacion recopilada">Información recopilada</option>
-                        <option value="Entrega de Material POP a tienda">Entrega de Material POP a tienda</option>
                         <option value="Vitrina arreglada">Vitrina arreglada</option>
-                        <option value="Problemas en vitrina">Problemas en vitrina</option>
-                        <option value="Entrega de obsequios a tienda">Entrega de obsequios a tienda</option>
                         <option value="Ventas">Ventas</option>
                         <option value="Carga de stock">Carga de stock</option>
                     </select>
                 </div>
             </div>
             <div class="form-group hidden" id="qty-container-${id}" style="margin-top:12px;">
-                <label>Cantidad</label>
-                <input type="number" class="store-qty" placeholder="Ingrese cantidad numérica">
-            </div>
-            <div class="form-group hidden" id="rotative-container-${id}" style="flex-direction: row; align-items: center; gap: 8px; margin-top: 12px;">
-                <input type="checkbox" class="store-rotativa" style="width: 18px; height: 18px; margin: 0; cursor: pointer;">
-                <label style="margin: 0; cursor: pointer;">Exhibición Rotativa</label>
+                <label>Cantidad</label><input type="number" class="store-qty">
             </div>
             <textarea class="store-actions" style="margin-top:10px;" placeholder="Acciones realizadas..."></textarea>
             <button type="button" class="btn-remove" onclick="document.getElementById('store-${id}').remove()">Eliminar</button>
@@ -227,9 +222,8 @@
     }
 
     function toggleStoreFields(select, id) {
-        const val = select.value;
-        document.getElementById(`rotative-container-${id}`).classList.toggle('hidden', !["Vitrina arreglada", "Problemas en vitrina"].includes(val));
-        document.getElementById(`qty-container-${id}`).classList.toggle('hidden', !["Ventas", "Carga de stock"].includes(val));
+        const qtyContainer = document.getElementById(`qty-container-${id}`);
+        qtyContainer.classList.toggle('hidden', !["Ventas", "Carga de stock"].includes(select.value));
     }
 
     function checkOtherShop(select, id) {
@@ -241,22 +235,14 @@
         return (select.value === "OTHER SHOP") ? block.querySelector('.store-name-custom').value : select.value;
     }
 
-    function handleImages(e) {
-        Array.from(e.target.files).forEach(file => {
+    // Fotos
+    function handleImages(e) { handleFiles(e.target.files, 'Vitrina Antes', ''); }
+    function handleCompImages(e) { handleFiles(e.target.files, 'Competencia', 'Adjunto'); }
+    function handleFiles(files, cat, tienda) {
+        Array.from(files).forEach(file => {
             const reader = new FileReader();
             reader.onload = (ev) => {
-                photos.push({ src: ev.target.result, name: file.name, category: 'Vitrina Antes', tienda: '' });
-                renderPhotos();
-            };
-            reader.readAsDataURL(file);
-        });
-    }
-
-    function handleCompImages(e) {
-        Array.from(e.target.files).forEach(file => {
-            const reader = new FileReader();
-            reader.onload = (ev) => {
-                photos.push({ src: ev.target.result, name: file.name, category: 'Competencia', tienda: 'Adjunto' });
+                photos.push({ src: ev.target.result, name: file.name, category: cat, tienda: tienda });
                 renderPhotos();
             };
             reader.readAsDataURL(file);
@@ -272,41 +258,102 @@
             item.innerHTML = `
                 <img src="${p.src}">
                 <div class="image-controls">
-                    <input type="text" placeholder="Tienda/Ref" value="${p.tienda}" onchange="photos[${i}].tienda = this.value">
-                    <select onchange="photos[${i}].category = this.value">
-                        <option value="Vitrina Antes" ${p.category === 'Vitrina Antes' ? 'selected' : ''}>Antes</option>
-                        <option value="Vitrina Después" ${p.category === 'Vitrina Después' ? 'selected' : ''}>Después</option>
-                        <option value="Competencia" ${p.category === 'Competencia' ? 'selected' : ''}>Competencia</option>
-                        <option value="Adjunto" ${p.category === 'Adjunto' ? 'selected' : ''}>Adjunto</option>
-                    </select>
-                    <button type="button" style="color:red; background:none; border:none; margin-top:5px; cursor:pointer; width:100%;" onclick="photos.splice(${i},1); renderPhotos();">Borrar</button>
+                    <input type="text" placeholder="Ref" value="${p.tienda}" onchange="photos[${i}].tienda = this.value">
+                    <button type="button" style="color:red; background:none; border:none; cursor:pointer;" onclick="photos.splice(${i},1); renderPhotos();">Borrar</button>
                 </div>
             `;
             container.appendChild(item);
         });
     }
 
+    // --- EXPORTACIÓN A LA NUBE (RESTAURADO) ---
     async function enviarAGoogleSheets() {
-        const btn = event.target;
         if (!document.getElementById('staffName').value) { alert("Selecciona un especialista"); return; }
+        const btn = event.target;
         btn.innerText = "Sincronizando..."; btn.disabled = true;
-        
-        // (Lógica de envío simplificada para este ejemplo, mantiene tu Webhook original)
-        alert("¡Sincronización completa!");
-        btn.innerText = "Exportar Excel A La Nube"; btn.disabled = false;
+
+        const tiendasData = Array.from(document.querySelectorAll('.store-block')).map(b => ({
+            nombre: getStoreName(b),
+            estatus: b.querySelector('.store-status').value,
+            cantidad: b.querySelector('.store-qty').value || "N/A",
+            acciones: b.querySelector('.store-actions').value
+        }));
+
+        const datos = {
+            fecha: document.getElementById('date').value,
+            especialista: document.getElementById('staffName').value,
+            cargo: document.getElementById('role').value,
+            region: document.getElementById('region').value,
+            // Retailer 1
+            retailer: document.getElementById('retailerName').value,
+            tiendasObjetivo: document.getElementById('shopsQty').value,
+            metaCamon: document.getElementById('salesTarget').value,
+            ventaHoy: document.getElementById('todaySales').value,
+            acumulado: document.getElementById('accumulatedSales').value,
+            dcr: document.getElementById('dcrRate').value,
+            covPro: document.getElementById('coverage50Pro').value,
+            covUltra: document.getElementById('coverage50Ultra').value,
+            // Retailer 2
+            retailer2: document.getElementById('retailerName2').value,
+            tiendasObjetivo2: document.getElementById('shopsQty2').value,
+            metaCamon2: document.getElementById('salesTarget2').value,
+            ventaHoy2: document.getElementById('todaySales2').value,
+            acumulado2: document.getElementById('accumulatedSales2').value,
+            dcr2: document.getElementById('dcrRate2').value,
+            covPro2: document.getElementById('coverage50Pro2').value,
+            covUltra2: document.getElementById('coverage50Ultra2').value,
+            
+            probStock: document.getElementById('stockIssues').value,
+            competencia: document.getElementById('competitorActions').value,
+            dinamica: document.getElementById('marketDynamics').value,
+            tiendas: tiendasData,
+            fotos: photos
+        };
+
+        const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbzjFY3EJICcNvQI3VNqUej7uTehPvjEWRKZiU9g_-of1vuMvfYWu650-mlhWwmR_cXzDg/exec";
+        try {
+            await fetch(WEBHOOK_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(datos) });
+            alert("¡Sincronización completa!");
+        } catch (e) {
+            alert("Error de conexión al servidor.");
+        } finally {
+            btn.innerText = "Exportar Excel A La Nube"; btn.disabled = false;
+        }
     }
 
-    function exportWord() { alert("Generando Word..."); }
-
-    function copiarWhatsApp() {
-        const r1 = document.getElementById('retailerName').value;
-        const r2 = document.getElementById('retailerName2').value;
-        const isR2Active = !document.getElementById('sections-retailer-2').classList.contains('hidden');
-
-        let text = `_*Reporte de Gestión Diario TECNO*_\n\n*Especialista:* ${document.getElementById('staffName').value}\n*Ruta:* ${document.getElementById('region').value}\n\n`;
-        text += `1. *Ventas ${r1}:* Hoy: ${document.getElementById('todaySales').value} | Acum: ${document.getElementById('accumulatedSales').value}\n`;
-        if(isR2Active) text += `1.1 *Ventas ${r2}:* Hoy: ${document.getElementById('todaySales2').value} | Acum: ${document.getElementById('accumulatedSales2').value}\n`;
+    // --- WORD (RESTAURADO CON R2) ---
+    function exportWord() {
+        const name = document.getElementById('staffName').value || 'Reporte';
+        const date = document.getElementById('date').value;
+        const r2Active = !document.getElementById('sections-retailer-2').classList.contains('hidden');
         
+        let content = `<html><body><h2>REPORTE DIARIO TECNO</h2><p>Especialista: ${name}</p>`;
+        content += `<h3>1. Ventas ${document.getElementById('retailerName').value}</h3><p>Hoy: ${document.getElementById('todaySales').value}</p>`;
+        if(r2Active) content += `<h3>1.1 Ventas ${document.getElementById('retailerName2').value}</h3><p>Hoy: ${document.getElementById('todaySales2').value}</p>`;
+        content += `</body></html>`;
+
+        const blob = new Blob(['\ufeff', content], { type: 'application/msword' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `Reporte_${name}_${date}.doc`;
+        link.click();
+    }
+
+    // --- WHATSAPP (RESTAURADO CON R2) ---
+    function copiarWhatsApp() {
+        const r1 = document.getElementById('retailerName').value || "R1";
+        const r2 = document.getElementById('retailerName2').value || "R2";
+        const isR2 = !document.getElementById('sections-retailer-2').classList.contains('hidden');
+
+        let text = `_*Reporte Diario TECNO*_\n\n*Especialista:* ${document.getElementById('staffName').value}\n`;
+        text += `\n*1. Ventas ${r1}:*\nHoy: ${document.getElementById('todaySales').value}\nAcumulado: ${document.getElementById('accumulatedSales').value}\n`;
+        
+        if(isR2) {
+            text += `\n*1.1 Ventas ${r2}:*\nHoy: ${document.getElementById('todaySales2').value}\nAcumulado: ${document.getElementById('accumulatedSales2').value}\n`;
+        }
+        
+        text += `\n*Mercado:* ${document.getElementById('marketDynamics').value}`;
+
         navigator.clipboard.writeText(text).then(() => alert("¡Copiado para WhatsApp!"));
     }
 
