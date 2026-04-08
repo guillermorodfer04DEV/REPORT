@@ -344,6 +344,9 @@
 
         const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbzjFY3EJICcNvQI3VNqUej7uTehPvjEWRKZiU9g_-of1vuMvfYWu650-mlhWwmR_cXzDg/exec";
 
+        
+        const fotosConcatenadas = photos.map(p => `${p.categoria} (${p.nombreTienda}): ${p.src}`).join("\n");
+        
         const baseData = {
             fecha: document.getElementById('date').value,
             especialista: document.getElementById('staffName').value,
@@ -352,7 +355,7 @@
             
             competencia: document.getElementById('competitorActions').value,
             dinamica: document.getElementById('marketDynamics').value,
-            fotos: photos
+            fotos: fotosConcatenadas
         };
 
         const payloadR1 = {
