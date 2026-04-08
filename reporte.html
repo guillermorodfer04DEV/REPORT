@@ -131,7 +131,7 @@
 
             <div class="form-group" style="margin-top:15px;">
                 <label>Problemas de Inventario de <span id="display-name-r2">Retailer 2</span></label>
-                <textarea id="stockIssues" rows="2"></textarea>
+                <textarea id="stockIssues2" rows="2"></textarea>
             </div>
         </div>
 
@@ -219,17 +219,15 @@
                     <select class="store-status" onchange="toggleStoreFields(this, ${id})">
                         <option value="Informacion recopilada">Información recopilada</option>
                         <option value="Vitrina arreglada">Vitrina arreglada</option>
-                        <option value="Ventas">Ventas</option>
-                        <option value="Carga de stock">Carga de stock</option>
-                        <option value="Negociación">Negociación</option>
-                        <option value="Implementación POP">Implementación POP</option>
-                        <option value="No visitada">No visitada</option>
-                        <option value="Tienda Cerrada">Tienda Cerrada</option>
+                        <option value="Problema con vitrina">Problema con vitrina</option>
+                        <option value="Entrega de material POP">Entrega de material POP</option>
+                        <option value="Entrega de obsequios">Entrega de obsequios</option>
                     </select>
                 </div>
             </div>
             <div class="form-group hidden" id="qty-container-${id}" style="margin-top:12px;">
-                <label>Cantidad (Ventas/Stock)</label><input type="number" class="store-qty">
+                <label>Carga de stock</label><input type="number" class="store-qty">
+                <label>Carga de ventas</label><input type="number" class="store-qty">
             </div>
             <textarea class="store-actions" style="margin-top:10px;" placeholder="Acciones realizadas o justificación..."></textarea>
             <button type="button" class="btn-remove" onclick="document.getElementById('store-${id}').remove()">Eliminar Tienda</button>
@@ -283,19 +281,18 @@
             item.innerHTML = `
                 <img src="${p.src}">
                 <div style="display:flex; flex-direction:column; gap:5px;">
+
+                    <input type="text" placeholder="Nombre de la tienda/ref" value="${p.nombreTienda}" onchange="photos[${i}].nombreTienda = this.value" style="padding:5px; font-size:12px;">
                     <select onchange="photos[${i}].categoria = this.value" style="padding:5px; font-size:12px;">
                         <option value="${p.categoria}">${p.categoria || "Seleccione Categoría..."}</option>
-                        <option value="GLOBAL CELL">GLOBAL CELL</option>
-                        <option value="TECNO CORP">TECNO CORP</option>
-                        <option value="NC PHONE">NC PHONE</option>
-                        <option value="DAMASCO">DAMASCO</option>
-                        <option value="CANGURO">CANGURO</option>
-                        <option value="Competencia">Competencia</option>
-                        <option value="Material POP">Material POP</option>
-                        <option value="Fachada">Fachada</option>
-                        <option value="Vitrina">Vitrina</option>
+                        <option value="Competencia">DAMASCO</option>
+                        <option value="Obsequios">CANGURO</option>
+                        <option value="Material POP">Competencia</option>
+                        <option value="Adjunto">Material POP</option>
+                        <option value="Vitrina Despues</option>
+                        <option value="Vitrina Antes">Vitrina</option>
                     </select>
-                    <input type="text" placeholder="Nombre de la tienda/ref" value="${p.nombreTienda}" onchange="photos[${i}].nombreTienda = this.value" style="padding:5px; font-size:12px;">
+                    
                     
                     <button type="button" style="color:white; background:#dc3545; border:none; padding:5px; border-radius:4px; cursor:pointer;" onclick="photos.splice(${i},1); renderPhotos();">Eliminar</button>
                 </div>
@@ -455,9 +452,9 @@
         text += `* Especialista: ${document.getElementById('staffName').value}\n`;
         text += `* Cargo: ${document.getElementById('role').value}\n`;
         text += `* Región/Ruta: Barquisimeto | ${document.getElementById('region').value}\n`;
-        text += `* Retailer Principal (KA): ${document.getElementById('retailerName').value}\n`;
-        text += `* Tiendas objetivo: ${document.getElementById('shopsQty').value}\n\n`;
 
+        text += `_*Info sobre: ${document.getElementById('retailerName').value}*_\n`;
+        text += `* Tiendas objetivo: ${document.getElementById('shopsQty').value}\n\n`;
         text += `1. *Ventas:*\n\n`;
         text += `Meta CAMON 50: ${document.getElementById('salesTarget').value}\n`;
         text += `Venta Hoy: ${document.getElementById('todaySales').value}\n`;
@@ -467,12 +464,11 @@
         text += `2. *Cobertura e Inventario:*\n\n`;
         text += `Cobertura CN5c: ${document.getElementById('coverage50Pro').value}\n`;
         text += `Cobertura CN7c: ${document.getElementById('coverage50Ultra').value}\n\n`;
-        text += `Problemas: ${document.getElementById('stockIssues').value}\n\n`;
+        text += `Problemas de stock: ${document.getElementById('stockIssues').value}\n\n`;
 
         // Se inyecta R2 si está activo
         if (isR2Active() && document.getElementById('retailerName2').value !== "") {
-            text += `--- *INFO RETAILER 2* ---\n`;
-            text += `* Retailer Secundario: ${document.getElementById('retailerName2').value}\n`;
+            text += `_*Info sobre: ${document.getElementById('retailerName2').value}*_\n`;
             text += `* Tiendas objetivo: ${document.getElementById('shopsQty2').value}\n\n`;
             text += `*Ventas (R2):*\n`;
             text += `Meta CAMON 50: ${document.getElementById('salesTarget2').value}\n`;
@@ -482,6 +478,7 @@
             text += `*Cobertura (R2):*\n`;
             text += `Cobertura CN5c: ${document.getElementById('coverage50Pro2').value}\n`;
             text += `Cobertura CN7c: ${document.getElementById('coverage50Ultra2').value}\n\n`;
+            text += `Problemas de stock: ${document.getElementById('stockIssues2').value}\n\n`;
         }
 
         text += `3. *Analisis de Mercado:*\n\n`;
