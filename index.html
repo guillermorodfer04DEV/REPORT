@@ -306,18 +306,37 @@
         }
     }
 
+    // --- FUNCIÓN DE WORD CORREGIDA ---
     function exportWord() {
         const date = document.getElementById('date').value || new Date().toISOString().split('T')[0];
         const name = document.getElementById('staffName').value || 'Especialista';
-        
+        const role = document.getElementById('role').value;
+        const region = document.getElementById('region').value;
+        const retailer = document.getElementById('retailerName').value;
+        const shopsQty = document.getElementById('shopsQty').value;
+
+        // Captura de datos de ventas y cobertura
+        const salesData = {
+            meta: document.getElementById('salesTarget').value,
+            hoy: document.getElementById('todaySales').value,
+            acumulado: document.getElementById('accumulatedSales').value,
+            dcr: document.getElementById('dcrRate').value
+        };
+
+        const coverageData = {
+            pro: document.getElementById('coverage50Pro').value,
+            ultra: document.getElementById('coverage50Ultra').value,
+            problemas: document.getElementById('stockIssues').value
+        };
+
         let storesHtml = "";
         document.querySelectorAll('.store-block').forEach(b => {
             const qty = b.querySelector('.store-qty').value;
             storesHtml += `
-                <div style="border:1px solid #ccc; padding:10px; margin-bottom:10px;">
+                <div style="border:1px solid #ccc; padding:10px; margin-bottom:10px; background:#fafafa;">
                     <p><b>Tienda:</b> ${getStoreName(b)}</p>
                     <p><b>Estatus:</b> ${b.querySelector('.store-status').value}</p>
-                    ${qty ? `<p><b>Cantidad:</b> ${qty}</p>` : ''}
+                    ${qty !== "" ? `<p><b>Cantidad:</b> ${qty}</p>` : ''}
                     <p><b>Rotativa:</b> ${b.querySelector('.store-rotativa').checked ? 'Sí' : 'No'}</p>
                     <p><b>Acciones:</b> ${b.querySelector('.store-actions').value}</p>
                 </div>`;
@@ -325,26 +344,64 @@
 
         let photosHtml = "";
         photos.forEach(p => {
-            photosHtml += `<div style="text-align:center;"><p><b>${p.tienda} - ${p.category}</b></p><img src="${p.src}" width="250"></div>`;
+            photosHtml += `
+                <div style="text-align:center; margin-bottom:20px;">
+                    <p><b>${p.tienda || 'General'} - ${p.category}</b></p>
+                    <img src="${p.src}" width="300" style="border:1px solid #ddd; border-radius:5px;">
+                </div>`;
         });
 
-        const content = `
-        <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
-        <head><meta charset='utf-8'></head>
-        <body style="font-family:Arial;">
-            <h2 style="color:#0056b3; text-align:center;">Reporte de Gestión TECNO</h2>
-            <p><b>Fecha:</b> ${date} | <b>Especialista:</b> ${name}</p>
-            <h3>Detalle por Tienda</h3>
-            ${storesHtml}
-            <h3>Evidencia</h3>
-            ${photosHtml}
-        </body></html>`;
+        const header = `
+            <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+            <head><meta charset='utf-8'><title>Reporte TECNO</title>
+            <style>
+                body { font-family: 'Segoe UI', Arial, sans-serif; color: #333; }
+                h2 { color: #0056b3; text-align: center; border-bottom: 2px solid #0056b3; padding-bottom: 10px; }
+                h3 { color: #0056b3; background: #f0f0f0; padding: 8px; margin-top: 20px; border-left: 5px solid #0056b3; }
+                .field { margin-bottom: 5px; }
+                b { color: #000; }
+            </style>
+            </head>
+            <body>
+                <h2>REPORTE DE GESTIÓN DIARIO TECNO</h2>
+                <div class="field"><b>Fecha:</b> ${date}</div>
+                <div class="field"><b>Especialista:</b> ${name}</div>
+                <div class="field"><b>Cargo:</b> ${role}</div>
+                <div class="field"><b>Región / Ruta:</b> ${region}</div>
+                <div class="field"><b>Retailer Principal:</b> ${retailer}</div>
+                <div class="field"><b>Tiendas Objetivo:</b> ${shopsQty}</div>
 
-        const blob = new Blob(['\ufeff', content], { type: 'application/msword' });
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = `Reporte_TECNO_${name}_${date}.doc`;
-        a.click();
+                <h3>1. Desempeño de Ventas</h3>
+                <div class="field"><b>Meta CAMON 50:</b> ${salesData.meta}</div>
+                <div class="field"><b>Venta Hoy:</b> ${salesData.hoy}</div>
+                <div class="field"><b>Acumulado Mes:</b> ${salesData.acumulado}</div>
+                <div class="field"><b>Cargado DCR:</b> ${salesData.dcr}%</div>
+
+                <h3>2. Cobertura e Inventario</h3>
+                <div class="field"><b>Cobertura Pro:</b> ${coverageData.pro}</div>
+                <div class="field"><b>Cobertura Ultra:</b> ${coverageData.ultra}</div>
+                <div class="field"><b>Problemas de Stock:</b> ${coverageData.problemas}</div>
+
+                <h3>3. Mercado</h3>
+                <div class="field"><b>Competencia:</b> ${document.getElementById('competitorActions').value}</div>
+                <div class="field"><b>Dinámica:</b> ${document.getElementById('marketDynamics').value}</div>
+
+                <h3>4. Detalle por Tienda</h3>
+                ${storesHtml || '<p>No se agregaron tiendas en este reporte.</p>'}
+
+                <h3>5. Evidencia Fotográfica</h3>
+                ${photosHtml || '<p>No se adjuntaron fotografías.</p>'}
+            </body></html>`;
+
+        const blob = new Blob(['\ufeff', header], { type: 'application/msword' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `Reporte_TECNO_${name}_${date}.doc`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
     }
 
     function copiarWhatsApp() {
