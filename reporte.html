@@ -514,6 +514,7 @@
         text += `4. *Detalle por Tienda:*\n\n`;
         document.querySelectorAll('.store-block').forEach(b => {
             const qty = b.querySelector('.store-qty').value;
+            const isRot = b.querySelector('.store-rotative').checked ? " [🔄 Rotativa]" : "";
             const act = b.querySelector('.store-actions').value;
             
             // Estructura exigida: *BARQUI* - Carga de stock (2) \n ↳ _BARQUI_
