@@ -55,8 +55,7 @@
                     <option value="">Seleccione...</option>
                     <option value="José Reina">José Reina</option>
                     <option value="Guillermo Rodríguez">Guillermo Rodríguez</option>
-                    <option value="Eduimar Rojas">Eduimar Rojas</option>
-                    <option value="Alexandra Amaro">Alexandra Amaro</option>
+                    <option value="Alexandra Amaro">Alexandra Guaimare</option>
                 </select>
             </div>
             <div class="form-group"><label>Cargo</label><input type="text" id="role" value="Especialista"></div>
@@ -213,6 +212,10 @@
                         <option value="OTHER SHOP">OTHER SHOP</option>
                     </select>
                     <input type="text" class="store-name-custom" id="custom-name-${id}" style="display:none; margin-top:10px;" placeholder="Escriba el nombre...">
+                <div class="form-group hidden" id="rotative-container-${id}" style="margin-top: 10px; flex-direction: row; align-items: center; gap: 8px; display: none;">
+                        <input type="checkbox" class="store-rotative" style="width: 20px; height: 20px; cursor: pointer;">
+                        <label style="margin-bottom: 0;">Vitrina Rotativa</label>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label>Estatus</label>
@@ -222,11 +225,9 @@
                         <option value="Problema con vitrina">Problema con vitrina</option>
                         <option value="Entrega de material POP">Entrega de material POP</option>
                         <option value="Entrega de obsequios">Entrega de obsequios</option>
+                        <option value="Carga de stock">Carga de stock</option>
+                        <option value="Carga de ventas">Carga de ventas</option>
                     </select>
-                    <div class="form-group hidden" id="rotative-container-${id}" style="margin-top: 10px; flex-direction: row; align-items: center; gap: 8px; display: none;">
-                        <input type="checkbox" class="store-rotative" style="width: 20px; height: 20px; cursor: pointer;">
-                        <label style="margin-bottom: 0;">Vitrina Rotativa</label>
-                    </div>
                 </div>
             </div>
             <div class="form-group hidden" id="qty-container-${id}" style="margin-top:12px;">
