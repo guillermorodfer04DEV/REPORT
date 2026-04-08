@@ -273,7 +273,13 @@
         });
 
         const fotosData = photos.map(p => {
-            const esOther = tiendasData.some(t => t.nombre === p.tienda && t.destino_carpeta === "Carpeta_Especial");
+            // Limpiamos espacios y pasamos a mayúsculas para evitar errores de tipeo
+            const nombreFoto = (p.tienda || "").trim().toUpperCase();
+            const tiendasPrincipales = ["GLOBAL CELL", "TECNO CORP", "NC PHONE", "DAMASCO", "CANGURO"];
+            
+            // Es "otra tienda" si tiene un nombre, no es "COMPETENCIA" y no pertenece a las principales
+            const esOther = nombreFoto !== "" && nombreFoto !== "COMPETENCIA" && !tiendasPrincipales.includes(nombreFoto);
+            
             return { ...p, destino: esOther ? "Carpeta_Especial" : "Principal" };
         });
 
