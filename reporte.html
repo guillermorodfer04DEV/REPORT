@@ -30,7 +30,7 @@
         .store-block { border: 1px solid #e0e0e0; padding: 15px; margin-top: 10px; border-radius: 10px; background: #fdfdfd; }
         .image-preview-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-top: 15px; }
         .image-item { border: 1px solid #ddd; padding: 10px; border-radius: 10px; background: #fff; text-align: center; }
-        .image-item img { width: 200px; height: 200px; object-fit: cover; border-radius: 6px; margin-bottom: 10px; }
+        .image-item img { width: 100%; height: 150px; object-fit: cover; border-radius: 6px; margin-bottom: 10px; }
         .btn-group { display: flex; flex-direction: column; gap: 12px; margin-top: 35px; }
         @media (min-width: 768px) { .btn-group { flex-direction: row; flex-wrap: wrap; } }
         .btn-final { flex: 1; min-width: 200px; padding: 18px; border: none; border-radius: 10px; color: white; font-weight: bold; font-size: 16px; cursor: pointer; text-align: center; text-decoration: none; }
@@ -64,7 +64,7 @@
 
         <div class="grid" style="margin-top:10px;">
             <div class="form-group">
-                <label>Minorista Objetivo 1 <button type="button" class="btn-add" style="padding: 2px 8px; margin-left: 10px;" onclick="toggleSecondRetailer()">+ Añadir Retailer</button></label>
+                <label>Minorista Objetivo 1 <button type="button" class="btn-add" style="padding: 2px 8px; margin-left: 10px;" onclick="toggleSecondRetailer()">+ Añadir Retailer 2</button></label>
                 <select id="retailerName" onchange="updateRetailerTitles()">
                     <option value="">Seleccione Retailer...</option>
                     <option value="GLOBAL CELL">GLOBAL CELL</option>
@@ -148,13 +148,13 @@
         <div class="image-preview-container" id="imagePreview"></div>
 
         <div class="btn-group">
-            <button type="button" class="btn-final" style="background: var(--tecno-green);" onclick="enviarAGoogleSheets()">Exportar Excel A La Nube</button>
+            <button type="button" class="btn-final" id="btnSincronizar" style="background: var(--tecno-green);" onclick="enviarAGoogleSheets()">Exportar Excel A La Nube</button>
             <button type="button" class="btn-final" style="background: #2b579a;" onclick="exportWord()">Descargar Word</button>
             <button type="button" class="btn-final" style="background: var(--wsp-green);" onclick="copiarWhatsApp()">Copiar para WhatsApp</button>
         </div>
 
         <div class="btn-group2">
-            <a href="https://docs.google.com/spreadsheets/d/168u-0pUmNMGVExY8duQJksMGCAjfxyPd44q0P-ESoKk/edit?gid=0#gid=0" class="btn-final" style="background: #4dabf7; margin-top: 25px; display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <a href="https://docs.google.com/spreadsheets/d/168u-0pUmNMGVExY8duQJksMGCAjfxyPd44q0P-ESoKk/edit?gid=0#gid=0" target="_blank" class="btn-final" style="background: #4dabf7; margin-top: 25px; display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
                 Ir a la Nube
             </a>
         </div>
@@ -165,7 +165,7 @@
     document.getElementById('date').valueAsDate = new Date();
     let photos = [];
 
-    // Lógica Retailer 2
+    // --- LÓGICA RETAILER 2 ---
     function toggleSecondRetailer() {
         const rowName = document.getElementById('row-retailer-2');
         const sections = document.getElementById('sections-retailer-2');
@@ -182,7 +182,11 @@
         document.getElementById('display-name-r2-cov').innerText = r2;
     }
 
-    // Tiendas
+    function isR2Active() {
+        return !document.getElementById('sections-retailer-2').classList.contains('hidden');
+    }
+
+    // --- TIENDAS ---
     function addStore() {
         const id = Date.now();
         const div = document.createElement('div');
@@ -209,14 +213,18 @@
                         <option value="Vitrina arreglada">Vitrina arreglada</option>
                         <option value="Ventas">Ventas</option>
                         <option value="Carga de stock">Carga de stock</option>
+                        <option value="Negociación">Negociación</option>
+                        <option value="Implementación POP">Implementación POP</option>
+                        <option value="No visitada">No visitada</option>
+                        <option value="Tienda Cerrada">Tienda Cerrada</option>
                     </select>
                 </div>
             </div>
             <div class="form-group hidden" id="qty-container-${id}" style="margin-top:12px;">
-                <label>Cantidad</label><input type="number" class="store-qty">
+                <label>Cantidad (Ventas/Stock)</label><input type="number" class="store-qty">
             </div>
-            <textarea class="store-actions" style="margin-top:10px;" placeholder="Acciones realizadas..."></textarea>
-            <button type="button" class="btn-remove" onclick="document.getElementById('store-${id}').remove()">Eliminar</button>
+            <textarea class="store-actions" style="margin-top:10px;" placeholder="Acciones realizadas o justificación..."></textarea>
+            <button type="button" class="btn-remove" onclick="document.getElementById('store-${id}').remove()">Eliminar Tienda</button>
         `;
         document.getElementById('stores-container').appendChild(div);
     }
@@ -235,14 +243,23 @@
         return (select.value === "OTHER SHOP") ? block.querySelector('.store-name-custom').value : select.value;
     }
 
-    // Fotos
-    function handleImages(e) { handleFiles(e.target.files, 'Vitrina Antes', ''); }
-    function handleCompImages(e) { handleFiles(e.target.files, 'Competencia', 'Adjunto'); }
-    function handleFiles(files, cat, tienda) {
+    // --- FOTOS Y ADJUNTOS A LA NUBE ---
+    function handleImages(e) { handleFiles(e.target.files, 'Exhibicion'); }
+    function handleCompImages(e) { handleFiles(e.target.files, 'Competencia'); }
+    
+    function handleFiles(files, defaultRef) {
         Array.from(files).forEach(file => {
             const reader = new FileReader();
             reader.onload = (ev) => {
-                photos.push({ src: ev.target.result, name: file.name, category: cat, tienda: tienda });
+                // Separamos el base64 para enviarlo limpio a Google Sheets y poder crear el Link
+                const base64Data = ev.target.result.split(',')[1]; 
+                photos.push({ 
+                    src: ev.target.result, // Para mostrar en pantalla
+                    base64: base64Data,    // Para subir a Drive
+                    mimeType: file.type,   // Requerido para crear el archivo
+                    name: file.name,
+                    tienda: defaultRef 
+                });
                 renderPhotos();
             };
             reader.readAsDataURL(file);
@@ -255,22 +272,36 @@
         photos.forEach((p, i) => {
             const item = document.createElement('div');
             item.className = 'image-item';
+            // Restaurado el Select (Lista Desplegable) para asignar las imágenes
             item.innerHTML = `
                 <img src="${p.src}">
-                <div class="image-controls">
-                    <input type="text" placeholder="Ref" value="${p.tienda}" onchange="photos[${i}].tienda = this.value">
-                    <button type="button" style="color:red; background:none; border:none; cursor:pointer;" onclick="photos.splice(${i},1); renderPhotos();">Borrar</button>
+                <div style="display:flex; flex-direction:column; gap:5px;">
+                    <select onchange="photos[${i}].tienda = this.value" style="padding:5px; font-size:12px;">
+                        <option value="${p.tienda}">${p.tienda || "Seleccione Opción..."}</option>
+                        <option value="GLOBAL CELL">GLOBAL CELL</option>
+                        <option value="TECNO CORP">TECNO CORP</option>
+                        <option value="NC PHONE">NC PHONE</option>
+                        <option value="DAMASCO">DAMASCO</option>
+                        <option value="CANGURO">CANGURO</option>
+                        <option value="Competencia">Competencia</option>
+                        <option value="Material POP">Material POP</option>
+                        <option value="Fachada">Fachada</option>
+                        <option value="Vitrina">Vitrina</option>
+                    </select>
+                    <button type="button" style="color:white; background:#dc3545; border:none; padding:5px; border-radius:4px; cursor:pointer;" onclick="photos.splice(${i},1); renderPhotos();">Eliminar</button>
                 </div>
             `;
             container.appendChild(item);
         });
     }
 
-    // --- EXPORTACIÓN A LA NUBE (RESTAURADO) ---
+    // --- 1. EXPORTACIÓN A GOOGLE SHEETS (DOBLE FILA SI R2 EXISTE) ---
     async function enviarAGoogleSheets() {
         if (!document.getElementById('staffName').value) { alert("Selecciona un especialista"); return; }
-        const btn = event.target;
-        btn.innerText = "Sincronizando..."; btn.disabled = true;
+        
+        const btn = document.getElementById('btnSincronizar');
+        btn.innerText = "Sincronizando a la Nube..."; 
+        btn.disabled = true;
 
         const tiendasData = Array.from(document.querySelectorAll('.store-block')).map(b => ({
             nombre: getStoreName(b),
@@ -279,12 +310,24 @@
             acciones: b.querySelector('.store-actions').value
         }));
 
-        const datos = {
+        const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbzjFY3EJICcNvQI3VNqUej7uTehPvjEWRKZiU9g_-of1vuMvfYWu650-mlhWwmR_cXzDg/exec";
+
+        // Objeto Base (Datos que se repiten para ambos Retailers)
+        const baseData = {
             fecha: document.getElementById('date').value,
             especialista: document.getElementById('staffName').value,
             cargo: document.getElementById('role').value,
             region: document.getElementById('region').value,
-            // Retailer 1
+            probStock: document.getElementById('stockIssues').value,
+            competencia: document.getElementById('competitorActions').value,
+            dinamica: document.getElementById('marketDynamics').value,
+            tiendas: tiendasData,
+            fotos: photos // Ahora las fotos llevan el Base64 listo para Google Drive
+        };
+
+        // 1.1 Configurar Fila del Retailer 1
+        const payloadR1 = {
+            ...baseData,
             retailer: document.getElementById('retailerName').value,
             tiendasObjetivo: document.getElementById('shopsQty').value,
             metaCamon: document.getElementById('salesTarget').value,
@@ -292,45 +335,91 @@
             acumulado: document.getElementById('accumulatedSales').value,
             dcr: document.getElementById('dcrRate').value,
             covPro: document.getElementById('coverage50Pro').value,
-            covUltra: document.getElementById('coverage50Ultra').value,
-            // Retailer 2
-            retailer2: document.getElementById('retailerName2').value,
-            tiendasObjetivo2: document.getElementById('shopsQty2').value,
-            metaCamon2: document.getElementById('salesTarget2').value,
-            ventaHoy2: document.getElementById('todaySales2').value,
-            acumulado2: document.getElementById('accumulatedSales2').value,
-            dcr2: document.getElementById('dcrRate2').value,
-            covPro2: document.getElementById('coverage50Pro2').value,
-            covUltra2: document.getElementById('coverage50Ultra2').value,
-            
-            probStock: document.getElementById('stockIssues').value,
-            competencia: document.getElementById('competitorActions').value,
-            dinamica: document.getElementById('marketDynamics').value,
-            tiendas: tiendasData,
-            fotos: photos
+            covUltra: document.getElementById('coverage50Ultra').value
         };
 
-        const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbzjFY3EJICcNvQI3VNqUej7uTehPvjEWRKZiU9g_-of1vuMvfYWu650-mlhWwmR_cXzDg/exec";
         try {
-            await fetch(WEBHOOK_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(datos) });
-            alert("¡Sincronización completa!");
+            // Enviamos el Retailer 1
+            await fetch(WEBHOOK_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payloadR1) });
+
+            // 1.2 Si Retailer 2 está activo, armamos su propio paquete y lo enviamos como SEGUNDA FILA
+            if (isR2Active() && document.getElementById('retailerName2').value !== "") {
+                const payloadR2 = {
+                    ...baseData, // Usamos la misma fecha, especialista, fotos, etc.
+                    retailer: document.getElementById('retailerName2').value,
+                    tiendasObjetivo: document.getElementById('shopsQty2').value,
+                    metaCamon: document.getElementById('salesTarget2').value,
+                    ventaHoy: document.getElementById('todaySales2').value,
+                    acumulado: document.getElementById('accumulatedSales2').value,
+                    dcr: document.getElementById('dcrRate2').value,
+                    covPro: document.getElementById('coverage50Pro2').value,
+                    covUltra: document.getElementById('coverage50Ultra2').value
+                };
+                // Enviamos el Retailer 2 para crear la nueva fila
+                await fetch(WEBHOOK_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payloadR2) });
+            }
+
+            alert("¡Sincronización completa con la Nube!");
         } catch (e) {
             alert("Error de conexión al servidor.");
         } finally {
-            btn.innerText = "Exportar Excel A La Nube"; btn.disabled = false;
+            btn.innerText = "Exportar Excel A La Nube"; 
+            btn.disabled = false;
         }
     }
 
-    // --- WORD (RESTAURADO CON R2) ---
+    // --- 2. EXPORTAR WORD (PLANTILLA RESTAURADA) ---
     function exportWord() {
         const name = document.getElementById('staffName').value || 'Reporte';
         const date = document.getElementById('date').value;
-        const r2Active = !document.getElementById('sections-retailer-2').classList.contains('hidden');
         
-        let content = `<html><body><h2>REPORTE DIARIO TECNO</h2><p>Especialista: ${name}</p>`;
-        content += `<h3>1. Ventas ${document.getElementById('retailerName').value}</h3><p>Hoy: ${document.getElementById('todaySales').value}</p>`;
-        if(r2Active) content += `<h3>1.1 Ventas ${document.getElementById('retailerName2').value}</h3><p>Hoy: ${document.getElementById('todaySales2').value}</p>`;
-        content += `</body></html>`;
+        let content = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+        <head><meta charset='utf-8'><title>Reporte Diario TECNO</title>
+        <style>body { font-family: Arial, sans-serif; } h2 { color: #0056b3; } h3 { border-bottom: 1px solid #ccc; padding-bottom: 5px; } table { border-collapse: collapse; width: 100%; } th, td { border: 1px solid #000; padding: 8px; text-align: left; } th { background-color: #f2f2f2; }</style>
+        </head><body>`;
+        
+        content += `<h2>REPORTE DIARIO TECNO</h2>`;
+        content += `<ul><li><b>Fecha:</b> ${date}</li><li><b>Especialista:</b> ${name}</li><li><b>Ruta/C.C:</b> ${document.getElementById('region').value}</li></ul>`;
+
+        // Datos Retailer 1
+        content += `<h3>1. Desempeño y Cobertura: ${document.getElementById('retailerName').value}</h3>`;
+        content += `<ul>
+            <li><b>Meta CAMON:</b> ${document.getElementById('salesTarget').value}</li>
+            <li><b>Venta Hoy:</b> ${document.getElementById('todaySales').value}</li>
+            <li><b>Acumulado Mes:</b> ${document.getElementById('accumulatedSales').value}</li>
+            <li><b>Cargado al DCR:</b> ${document.getElementById('dcrRate').value}%</li>
+            <li><b>Cobertura C50 Pro:</b> ${document.getElementById('coverage50Pro').value}</li>
+            <li><b>Cobertura C50 Ultra:</b> ${document.getElementById('coverage50Ultra').value}</li>
+        </ul>`;
+
+        // Datos Retailer 2 (Solo si está visible)
+        if (isR2Active()) {
+            content += `<h3>1.1 Desempeño y Cobertura: ${document.getElementById('retailerName2').value}</h3>`;
+            content += `<ul>
+                <li><b>Meta CAMON:</b> ${document.getElementById('salesTarget2').value}</li>
+                <li><b>Venta Hoy:</b> ${document.getElementById('todaySales2').value}</li>
+                <li><b>Acumulado Mes:</b> ${document.getElementById('accumulatedSales2').value}</li>
+                <li><b>Cargado al DCR:</b> ${document.getElementById('dcrRate2').value}%</li>
+                <li><b>Cobertura C50 Pro:</b> ${document.getElementById('coverage50Pro2').value}</li>
+                <li><b>Cobertura C50 Ultra:</b> ${document.getElementById('coverage50Ultra2').value}</li>
+            </ul>`;
+        }
+
+        content += `<h3>2. Mercado y Competencia</h3>`;
+        content += `<p><b>Problemas de Stock:</b> ${document.getElementById('stockIssues').value}</p>`;
+        content += `<p><b>Acciones Competencia:</b> ${document.getElementById('competitorActions').value}</p>`;
+        content += `<p><b>Dinámica del Mercado:</b> ${document.getElementById('marketDynamics').value}</p>`;
+
+        content += `<h3>3. Resumen en Tiendas</h3><table><tr><th>Tienda</th><th>Estatus</th><th>Cant</th><th>Acciones</th></tr>`;
+        document.querySelectorAll('.store-block').forEach(b => {
+            content += `<tr>
+                <td>${getStoreName(b)}</td>
+                <td>${b.querySelector('.store-status').value}</td>
+                <td>${b.querySelector('.store-qty').value || '-'}</td>
+                <td>${b.querySelector('.store-actions').value}</td>
+            </tr>`;
+        });
+        content += `</table></body></html>`;
 
         const blob = new Blob(['\ufeff', content], { type: 'application/msword' });
         const link = document.createElement('a');
@@ -339,22 +428,50 @@
         link.click();
     }
 
-    // --- WHATSAPP (RESTAURADO CON R2) ---
+    // --- 3. EXPORTAR WHATSAPP (PLANTILLA RESTAURADA) ---
     function copiarWhatsApp() {
-        const r1 = document.getElementById('retailerName').value || "R1";
-        const r2 = document.getElementById('retailerName2').value || "R2";
-        const isR2 = !document.getElementById('sections-retailer-2').classList.contains('hidden');
+        let text = `*_REPORTE DIARIO TECNO_*\n\n`;
+        text += `*📅 Fecha:* ${document.getElementById('date').value}\n`;
+        text += `*👤 Especialista:* ${document.getElementById('staffName').value}\n`;
+        text += `*📍 Ruta/C.C:* ${document.getElementById('region').value}\n\n`;
 
-        let text = `_*Reporte Diario TECNO*_\n\n*Especialista:* ${document.getElementById('staffName').value}\n`;
-        text += `\n*1. Ventas ${r1}:*\nHoy: ${document.getElementById('todaySales').value}\nAcumulado: ${document.getElementById('accumulatedSales').value}\n`;
-        
-        if(isR2) {
-            text += `\n*1.1 Ventas ${r2}:*\nHoy: ${document.getElementById('todaySales2').value}\nAcumulado: ${document.getElementById('accumulatedSales2').value}\n`;
+        // Retailer 1
+        text += `*🏢 Retailer:* ${document.getElementById('retailerName').value}\n`;
+        text += `*🎯 Meta:* ${document.getElementById('salesTarget').value}\n`;
+        text += `*📈 Venta Hoy:* ${document.getElementById('todaySales').value}\n`;
+        text += `*📊 Acumulado:* ${document.getElementById('accumulatedSales').value}\n`;
+        text += `*📱 DCR:* ${document.getElementById('dcrRate').value}%\n`;
+        text += `*📦 Cov. C50 Pro:* ${document.getElementById('coverage50Pro').value}\n`;
+        text += `*📦 Cov. C50 Ultra:* ${document.getElementById('coverage50Ultra').value}\n\n`;
+
+        // Retailer 2 (Si está activo)
+        if (isR2Active()) {
+            text += `*🏢 Retailer 2:* ${document.getElementById('retailerName2').value}\n`;
+            text += `*🎯 Meta:* ${document.getElementById('salesTarget2').value}\n`;
+            text += `*📈 Venta Hoy:* ${document.getElementById('todaySales2').value}\n`;
+            text += `*📊 Acumulado:* ${document.getElementById('accumulatedSales2').value}\n`;
+            text += `*📱 DCR:* ${document.getElementById('dcrRate2').value}%\n`;
+            text += `*📦 Cov. C50 Pro:* ${document.getElementById('coverage50Pro2').value}\n`;
+            text += `*📦 Cov. C50 Ultra:* ${document.getElementById('coverage50Ultra2').value}\n\n`;
         }
-        
-        text += `\n*Mercado:* ${document.getElementById('marketDynamics').value}`;
 
-        navigator.clipboard.writeText(text).then(() => alert("¡Copiado para WhatsApp!"));
+        // Dinámica y Competencia
+        text += `*⚠️ Novedades de Inventario:* ${document.getElementById('stockIssues').value}\n`;
+        text += `*⚔️ Competencia:* ${document.getElementById('competitorActions').value}\n`;
+        text += `*🗣️ Dinámica de Mercado:* ${document.getElementById('marketDynamics').value}\n\n`;
+
+        // Tiendas
+        text += `*🏪 RESUMEN DE TIENDAS:*\n`;
+        document.querySelectorAll('.store-block').forEach(b => {
+            const qty = b.querySelector('.store-qty').value;
+            const act = b.querySelector('.store-actions').value;
+            text += `🔹 *${getStoreName(b)}* - ${b.querySelector('.store-status').value}`;
+            if(qty) text += ` (${qty})`;
+            if(act) text += `\n   ↳ _${act}_`;
+            text += `\n`;
+        });
+
+        navigator.clipboard.writeText(text).then(() => alert("¡Plantilla copiada con éxito para WhatsApp!"));
     }
 
     addStore();
