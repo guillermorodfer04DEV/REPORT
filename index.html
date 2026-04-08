@@ -48,18 +48,27 @@
                 <label>Nombre del Especialista</label>
                 <select id="staffName">
                     <option value="">Seleccione...</option>
-                    <option value="José Díaz">José Díaz</option>
                     <option value="José Reina">José Reina</option>
                     <option value="Guillermo Rodríguez">Guillermo Rodríguez</option>
                     <option value="Alexandra Guaimare">Alexandra Guaimare</option>
                 </select>
             </div>
-            <div class="form-group"><label>Cargo</label><input type="text" id="role" value="Specialist"></div>
+            <div class="form-group"><label>Cargo</label><input type="text" id="role" value="Especialista"></div>
             <div class="form-group"><label>Región / Ruta</label><input type="text" id="region"></div>
         </div>
 
         <div class="grid" style="margin-top:10px;">
-            <div class="form-group"><label>Minorista Objetivo (Retailer)</label><input type="text" id="retailerName"></div>
+            <div class="form-group">
+                <label>Minorista Objetivo (Retailer)</label>
+                <select id="retailerName">
+                    <option value="">Seleccione Retailer...</option>
+                    <option value="GLOBAL CELL">GLOBAL CELL</option>
+                    <option value="TECNO CORP">TECNO CORP</option>
+                    <option value="NC PHONE">NC PHONE</option>
+                    <option value="DAMASCO">DAMASCO</option>
+                    <option value="CANGURO">CANGURO</option>
+                </select>
+            </div>
             <div class="form-group"><label>Cant. Tiendas Objetivo</label><input type="number" id="shopsQty"></div>
         </div>
 
@@ -116,7 +125,6 @@
     document.getElementById('date').valueAsDate = new Date();
     let photos = [];
 
-    // Función principal para añadir tiendas con lógica dinámica
     function addStore() {
         const id = Date.now();
         const div = document.createElement('div');
@@ -165,13 +173,11 @@
         document.getElementById('stores-container').appendChild(div);
     }
 
-    // Lógica para mostrar/ocultar campos según estatus
     function toggleStoreFields(select, id) {
         const val = select.value;
         const rotativeContainer = document.getElementById(`rotative-container-${id}`);
         const qtyContainer = document.getElementById(`qty-container-${id}`);
 
-        // Lógica de Vitrinas
         if (val === "Vitrina arreglada" || val === "Problemas en vitrina") {
             rotativeContainer.classList.remove('hidden');
         } else {
@@ -179,7 +185,6 @@
             rotativeContainer.querySelector('input').checked = false;
         }
 
-        // Lógica de Cantidades
         if (val === "Ventas" || val === "Carga de stock") {
             qtyContainer.classList.remove('hidden');
         } else {
@@ -199,7 +204,6 @@
         return (select.value === "OTHER SHOP") ? custom.value : select.value;
     }
 
-    // MANEJO DE IMÁGENES
     function handleImages(e) {
         const files = Array.from(e.target.files);
         files.forEach(file => {
@@ -246,7 +250,6 @@
         });
     }
 
-    // EXPORTACIÓN A LA NUBE (RESTAURADA Y ADAPTADA)
     async function enviarAGoogleSheets() {
         const btn = event.target;
         if (!document.getElementById('staffName').value) { alert("Selecciona un especialista"); return; }
@@ -303,7 +306,6 @@
         }
     }
 
-    // EXPORTACIÓN WORD (RESTAURADA CON FECHA)
     function exportWord() {
         const date = document.getElementById('date').value || new Date().toISOString().split('T')[0];
         const name = document.getElementById('staffName').value || 'Especialista';
@@ -345,7 +347,6 @@
         a.click();
     }
 
-    // COPIAR PARA WHATSAPP (RESTAURADA CON PLANTILLA EXACTA)
     function copiarWhatsApp() {
         const date = document.getElementById('date').value;
         const name = document.getElementById('staffName').value;
