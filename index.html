@@ -309,7 +309,7 @@
             fotos: fotosData
         };
 
-        const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbwhTw5rTGrOIfvygB8j7X7TPOXfVsAB2sRsmDogWotO6eY9S-iYfZ0KnsjX_PygNyZIeg/exec";
+        const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbz4r-9dKqJ1w-I4djlWTRVaMr3delHzI8CbH8K2dCvYO4_c1r3NrKaomnHDAnGj9FCPSg/exec";
         try {
             await fetch(WEBHOOK_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(datos) });
             alert("¡Sincronización completa!");
