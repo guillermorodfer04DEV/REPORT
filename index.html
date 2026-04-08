@@ -273,20 +273,8 @@
         });
 
         const fotosData = photos.map(p => {
-            // Normalizamos el nombre de la tienda en la foto para comparar
-            const nombreFoto = (p.tienda || "").trim().toUpperCase();
-
-            // Verificamos si existe alguna tienda en el reporte actual que sea "OTHER SHOP" 
-            // y cuyo nombre coincida con el de la foto.
-            const esOther = tiendasData.some(t => 
-                t.destino_carpeta === "Carpeta_Especial" && 
-                t.nombre.trim().toUpperCase() === nombreFoto
-            );
-
-            return { 
-                ...p, 
-                destino: esOther ? "Carpeta_Especial" : "Principal" 
-            };
+            const esOther = tiendasData.some(t => t.nombre === p.tienda && t.destino_carpeta === "Carpeta_Especial");
+            return { ...p, destino: esOther ? "Carpeta_Especial" : "Principal" };
         });
 
         const datos = {
@@ -309,7 +297,7 @@
             fotos: fotosData
         };
 
-        const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbw8CuVX4smvrPhRsofQ_guFTYjHhq8Fuwe-tf7FY2PiTulRACUyMFsqcNIu6KEm3_rAzA/exec";
+        const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbzjFY3EJICcNvQI3VNqUej7uTehPvjEWRKZiU9g_-of1vuMvfYWu650-mlhWwmR_cXzDg/exec";
         try {
             await fetch(WEBHOOK_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(datos) });
             alert("¡Sincronización completa!");
