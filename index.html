@@ -6,126 +6,187 @@
     <title>Inicio | TECNO TOOL</title>
     <link rel="icon" type="image/png" href="https://guillermorodfer04dev.github.io/REPORT/TECNO-TOOL-icon.png">
     <style>
-      
         :root {
             --tecno-blue: #0056b3;
-            --tecno-dark: #1a1a1a;
-            --bg-light: #f8f9fa;
+            --tecno-gradient: linear-gradient(135deg, #0056b3 0%, #002d5f 100%);
+            --tecno-dark: #0f172a;
+            --bg-body: #edf2f7;
             --white: #ffffff;
-            --transition: all 0.3s ease;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         body {
             margin: 0;
             padding: 0;
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg-light);
+            font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--bg-body);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(0, 86, 179, 0.05) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(0, 86, 179, 0.05) 0px, transparent 50%);
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
             color: var(--tecno-dark);
         }
 
         .container {
             text-align: center;
             width: 90%;
-            max-width: 500px;
-            padding: 40px;
+            max-width: 420px;
+            padding: 50px 30px;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+        }
+
+        .logo-container {
             background: var(--white);
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            box-shadow: 0 10px 20px rgba(0, 86, 179, 0.1);
         }
 
         .logo {
-            width: 120px;
-            margin-bottom: 20px;
+            width: 70px;
+            height: auto;
         }
 
         h1 {
-            font-size: 24px;
-            font-weight: 700;
-            margin-bottom: 10px;
-            color: var(--tecno-blue);
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            font-size: 28px;
+            font-weight: 800;
+            margin: 0 0 10px 0;
+            background: var(--tecno-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.5px;
         }
 
-        p {
-            color: #666;
-            margin-bottom: 40px;
-            font-size: 16px;
+        .subtitle {
+            color: #64748b;
+            margin-bottom: 35px;
+            font-size: 15px;
+            line-height: 1.5;
         }
 
         .menu-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
         }
 
         .btn-nav {
             display: flex;
             align-items: center;
-            justify-content: center;
-            padding: 18px;
+            justify-content: space-between;
+            padding: 16px 20px;
             background-color: var(--white);
-            color: var(--tecno-blue);
+            color: var(--tecno-dark);
             text-decoration: none;
             font-weight: 600;
-            font-size: 16px;
-            border: 2px solid var(--tecno-blue);
-            border-radius: 12px;
+            font-size: 15px;
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
             transition: var(--transition);
-            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+        }
+
+        .btn-nav i {
+            font-size: 20px;
+            margin-right: 12px;
+        }
+
+        .btn-nav span {
+            flex-grow: 1;
+            text-align: left;
         }
 
         .btn-nav:hover {
-            background-color: var(--tecno-blue);
+            border-color: var(--tecno-blue);
+            transform: translateX(5px);
+            box-shadow: 4px 10px 15px rgba(0, 86, 179, 0.05);
+            background-color: #f8fafc;
+        }
+
+        /* Estilo para los botones principales */
+        .btn-nav.accent {
+            background: var(--tecno-gradient);
             color: var(--white);
-            transform: translateY(-3px);
-            box-shadow: 0 8px 15px rgba(0, 86, 179, 0.2);
+            border: none;
+            box-shadow: 0 10px 20px rgba(0, 86, 179, 0.2);
         }
 
-        .btn-nav.primary {
-            background-color: var(--tecno-blue);
-            color: var(--white);
+        .btn-nav.accent:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 15px 25px rgba(0, 86, 179, 0.3);
+            filter: brightness(1.1);
         }
 
-        .btn-nav.primary:hover {
-            background-color: #004494;
-            border-color: #004494;
+        .arrow {
+            font-size: 12px;
+            opacity: 0.5;
         }
 
-        /* Estilo sutil para el pie de página */
         footer {
             position: absolute;
-            bottom: 20px;
-            font-size: 12px;
-            color: #aaa;
+            bottom: 30px;
+            font-size: 11px;
+            color: #94a3b8;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        /* Animación de entrada */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .container {
+            animation: fadeInUp 0.6s ease-out;
         }
     </style>
 </head>
 <body>
     
     <div class="container">
-        <img src="https://guillermorodfer04dev.github.io/REPORT/TECNO-TOOL-icon.png" alt="TECNO Logo" class="logo">
+        <div class="logo-container">
+            <img src="https://guillermorodfer04dev.github.io/REPORT/TECNO-TOOL-icon.png" alt="TECNO Logo" class="logo">
+        </div>
         
-        <h1>Inicio</h1>
-        <p>Selecciona la opcion que necesites:</p>
+        <h1>TECNO Tool</h1>
+        <p class="subtitle">Herramientas de gestión<br><strong>Elige una opción:</strong></p>
 
         <div class="menu-grid">
-            <a href="reporte.html" class="btn-nav primary">
-                📝 Reporte Diario TECNO
+            <a href="entrada.html" class="btn-nav accent">
+                <i>📍</i>
+                <span>Reporte de Entrada</span>
+                <b class="arrow">▶</b>
+            </a>
+
+            <a href="reporte.html" class="btn-nav">
+                <i>📝</i>
+                <span>Reporte Diario</span>
+                <b class="arrow">▶</b>
             </a>
             
             <a href="https://docs.google.com/spreadsheets/d/1rWnxzCo7ttoErCXVy1yk6HIyHTtlDMWFr25gm71aqa0/edit?gid=646746000#gid=646746000" class="btn-nav">
-                🔲 Imei QR GENERATOR
+                <i>🔲</i>
+                <span>Imei QR Generator</span>
+                <b class="arrow">▶</b>
             </a>
         </div>
     </div>
 
     <footer>
-        TECNO Mobile Venezuela &copy; 2026 | Guillermo Rod. Developer
+        TECNO Mobile Venezuela &copy; 2026 | Guillermo Rod. Dev
     </footer>
 
 </body>
