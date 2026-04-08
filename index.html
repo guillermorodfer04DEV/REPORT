@@ -315,7 +315,6 @@
         const retailer = document.getElementById('retailerName').value;
         const shopsQty = document.getElementById('shopsQty').value;
 
-        // Captura de datos de ventas y cobertura
         const salesData = {
             meta: document.getElementById('salesTarget').value,
             hoy: document.getElementById('todaySales').value,
@@ -332,12 +331,13 @@
         let storesHtml = "";
         document.querySelectorAll('.store-block').forEach(b => {
             const qty = b.querySelector('.store-qty').value;
+            const isRotativa = b.querySelector('.store-rotativa').checked;
             storesHtml += `
                 <div style="border:1px solid #ccc; padding:10px; margin-bottom:10px; background:#fafafa;">
                     <p><b>Tienda:</b> ${getStoreName(b)}</p>
                     <p><b>Estatus:</b> ${b.querySelector('.store-status').value}</p>
                     ${qty !== "" ? `<p><b>Cantidad:</b> ${qty}</p>` : ''}
-                    <p><b>Rotativa:</b> ${b.querySelector('.store-rotativa').checked ? 'Sí' : 'No'}</p>
+                    ${isRotativa ? `<p><b>Vitrinas rotativas</b></p>` : ''}
                     <p><b>Acciones:</b> ${b.querySelector('.store-actions').value}</p>
                 </div>`;
         });
@@ -347,7 +347,7 @@
             photosHtml += `
                 <div style="text-align:center; margin-bottom:20px;">
                     <p><b>${p.tienda || 'General'} - ${p.category}</b></p>
-                    <img src="${p.src}" width="300" style="border:1px solid #ddd; border-radius:5px;">
+                    <img src="${p.src}" width="200" height="200" style="object-fit:cover; border:1px solid #ddd; border-radius:5px;">
                 </div>`;
         });
 
@@ -404,6 +404,7 @@
         URL.revokeObjectURL(url);
     }
 
+    // --- FUNCIÓN DE WHATSAPP CORREGIDA ---
     function copiarWhatsApp() {
         const date = document.getElementById('date').value;
         const name = document.getElementById('staffName').value;
@@ -412,7 +413,17 @@
         let storesText = "";
         document.querySelectorAll('.store-block').forEach(b => {
             const qty = b.querySelector('.store-qty').value;
-            storesText += `\nTienda: *${getStoreName(b)}*\nEstatus: ${b.querySelector('.store-status').value}${qty ? ' (Cant: '+qty+')' : ''}\n`;
+            const isRotativa = b.querySelector('.store-rotativa').checked;
+            const acciones = b.querySelector('.store-actions').value;
+
+            storesText += `\nTienda: *${getStoreName(b)}*\nEstatus: ${b.querySelector('.store-status').value}${qty ? ' (Cant: '+qty+')' : ''}`;
+            if (isRotativa) {
+                storesText += `\n* Vitrinas rotativas`;
+            }
+            if (acciones) {
+                storesText += `\nAcciones: ${acciones}`;
+            }
+            storesText += `\n`;
         });
 
         const text = `_*Reporte de Gestión Diario TECNO*_
