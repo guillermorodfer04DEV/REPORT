@@ -418,11 +418,12 @@
             <li><b>Cargado al DCR:</b> ${document.getElementById('dcrRate').value}%</li>
             <li><b>Cobertura C50 Pro:</b> ${document.getElementById('coverage50Pro').value}</li>
             <li><b>Cobertura C50 Ultra:</b> ${document.getElementById('coverage50Ultra').value}</li>
+            <li><b>Problemas de Stock:</b> ${document.getElementById('stockIssues').value}</li>;
         </ul>`;
 
         // Datos Retailer 2
         if (isR2Active()) {
-            content += `<h3>1.1 Desempeño y Cobertura: ${document.getElementById('retailerName2').value}</h3>`;
+            content += `<h3>1. Desempeño y Cobertura: ${document.getElementById('retailerName2').value}</h3>`;
             content += `<ul>
                 <li><b>Meta CAMON:</b> ${document.getElementById('salesTarget2').value}</li>
                 <li><b>Venta Hoy:</b> ${document.getElementById('todaySales2').value}</li>
@@ -430,11 +431,11 @@
                 <li><b>Cargado al DCR:</b> ${document.getElementById('dcrRate2').value}%</li>
                 <li><b>Cobertura C50 Pro:</b> ${document.getElementById('coverage50Pro2').value}</li>
                 <li><b>Cobertura C50 Ultra:</b> ${document.getElementById('coverage50Ultra2').value}</li>
+                <li><b>Problemas de Stock:</b> ${document.getElementById('stockIssues2').value}</li>;
             </ul>`;
         }
 
         content += `<h3>2. Mercado y Competencia</h3>`;
-        content += `<p><b>Problemas de Stock:</b> ${document.getElementById('stockIssues').value}</p>`;
         content += `<p><b>Acciones Competencia:</b> ${document.getElementById('competitorActions').value}</p>`;
         content += `<p><b>Dinámica del Mercado:</b> ${document.getElementById('marketDynamics').value}</p>`;
 
