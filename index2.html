@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Gestión | TECNO</title>
+    <link rel="icon" type="image/png" href="https://guillermorodfer04dev.github.io/REPORT/TECNO-TOOL-icon.png">
+    <style>
+        :root {
+            --tecno-blue: #0056b3;
+            --tecno-dark: #1a1a1a;
+            --bg-light: #f8f9fa;
+            --white: #ffffff;
+            --transition: all 0.3s ease;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-light);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: var(--tecno-dark);
+        }
+
+        .container {
+            text-align: center;
+            width: 90%;
+            max-width: 500px;
+            padding: 40px;
+            background: var(--white);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        }
+
+        .logo {
+            width: 120px;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--tecno-blue);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        p {
+            color: #666;
+            margin-bottom: 40px;
+            font-size: 16px;
+        }
+
+        .menu-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        .btn-nav {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 18px;
+            background-color: var(--white);
+            color: var(--tecno-blue);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 16px;
+            border: 2px solid var(--tecno-blue);
+            border-radius: 12px;
+            transition: var(--transition);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+        }
+
+        .btn-nav:hover {
+            background-color: var(--tecno-blue);
+            color: var(--white);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 15px rgba(0, 86, 179, 0.2);
+        }
+
+        .btn-nav.primary {
+            background-color: var(--tecno-blue);
+            color: var(--white);
+        }
+
+        .btn-nav.primary:hover {
+            background-color: #004494;
+            border-color: #004494;
+        }
+
+        /* Estilo sutil para el pie de página */
+        footer {
+            position: absolute;
+            bottom: 20px;
+            font-size: 12px;
+            color: #aaa;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <img src="https://guillermorodfer04dev.github.io/REPORT/TECNO-TOOL-icon.png" alt="TECNO Logo" class="logo">
+        
+        <h1>Panel de Control</h1>
+        <p>Selecciona el módulo que deseas gestionar hoy</p>
+
+        <div class="menu-grid">
+            <a href="reporte.html" class="btn-nav primary">
+                📝 Reporte Diario TECNO
+            </a>
+            
+            <a href="otra_pagina.html" class="btn-nav">
+                📊 Consultar Inventario
+            </a>
+        </div>
+    </div>
+
+    <footer>
+        TECNO Mobile Venezuela &copy; 2026
+    </footer>
+
+</body>
+</html>
