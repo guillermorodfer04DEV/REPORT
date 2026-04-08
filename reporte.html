@@ -68,20 +68,29 @@
 }
 
 .btn-back-menu {
+    /* POSICIONAMIENTO - Esto es lo que buscabas */
+    position: fixed;       /* Se queda pegado a la pantalla */
+    top: 15px;            /* Distancia desde el techo (ajusta a tu gusto) */
+    left: 15px;           /* Distancia desde la izquierda (ajusta a tu gusto) */
+    z-index: 9999;        /* Asegura que siempre esté por encima de fotos y textos */
+
+    /* ESTÉTICA (Lo que ya tenías) */
     text-decoration: none;
     background-color: #f0f4f8;
     color: #0056b3;
-    padding: 8px 45px;
+    padding: 10px 20px;   /* Ajusté el padding para que sea más equilibrado */
     border-radius: 8px;
     font-size: 14px;
     font-weight: 600;
     transition: all 0.3s ease;
-    border: 1px solid #0056b3;
+    border: 2px solid #0056b3;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15); /* Sombra para que resalte */
 }
 
 .btn-back-menu:hover {
     background-color: #0056b3;
     color: #ffffff;
+    transform: scale(1.05); /* Efecto visual al tocarlo */
 }
 
 /* Ajuste para que el contenido no quede pegado a la barra */
