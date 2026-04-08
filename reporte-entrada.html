@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reporte de entrada | TECNO TOOL</title>
+    <style>
+        :root {
+            --primary-blue: #0056b3; /* Azul estilo corporativo TECNO */
+            --bg-body: #f4f7f6;
+            --bg-card: #ffffff;
+            --text-main: #333333;
+            --text-label: #555555;
+            --border-input: #cccccc;
+            --whatsapp-green: #25D366;
+            --whatsapp-hover: #128C7E;
+        }
+
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background-color: var(--bg-body); 
+            color: var(--text-main);
+            margin: 0;
+            padding: 15px; 
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px; 
+            background: var(--bg-card); 
+            padding: 25px 20px; 
+            border-radius: 12px; 
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+        }
+
+        /* Estilos del encabezado y botón Volver */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 15px;
+        }
+
+        .btn-volver {
+            text-decoration: none;
+            background-color: #e2e6ea;
+            color: #333;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: bold;
+            transition: background 0.3s;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .btn-volver:hover {
+            background-color: #d3d9df;
+        }
+
+        h2 { 
+            text-align: center; 
+            color: var(--primary-blue); 
+            margin: 0 0 20px 0;
+            font-size: 22px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        label { 
+            display: block; 
+            margin-bottom: 6px; 
+            font-weight: 600; 
+            font-size: 14px;
+            color: var(--text-label);
+        }
+
+        input, select { 
+            width: 100%; 
+            padding: 12px 10px; 
+            box-sizing: border-box; 
+            border: 1px solid var(--border-input); 
+            border-radius: 8px; 
+            font-size: 15px;
+            background-color: #fafafa;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+            background-color: #ffffff;
+            box-shadow: 0 0 0 3px rgba(0, 86, 179, 0.1);
+        }
+
+        input[readonly] {
+            background-color: #e9ecef;
+            color: #6c757d;
+            cursor: not-allowed;
+            border-color: #dee2e6;
+        }
+
+        .btn-copiar { 
+            margin-top: 25px; 
+            padding: 14px 20px; 
+            background-color: var(--whatsapp-green); 
+            color: white; 
+            border: none; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            font-size: 16px; 
+            width: 100%; 
+            font-weight: bold; 
+            transition: background-color 0.3s, transform 0.1s;
+            box-shadow: 0 4px 6px rgba(37, 211, 102, 0.25);
+        }
+
+        .btn-copiar:hover { 
+            background-color: var(--whatsapp-hover); 
+        }
+
+        .btn-copiar:active {
+            transform: scale(0.98);
+        }
+
+        /* Ajustes para móviles pequeños */
+        @media (max-width: 480px) {
+            .container { padding: 20px 15px; }
+            h2 { font-size: 20px; }
+            input, select { padding: 10px; font-size: 14px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        
+        <div class="header">
+            <a href="index.html" class="btn-volver">⬅ Volver al inicio</a>
+        </div>
+
+        <h2>Reporte Diario TECNO</h2>
+
+        <div class="form-group">
+            <label for="fecha">Fecha:</label>
+            <input type="date" id="fecha">
+        </div>
+
+        <div class="form-group">
+            <label for="nombre">Nombre del Especialista:</label>
+            <select id="nombre">
+                <option value="" disabled selected>Seleccione...</option>
+                <option value="José Reina">José Reina</option>
+                <option value="Guillermo Rodríguez">Guillermo Rodríguez</option>
+                <option value="Alexandra Guaimare">Alexandra Guaimare</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="cargo">Cargo:</label>
+            <input type="text" id="cargo" value="Especialista" readonly>
+        </div>
+
+        <div class="form-group">
+            <label for="region">Región/Ruta:</label>
+            <input type="text" id="region" value="Barquisimeto, Lara">
+        </div>
+
+        <div class="form-group">
+            <label for="minorista">Minorista Objetivo (Retailer):</label>
+            <select id="minorista">
+                <option value="" disabled selected>Seleccione Retailer...</option>
+                <option value="GLOBAL CELL">GLOBAL CELL</option>
+                <option value="TECNO CORP">TECNO CORP</option>
+                <option value="NC PHONE">NC PHONE</option>
+                <option value="DAMASCO">DAMASCO</option>
+                <option value="CANGURO">CANGURO</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="cantidad">Cant. Tiendas Objetivo:</label>
+            <input type="number" id="cantidad" placeholder="Ej. 5" min="0">
+        </div>
+
+        <button onclick="copiarTexto()" id="btnCopiar" class="btn-copiar">Copiar para WhatsApp</button>
+    </div>
+
+    <script>
+        // Autocompletar la fecha con el día actual
+        document.getElementById('fecha').valueAsDate = new Date();
+
+        // Función para armar y copiar el texto
+        function copiarTexto() {
+            const fechaInput = document.getElementById('fecha').value;
+            let fechaFormateada = "";
+            if(fechaInput) {
+                // Formato de AAAA-MM-DD a DD/MM/AAAA
+                const [year, month, day] = fechaInput.split('-');
+                fechaFormateada = `${day}/${month}/${year}`;
+            }
+
+            const nombre = document.getElementById('nombre').value;
+            const cargo = document.getElementById('cargo').value;
+            const region = document.getElementById('region').value;
+            const minorista = document.getElementById('minorista').value;
+            const cantidad = document.getElementById('cantidad').value;
+
+            // Validar que se seleccionó nombre y minorista
+            if (!nombre || !minorista) {
+                alert("Por favor, selecciona tu nombre y el minorista objetivo antes de copiar.");
+                return;
+            }
+
+            // Uso de template literals respetando los saltos de línea de la plantilla
+            const texto = `*REPORTE DIARIO DE ACTIVIDADES *
+
+* *Fecha:* ${fechaFormateada}
+
+* *Nombre:* ${nombre}
+
+* *Cargo:* ${cargo}
+
+* *Región/Ruta:* ${region}
+
+* *Nombre del principal minorista objetivo:* ${minorista}
+
+* *Cantidad total de tiendas minoristas clave objetivo:* ${cantidad}`;
+
+            // Copiar al portapapeles
+            navigator.clipboard.writeText(texto).then(() => {
+                const btn = document.getElementById('btnCopiar');
+                btn.innerText = '¡Copiado con éxito!';
+                btn.style.backgroundColor = '#128C7E';
+                
+                // Restaurar el botón después de 3 segundos
+                setTimeout(() => {
+                    btn.innerText = 'Copiar para WhatsApp';
+                    btn.style.backgroundColor = 'var(--whatsapp-green)';
+                }, 3000);
+            }).catch(err => {
+                alert('No se pudo copiar el texto. Verifica los permisos del navegador.');
+                console.error(err);
+            });
+        }
+    </script>
+
+</body>
+</html>
