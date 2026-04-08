@@ -217,16 +217,16 @@
                 <div class="form-group">
                     <label>Estatus</label>
                     <select class="store-status" onchange="toggleStoreFields(this, ${id})">
-                    <div class="form-group hidden" id="rotative-container-${id}" style="margin-top: 10px; flex-direction: row; align-items: center; gap: 8px; display: none;">
-                        <input type="checkbox" class="store-rotative" style="width: 20px; height: 20px; cursor: pointer;">
-                        <label style="margin-bottom: 0;">Vitrina Rotativa</label>
-                    </div>
                         <option value="Informacion recopilada">Información recopilada</option>
                         <option value="Vitrina arreglada">Vitrina arreglada</option>
                         <option value="Problema con vitrina">Problema con vitrina</option>
                         <option value="Entrega de material POP">Entrega de material POP</option>
                         <option value="Entrega de obsequios">Entrega de obsequios</option>
                     </select>
+                    <div class="form-group hidden" id="rotative-container-${id}" style="margin-top: 10px; flex-direction: row; align-items: center; gap: 8px; display: none;">
+                        <input type="checkbox" class="store-rotative" style="width: 20px; height: 20px; cursor: pointer;">
+                        <label style="margin-bottom: 0;">Vitrina Rotativa</label>
+                    </div>
                 </div>
             </div>
             <div class="form-group hidden" id="qty-container-${id}" style="margin-top:12px;">
