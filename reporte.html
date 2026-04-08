@@ -217,6 +217,10 @@
                 <div class="form-group">
                     <label>Estatus</label>
                     <select class="store-status" onchange="toggleStoreFields(this, ${id})">
+                    <div class="form-group hidden" id="rotative-container-${id}" style="margin-top: 10px; flex-direction: row; align-items: center; gap: 8px; display: none;">
+                        <input type="checkbox" class="store-rotative" style="width: 20px; height: 20px; cursor: pointer;">
+                        <label style="margin-bottom: 0;">Vitrina Rotativa</label>
+                    </div>
                         <option value="Informacion recopilada">Información recopilada</option>
                         <option value="Vitrina arreglada">Vitrina arreglada</option>
                         <option value="Problema con vitrina">Problema con vitrina</option>
@@ -234,6 +238,28 @@
         `;
         document.getElementById('stores-container').appendChild(div);
     }
+
+    function toggleStoreFields(select, id) {
+    const status = select.value;
+    const rotContainer = document.getElementById(`rotative-container-${id}`);
+    const qtyContainer = document.getElementById(`qty-container-${id}`);
+
+    // 1. Lógica para Cantidad (Ventas/Stock)
+    const mostrarQty = (status === "Vitrina arreglada" || status === "Problema con vitrina");
+    qtyContainer.classList.toggle('hidden', !mostrarQty);
+
+    // 2. Lógica para Vitrina Rotativa (SÓLO estas dos opciones)
+    const esOpcionVitrina = (status === "Vitrina arreglada" || status === "Problemas de Vitrina");
+
+    if (esOpcionVitrina) {
+        rotContainer.classList.remove('hidden');
+        rotContainer.style.display = 'flex'; // Lo mostramos
+    } else {
+        rotContainer.classList.add('hidden');
+        rotContainer.style.display = 'none'; // Lo ocultamos
+        rotContainer.querySelector('.store-rotative').checked = false; // Lo reseteamos
+    }
+}
 
     function toggleStoreFields(select, id) {
         const qtyContainer = document.getElementById(`qty-container-${id}`);
