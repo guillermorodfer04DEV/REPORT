@@ -54,7 +54,7 @@
                 </select>
             </div>
             <div class="form-group"><label>Cargo</label><input type="text" id="role" value="Especialista"></div>
-            <div class="form-group"><label>Región / Ruta</label><input type="text" id="region"></div>
+            <div class="form-group"><label>Centro comercial / Ruta</label><input type="text" id="region"></div>
         </div>
 
         <div class="grid" style="margin-top:10px;">
@@ -95,7 +95,7 @@
             <div class="form-group">
                 <label>Acciones Realizadas por la Competencia</label>
                 <textarea id="competitorActions" rows="2"></textarea>
-                <label style="margin-top: 10px; color: var(--tecno-blue);">📸 Adjuntar Evidencia (Competencia)</label>
+                <label style="margin-top: 10px; color: var(--tecno-blue);">Adjuntar Evidencia (Competencia)</label>
                 <input type="file" id="compImageInput" accept="image/*" multiple onchange="handleCompImages(event)">
             </div>
             <div class="form-group"><label>Dinámica o Flujo de Mercado</label><textarea id="marketDynamics" rows="2"></textarea></div>
@@ -221,7 +221,7 @@
         files.forEach(file => {
             const reader = new FileReader();
             reader.onload = (ev) => {
-                photos.push({ src: ev.target.result, name: file.name, category: 'Competencia', tienda: 'Competencia' });
+                photos.push({ src: ev.target.result, name: file.name, category: 'Competencia', tienda: 'Adjunto' });
                 renderPhotos();
             };
             reader.readAsDataURL(file);
@@ -242,6 +242,8 @@
                         <option value="Vitrina Antes" ${p.category === 'Vitrina Antes' ? 'selected' : ''}>Antes</option>
                         <option value="Vitrina Después" ${p.category === 'Vitrina Después' ? 'selected' : ''}>Después</option>
                         <option value="Competencia" ${p.category === 'Competencia' ? 'selected' : ''}>Competencia</option>
+                        <option value="Adjunto" ${p.category === 'Adjunto' ? 'selected' : ''}>Adjunto</option>
+                        <option value="Novedad" ${p.category === 'Novedad' ? 'selected' : ''}>Novedad</option>
                     </select>
                     <button type="button" style="color:red; background:none; border:none; margin-top:5px; cursor:pointer; width:100%;" onclick="photos.splice(${i},1); renderPhotos();">Borrar</button>
                 </div>
@@ -437,7 +439,8 @@ Información General
 * Retailer Principal (KA): ${document.getElementById('retailerName').value}
 * Tiendas objetivo: ${document.getElementById('shopsQty').value}
 
-1. *Ventas:* Meta CAMON 50: ${document.getElementById('salesTarget').value}
+1. *Ventas:* 
+Meta CAMON 50: ${document.getElementById('salesTarget').value}
 Venta Hoy: ${document.getElementById('todaySales').value}
 Total acumulado: ${document.getElementById('accumulatedSales').value}
 Totalidad de stock cargado al DCR: ${document.getElementById('dcrRate').value}%
