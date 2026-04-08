@@ -55,7 +55,8 @@
                     <option value="">Seleccione...</option>
                     <option value="José Reina">José Reina</option>
                     <option value="Guillermo Rodríguez">Guillermo Rodríguez</option>
-                    <option value="Alexandra Guaimare">Alexandra Guaimare</option>
+                    <option value="Eduimar Rojas">Eduimar Rojas</option>
+                    <option value="Alexandra Amaro">Alexandra Amaro</option>
                 </select>
             </div>
             <div class="form-group"><label>Cargo</label><input type="text" id="role" value="Especialista"></div>
@@ -104,8 +105,8 @@
 
         <div class="section-title">2. Cobertura e Inventario - <span id="display-name-r1-cov">Retailer 1</span></div>
         <div class="grid">
-            <div class="form-group"><label>Cobertura CN5c (C50 Pro)</label><input type="text" id="coverage50Pro"></div>
-            <div class="form-group"><label>Cobertura CN7c (C50 Ultra)</label><input type="text" id="coverage50Ultra"></div>
+            <div class="form-group"><label>Cobertura CN5c</label><input type="text" id="coverage50Pro"></div>
+            <div class="form-group"><label>Cobertura CN7c</label><input type="text" id="coverage50Ultra"></div>
         </div>
 
         <div id="sections-retailer-2" class="hidden">
@@ -243,22 +244,22 @@
         return (select.value === "OTHER SHOP") ? block.querySelector('.store-name-custom').value : select.value;
     }
 
-    // --- FOTOS Y ADJUNTOS A LA NUBE ---
-    function handleImages(e) { handleFiles(e.target.files, 'Exhibicion'); }
+    // --- FOTOS E INPUTS ---
+    function handleImages(e) { handleFiles(e.target.files, 'Vitrina'); }
     function handleCompImages(e) { handleFiles(e.target.files, 'Competencia'); }
     
-    function handleFiles(files, defaultRef) {
+    function handleFiles(files, defaultCat) {
         Array.from(files).forEach(file => {
             const reader = new FileReader();
             reader.onload = (ev) => {
-                // Separamos el base64 para enviarlo limpio a Google Sheets y poder crear el Link
                 const base64Data = ev.target.result.split(',')[1]; 
                 photos.push({ 
-                    src: ev.target.result, // Para mostrar en pantalla
-                    base64: base64Data,    // Para subir a Drive
-                    mimeType: file.type,   // Requerido para crear el archivo
+                    src: ev.target.result,
+                    base64: base64Data,
+                    mimeType: file.type,
                     name: file.name,
-                    tienda: defaultRef 
+                    categoria: defaultCat, // Lo que va en el Select
+                    nombreTienda: ""       // Lo que va en el Input de texto
                 });
                 renderPhotos();
             };
@@ -272,12 +273,11 @@
         photos.forEach((p, i) => {
             const item = document.createElement('div');
             item.className = 'image-item';
-            // Restaurado el Select (Lista Desplegable) para asignar las imágenes
             item.innerHTML = `
                 <img src="${p.src}">
                 <div style="display:flex; flex-direction:column; gap:5px;">
-                    <select onchange="photos[${i}].tienda = this.value" style="padding:5px; font-size:12px;">
-                        <option value="${p.tienda}">${p.tienda || "Seleccione Opción..."}</option>
+                    <select onchange="photos[${i}].categoria = this.value" style="padding:5px; font-size:12px;">
+                        <option value="${p.categoria}">${p.categoria || "Seleccione Categoría..."}</option>
                         <option value="GLOBAL CELL">GLOBAL CELL</option>
                         <option value="TECNO CORP">TECNO CORP</option>
                         <option value="NC PHONE">NC PHONE</option>
@@ -288,6 +288,8 @@
                         <option value="Fachada">Fachada</option>
                         <option value="Vitrina">Vitrina</option>
                     </select>
+                    <input type="text" placeholder="Nombre de la tienda/ref" value="${p.nombreTienda}" onchange="photos[${i}].nombreTienda = this.value" style="padding:5px; font-size:12px;">
+                    
                     <button type="button" style="color:white; background:#dc3545; border:none; padding:5px; border-radius:4px; cursor:pointer;" onclick="photos.splice(${i},1); renderPhotos();">Eliminar</button>
                 </div>
             `;
@@ -295,7 +297,7 @@
         });
     }
 
-    // --- 1. EXPORTACIÓN A GOOGLE SHEETS (DOBLE FILA SI R2 EXISTE) ---
+    // --- 1. EXPORTACIÓN A GOOGLE SHEETS (SIN DUPLICAR TIENDAS EN R2) ---
     async function enviarAGoogleSheets() {
         if (!document.getElementById('staffName').value) { alert("Selecciona un especialista"); return; }
         
@@ -312,7 +314,6 @@
 
         const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbzjFY3EJICcNvQI3VNqUej7uTehPvjEWRKZiU9g_-of1vuMvfYWu650-mlhWwmR_cXzDg/exec";
 
-        // Objeto Base (Datos que se repiten para ambos Retailers)
         const baseData = {
             fecha: document.getElementById('date').value,
             especialista: document.getElementById('staffName').value,
@@ -321,13 +322,12 @@
             probStock: document.getElementById('stockIssues').value,
             competencia: document.getElementById('competitorActions').value,
             dinamica: document.getElementById('marketDynamics').value,
-            tiendas: tiendasData,
-            fotos: photos // Ahora las fotos llevan el Base64 listo para Google Drive
+            fotos: photos
         };
 
-        // 1.1 Configurar Fila del Retailer 1
         const payloadR1 = {
             ...baseData,
+            tiendas: tiendasData, // Las tiendas solo se van en el R1
             retailer: document.getElementById('retailerName').value,
             tiendasObjetivo: document.getElementById('shopsQty').value,
             metaCamon: document.getElementById('salesTarget').value,
@@ -339,13 +339,12 @@
         };
 
         try {
-            // Enviamos el Retailer 1
             await fetch(WEBHOOK_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payloadR1) });
 
-            // 1.2 Si Retailer 2 está activo, armamos su propio paquete y lo enviamos como SEGUNDA FILA
             if (isR2Active() && document.getElementById('retailerName2').value !== "") {
                 const payloadR2 = {
-                    ...baseData, // Usamos la misma fecha, especialista, fotos, etc.
+                    ...baseData,
+                    tiendas: [], // ARRAY VACÍO PARA NO DUPLICAR TIENDAS
                     retailer: document.getElementById('retailerName2').value,
                     tiendasObjetivo: document.getElementById('shopsQty2').value,
                     metaCamon: document.getElementById('salesTarget2').value,
@@ -355,7 +354,6 @@
                     covPro: document.getElementById('coverage50Pro2').value,
                     covUltra: document.getElementById('coverage50Ultra2').value
                 };
-                // Enviamos el Retailer 2 para crear la nueva fila
                 await fetch(WEBHOOK_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payloadR2) });
             }
 
@@ -368,7 +366,7 @@
         }
     }
 
-    // --- 2. EXPORTAR WORD (PLANTILLA RESTAURADA) ---
+    // --- 2. EXPORTAR WORD (CON IMÁGENES A 200x200) ---
     function exportWord() {
         const name = document.getElementById('staffName').value || 'Reporte';
         const date = document.getElementById('date').value;
@@ -392,7 +390,7 @@
             <li><b>Cobertura C50 Ultra:</b> ${document.getElementById('coverage50Ultra').value}</li>
         </ul>`;
 
-        // Datos Retailer 2 (Solo si está visible)
+        // Datos Retailer 2
         if (isR2Active()) {
             content += `<h3>1.1 Desempeño y Cobertura: ${document.getElementById('retailerName2').value}</h3>`;
             content += `<ul>
@@ -419,7 +417,21 @@
                 <td>${b.querySelector('.store-actions').value}</td>
             </tr>`;
         });
-        content += `</table></body></html>`;
+        content += `</table>`;
+
+        // Añadir imágenes (200x200)
+        if (photos.length > 0) {
+            content += `<h3>4. Evidencia Fotográfica</h3>`;
+            photos.forEach(p => {
+                content += `
+                <div style="margin-bottom: 15px;">
+                    <p><b>Categoría:</b> ${p.categoria} | <b>Tienda/Ref:</b> ${p.nombreTienda}</p>
+                    <img src="${p.src}" width="200" height="200" style="width:200px; height:200px; object-fit:cover;">
+                </div>`;
+            });
+        }
+
+        content += `</body></html>`;
 
         const blob = new Blob(['\ufeff', content], { type: 'application/msword' });
         const link = document.createElement('a');
@@ -428,46 +440,57 @@
         link.click();
     }
 
-    // --- 3. EXPORTAR WHATSAPP (PLANTILLA RESTAURADA) ---
+    // --- 3. EXPORTAR WHATSAPP (NUEVA PLANTILLA EXACTA) ---
     function copiarWhatsApp() {
-        let text = `*_REPORTE DIARIO TECNO_*\n\n`;
-        text += `*📅 Fecha:* ${document.getElementById('date').value}\n`;
-        text += `*👤 Especialista:* ${document.getElementById('staffName').value}\n`;
-        text += `*📍 Ruta/C.C:* ${document.getElementById('region').value}\n\n`;
+        let text = `_*Reporte de Gestión Diario TECNO*_\n\n`;
+        text += `Información General\n\n`;
+        text += `* Fecha: ${document.getElementById('date').value}\n`;
+        text += `* Especialista: ${document.getElementById('staffName').value}\n`;
+        text += `* Cargo: ${document.getElementById('role').value}\n`;
+        text += `* Región/Ruta: Barquisimeto | ${document.getElementById('region').value}\n`;
+        text += `* Retailer Principal (KA): ${document.getElementById('retailerName').value}\n`;
+        text += `* Tiendas objetivo: ${document.getElementById('shopsQty').value}\n\n`;
 
-        // Retailer 1
-        text += `*🏢 Retailer:* ${document.getElementById('retailerName').value}\n`;
-        text += `*🎯 Meta:* ${document.getElementById('salesTarget').value}\n`;
-        text += `*📈 Venta Hoy:* ${document.getElementById('todaySales').value}\n`;
-        text += `*📊 Acumulado:* ${document.getElementById('accumulatedSales').value}\n`;
-        text += `*📱 DCR:* ${document.getElementById('dcrRate').value}%\n`;
-        text += `*📦 Cov. C50 Pro:* ${document.getElementById('coverage50Pro').value}\n`;
-        text += `*📦 Cov. C50 Ultra:* ${document.getElementById('coverage50Ultra').value}\n\n`;
+        text += `1. *Ventas:*\n\n`;
+        text += `Meta CAMON 50: ${document.getElementById('salesTarget').value}\n`;
+        text += `Venta Hoy: ${document.getElementById('todaySales').value}\n`;
+        text += `Total acumulado: ${document.getElementById('accumulatedSales').value}\n`;
+        text += `Totalidad de stock cargado al DCR: ${document.getElementById('dcrRate').value}%\n\n`;
 
-        // Retailer 2 (Si está activo)
-        if (isR2Active()) {
-            text += `*🏢 Retailer 2:* ${document.getElementById('retailerName2').value}\n`;
-            text += `*🎯 Meta:* ${document.getElementById('salesTarget2').value}\n`;
-            text += `*📈 Venta Hoy:* ${document.getElementById('todaySales2').value}\n`;
-            text += `*📊 Acumulado:* ${document.getElementById('accumulatedSales2').value}\n`;
-            text += `*📱 DCR:* ${document.getElementById('dcrRate2').value}%\n`;
-            text += `*📦 Cov. C50 Pro:* ${document.getElementById('coverage50Pro2').value}\n`;
-            text += `*📦 Cov. C50 Ultra:* ${document.getElementById('coverage50Ultra2').value}\n\n`;
+        text += `2. *Cobertura e Inventario:*\n\n`;
+        text += `Cobertura CN5c: ${document.getElementById('coverage50Pro').value}\n`;
+        text += `Cobertura CN7c: ${document.getElementById('coverage50Ultra').value}\n\n`;
+        text += `Problemas: ${document.getElementById('stockIssues').value}\n\n`;
+
+        // Se inyecta R2 si está activo
+        if (isR2Active() && document.getElementById('retailerName2').value !== "") {
+            text += `--- *INFO RETAILER 2* ---\n`;
+            text += `* Retailer Secundario: ${document.getElementById('retailerName2').value}\n`;
+            text += `* Tiendas objetivo: ${document.getElementById('shopsQty2').value}\n\n`;
+            text += `*Ventas (R2):*\n`;
+            text += `Meta CAMON 50: ${document.getElementById('salesTarget2').value}\n`;
+            text += `Venta Hoy: ${document.getElementById('todaySales2').value}\n`;
+            text += `Total acumulado: ${document.getElementById('accumulatedSales2').value}\n`;
+            text += `Totalidad de stock cargado al DCR: ${document.getElementById('dcrRate2').value}%\n\n`;
+            text += `*Cobertura (R2):*\n`;
+            text += `Cobertura CN5c: ${document.getElementById('coverage50Pro2').value}\n`;
+            text += `Cobertura CN7c: ${document.getElementById('coverage50Ultra2').value}\n\n`;
         }
 
-        // Dinámica y Competencia
-        text += `*⚠️ Novedades de Inventario:* ${document.getElementById('stockIssues').value}\n`;
-        text += `*⚔️ Competencia:* ${document.getElementById('competitorActions').value}\n`;
-        text += `*🗣️ Dinámica de Mercado:* ${document.getElementById('marketDynamics').value}\n\n`;
+        text += `3. *Analisis de Mercado:*\n\n`;
+        text += `_Competencia:_\n${document.getElementById('competitorActions').value}\n\n`;
+        text += `_Mercado:_\n${document.getElementById('marketDynamics').value}\n\n`;
 
-        // Tiendas
-        text += `*🏪 RESUMEN DE TIENDAS:*\n`;
+        text += `4. *Detalle por Tienda:*\n\n`;
         document.querySelectorAll('.store-block').forEach(b => {
             const qty = b.querySelector('.store-qty').value;
             const act = b.querySelector('.store-actions').value;
-            text += `🔹 *${getStoreName(b)}* - ${b.querySelector('.store-status').value}`;
+            
+            // Estructura exigida: *BARQUI* - Carga de stock (2) \n ↳ _BARQUI_
+            text += `*${getStoreName(b)}* - ${b.querySelector('.store-status').value}`;
             if(qty) text += ` (${qty})`;
-            if(act) text += `\n   ↳ _${act}_`;
+            text += `\n`;
+            if(act) text += `   ↳ _${act}_\n`;
             text += `\n`;
         });
 
