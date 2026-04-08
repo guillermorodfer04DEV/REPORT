@@ -130,19 +130,51 @@ body {
         </div>
 
         <div class="grid" style="margin-top:10px;">
-            <div class="form-group">
-                <label>Minorista Objetivo (Retailer)</label>
-                <select id="retailerName">
-                    <option value="">Seleccione Retailer...</option>
-                    <option value="GLOBAL CELL">GLOBAL CELL</option>
-                    <option value="TECNO CORP">TECNO CORP</option>
-                    <option value="NC PHONE">NC PHONE</option>
-                    <option value="DAMASCO">DAMASCO</option>
-                    <option value="CANGURO">CANGURO</option>
-                </select>
-            </div>
-            <div class="form-group"><label>Cant. Tiendas Objetivo</label><input type="number" id="shopsQty"></div>
+    <div class="form-group">
+        <label>Minorista Objetivo (Retailer) <button type="button" class="btn-add" style="padding: 2px 8px; margin-left: 10px;" onclick="toggleSecondRetailer()">+</button></label>
+        <select id="retailerName">
+            <option value="">Seleccione Retailer...</option>
+            <option value="GLOBAL CELL">GLOBAL CELL</option>
+            <option value="TECNO CORP">TECNO CORP</option>
+            <option value="NC PHONE">NC PHONE</option>
+            <option value="DAMASCO">DAMASCO</option>
+            <option value="CANGURO">CANGURO</option>
+        </select>
+    </div>
+    <div class="form-group"><label>Cant. Tiendas Objetivo</label><input type="number" id="shopsQty"></div>
+</div>
+
+<div id="second-retailer-container" class="hidden">
+    <div class="grid" style="margin-top:10px; border-top: 2px dashed var(--tecno-blue); padding-top: 15px;">
+        <div class="form-group">
+            <label>Segundo Minorista Objetivo (Opcional)</label>
+            <select id="retailerName2">
+                <option value="">Seleccione Retailer...</option>
+                <option value="GLOBAL CELL">GLOBAL CELL</option>
+                <option value="TECNO CORP">TECNO CORP</option>
+                <option value="NC PHONE">NC PHONE</option>
+                <option value="DAMASCO">DAMASCO</option>
+                <option value="CANGURO">CANGURO</option>
+            </select>
         </div>
+        <div class="form-group"><label>Cant. Tiendas Objetivo (R2)</label><input type="number" id="shopsQty2"></div>
+    </div>
+
+    <div class="section-title">1.2 Desempeño de Ventas (Retailer 2)</div>
+    <div class="grid">
+        <div class="form-group"><label>Meta Serie CAMON 50 (R2)</label><input type="text" id="salesTarget2"></div>
+        <div class="form-group"><label>Venta Real Hoy (R2)</label><input type="number" id="todaySales2"></div>
+        <div class="form-group"><label>Acumulado del mes (R2)</label><input type="number" id="accumulatedSales2"></div>
+        <div class="form-group"><label>Cargado al DCR (%) (R2)</label><input type="text" id="dcrRate2"></div>
+    </div>
+
+    <div class="section-title">2.2 Cobertura e Inventario (Retailer 2)</div>
+    <div class="grid">
+        <div class="form-group"><label>Cobertura CN5c (R2)</label><input type="text" id="coverage50Pro2"></div>
+        <div class="form-group"><label>Cobertura CN7c (R2)</label><input type="text" id="coverage50Ultra2"></div>
+    </div>
+</div>
+      
 
         <div class="section-title">1. Desempeño de Ventas (Sell-Out)</div>
         <div class="grid">
@@ -202,6 +234,18 @@ body {
 <script>
     document.getElementById('date').valueAsDate = new Date();
     let photos = [];
+
+    function toggleSecondRetailer() {
+    const container = document.getElementById('second-retailer-container');
+    container.classList.toggle('hidden');
+    
+        // Si se oculta, limpiamos los valores para no enviar basura
+        if (container.classList.contains('hidden')) {
+            document.getElementById('retailerName2').value = "";
+            document.getElementById('salesTarget2').value = "";
+            document.getElementById('todaySales2').value = "";
+        }
+    }
 
     function addStore() {
         const id = Date.now();
@@ -348,6 +392,7 @@ body {
                 cantidad: qty || "N/A",
                 acciones: b.querySelector('.store-actions').value,
                 destino_carpeta: (selectVal === "OTHER SHOP") ? "Carpeta_Especial" : "Principal"
+                
             };
         });
 
@@ -373,7 +418,16 @@ body {
             competencia: document.getElementById('competitorActions').value,
             dinamica: document.getElementById('marketDynamics').value,
             tiendas: tiendasData,
-            fotos: fotosData
+            fotos: fotosData,
+            // Añade esto dentro del objeto 'datos' en enviarAGoogleSheets, exportWord y copiarWhatsApp
+            retailer2: document.getElementById('retailerName2').value,
+            shopsQty2: document.getElementById('shopsQty2').value,
+            metaCamon2: document.getElementById('salesTarget2').value,
+            ventaHoy2: document.getElementById('todaySales2').value,
+            acumulado2: document.getElementById('accumulatedSales2').value,
+            dcr2: document.getElementById('dcrRate2').value,
+            covPro2: document.getElementById('coverage50Pro2').value,
+            covUltra2: document.getElementById('coverage50Ultra2').value,
         };
 
         const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbzjFY3EJICcNvQI3VNqUej7uTehPvjEWRKZiU9g_-of1vuMvfYWu650-mlhWwmR_cXzDg/exec";
