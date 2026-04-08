@@ -273,14 +273,20 @@
         });
 
         const fotosData = photos.map(p => {
-            // Limpiamos espacios y pasamos a mayúsculas para evitar errores de tipeo
+            // Normalizamos el nombre de la tienda en la foto para comparar
             const nombreFoto = (p.tienda || "").trim().toUpperCase();
-            const tiendasPrincipales = ["GLOBAL CELL", "TECNO CORP", "NC PHONE", "DAMASCO", "CANGURO"];
-            
-            // Es "otra tienda" si tiene un nombre, no es "COMPETENCIA" y no pertenece a las principales
-            const esOther = nombreFoto !== "" && nombreFoto !== "COMPETENCIA" && !tiendasPrincipales.includes(nombreFoto);
-            
-            return { ...p, destino: esOther ? "Carpeta_Especial" : "Principal" };
+
+            // Verificamos si existe alguna tienda en el reporte actual que sea "OTHER SHOP" 
+            // y cuyo nombre coincida con el de la foto.
+            const esOther = tiendasData.some(t => 
+                t.destino_carpeta === "Carpeta_Especial" && 
+                t.nombre.trim().toUpperCase() === nombreFoto
+            );
+
+            return { 
+                ...p, 
+                destino: esOther ? "Carpeta_Especial" : "Principal" 
+            };
         });
 
         const datos = {
