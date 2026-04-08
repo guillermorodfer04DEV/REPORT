@@ -349,7 +349,7 @@
             especialista: document.getElementById('staffName').value,
             cargo: document.getElementById('role').value,
             region: document.getElementById('region').value,
-            probStock: document.getElementById('stockIssues').value,
+            
             competencia: document.getElementById('competitorActions').value,
             dinamica: document.getElementById('marketDynamics').value,
             fotos: photos
@@ -365,7 +365,8 @@
             acumulado: document.getElementById('accumulatedSales').value,
             dcr: document.getElementById('dcrRate').value,
             covPro: document.getElementById('coverage50Pro').value,
-            covUltra: document.getElementById('coverage50Ultra').value
+            covUltra: document.getElementById('coverage50Ultra').value,
+            probStock: document.getElementById('stockIssues').value,
         };
 
         try {
@@ -382,7 +383,8 @@
                     acumulado: document.getElementById('accumulatedSales2').value,
                     dcr: document.getElementById('dcrRate2').value,
                     covPro: document.getElementById('coverage50Pro2').value,
-                    covUltra: document.getElementById('coverage50Ultra2').value
+                    covUltra: document.getElementById('coverage50Ultra2').value,
+                    probStock: document.getElementById('stockIssues2').value,
                 };
                 await fetch(WEBHOOK_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payloadR2) });
             }
