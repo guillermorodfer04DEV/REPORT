@@ -7,7 +7,7 @@
     <title>Reporte de entrada | TECNO TOOL</title>
     <style>
         :root {
-            --primary-blue: #0056b3; /* Azul estilo corporativo TECNO */
+            --primary-blue: #0056b3;
             --bg-body: #f4f7f6;
             --bg-card: #ffffff;
             --text-main: #333333;
@@ -15,6 +15,8 @@
             --border-input: #cccccc;
             --whatsapp-green: #25D366;
             --whatsapp-hover: #128C7E;
+            --danger-red: #dc3545;
+            --danger-hover: #c82333;
         }
 
         body { 
@@ -36,7 +38,6 @@
             box-shadow: 0 8px 20px rgba(0,0,0,0.08);
         }
 
-        /* Estilos del encabezado y botón Volver */
         .header {
             display: flex;
             justify-content: space-between;
@@ -107,6 +108,39 @@
             border-color: #dee2e6;
         }
 
+        /* Nuevas clases para los botones de agregar/quitar minorista */
+        .input-with-button {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .input-with-button select {
+            flex-grow: 1;
+        }
+
+        .btn-icon {
+            background-color: var(--primary-blue);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            width: 44px;
+            height: 44px; /* Aproximadamente el alto del select */
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: background-color 0.3s;
+            flex-shrink: 0;
+        }
+
+        .btn-icon:hover { background-color: #004085; }
+        
+        .btn-icon.remove { background-color: var(--danger-red); }
+        .btn-icon.remove:hover { background-color: var(--danger-hover); }
+
         .btn-copiar { 
             margin-top: 25px; 
             padding: 14px 20px; 
@@ -130,11 +164,11 @@
             transform: scale(0.98);
         }
 
-        /* Ajustes para móviles pequeños */
         @media (max-width: 480px) {
             .container { padding: 20px 15px; }
             h2 { font-size: 20px; }
             input, select { padding: 10px; font-size: 14px; }
+            .btn-icon { width: 40px; height: 40px; }
         }
     </style>
 </head>
@@ -173,16 +207,34 @@
             <input type="text" id="region" value="C.C. ">
         </div>
 
-        <div class="form-group">
+        <div class="form-group" id="grupo-minorista-1">
             <label for="minorista">Minorista Objetivo (Retailer):</label>
-            <select id="minorista">
-                <option value="" disabled selected>Seleccione Retailer...</option>
-                <option value="GLOBAL CELL">GLOBAL CELL</option>
-                <option value="TECNO CORP">TECNO CORP</option>
-                <option value="NC PHONE">NC PHONE</option>
-                <option value="DAMASCO">DAMASCO</option>
-                <option value="CANGURO">CANGURO</option>
-            </select>
+            <div class="input-with-button">
+                <select id="minorista">
+                    <option value="" disabled selected>Seleccione Retailer...</option>
+                    <option value="GLOBAL CELL">GLOBAL CELL</option>
+                    <option value="TECNO CORP">TECNO CORP</option>
+                    <option value="NC PHONE">NC PHONE</option>
+                    <option value="DAMASCO">DAMASCO</option>
+                    <option value="CANGURO">CANGURO</option>
+                </select>
+                <button type="button" class="btn-icon" id="btn-add-minorista" onclick="mostrarSegundoMinorista()" title="Agregar otro minorista">+</button>
+            </div>
+        </div>
+
+        <div class="form-group" id="grupo-minorista-2" style="display: none;">
+            <label for="minorista2">Segundo Minorista Objetivo:</label>
+            <div class="input-with-button">
+                <select id="minorista2">
+                    <option value="" disabled selected>Seleccione 2do Retailer...</option>
+                    <option value="GLOBAL CELL">GLOBAL CELL</option>
+                    <option value="TECNO CORP">TECNO CORP</option>
+                    <option value="NC PHONE">NC PHONE</option>
+                    <option value="DAMASCO">DAMASCO</option>
+                    <option value="CANGURO">CANGURO</option>
+                </select>
+                <button type="button" class="btn-icon remove" onclick="ocultarSegundoMinorista()" title="Quitar este minorista">-</button>
+            </div>
         </div>
 
         <div class="form-group">
@@ -190,19 +242,30 @@
             <input type="number" id="cantidad" placeholder="Ej. 5" min="0">
         </div>
 
-        <button onclick="copiarTexto()" id="btnCopiar" class="btn-copiar">Copiar para WhatsApp a</button>
+        <button onclick="copiarTexto()" id="btnCopiar" class="btn-copiar">Copiar para WhatsApp</button>
     </div>
 
     <script>
         // Autocompletar la fecha con el día actual
         document.getElementById('fecha').valueAsDate = new Date();
 
+        // Funciones para manejar el segundo minorista
+        function mostrarSegundoMinorista() {
+            document.getElementById('grupo-minorista-2').style.display = 'block';
+            document.getElementById('btn-add-minorista').style.display = 'none';
+        }
+
+        function ocultarSegundoMinorista() {
+            document.getElementById('grupo-minorista-2').style.display = 'none';
+            document.getElementById('btn-add-minorista').style.display = 'flex';
+            document.getElementById('minorista2').value = ""; // Reiniciar el valor al ocultar
+        }
+
         // Función para armar y copiar el texto
         function copiarTexto() {
             const fechaInput = document.getElementById('fecha').value;
             let fechaFormateada = "";
             if(fechaInput) {
-                // Formato de AAAA-MM-DD a DD/MM/AAAA
                 const [year, month, day] = fechaInput.split('-');
                 fechaFormateada = `${day}/${month}/${year}`;
             }
@@ -210,16 +273,22 @@
             const nombre = document.getElementById('nombre').value;
             const cargo = document.getElementById('cargo').value;
             const region = document.getElementById('region').value;
-            const minorista = document.getElementById('minorista').value;
+            const minorista1 = document.getElementById('minorista').value;
+            const minorista2 = document.getElementById('minorista2').value;
             const cantidad = document.getElementById('cantidad').value;
 
-            // Validar que se seleccionó nombre y minorista
-            if (!nombre || !minorista) {
-                alert("Por favor, selecciona tu nombre y el minorista objetivo antes de copiar.");
+            // Validar que se seleccionó nombre y el primer minorista
+            if (!nombre || !minorista1) {
+                alert("Por favor, selecciona tu nombre y al menos el primer minorista objetivo antes de copiar.");
                 return;
             }
 
-            // Uso de template literals respetando los saltos de línea de la plantilla
+            // Unir minoristas si el segundo está visible y seleccionado
+            let textoMinoristas = minorista1;
+            if (document.getElementById('grupo-minorista-2').style.display !== 'none' && minorista2) {
+                textoMinoristas += ` y ${minorista2}`;
+            }
+
             const texto = `*REPORTE DIARIO DE ACTIVIDADES*
 
 * *Fecha:* ${fechaFormateada}
@@ -230,7 +299,7 @@
 
 * *Región/Ruta:* Barquisimeto | ${region}
 
-* *Nombre del principal minorista objetivo:* ${minorista}
+* *Nombre del principal minorista objetivo:* ${textoMinoristas}
 
 * *Cantidad total de tiendas minoristas clave objetivo:* ${cantidad}`;
 
@@ -240,7 +309,6 @@
                 btn.innerText = '¡Copiado con éxito!';
                 btn.style.backgroundColor = '#128C7E';
                 
-                // Restaurar el botón después de 3 segundos
                 setTimeout(() => {
                     btn.innerText = 'Copiar para WhatsApp';
                     btn.style.backgroundColor = 'var(--whatsapp-green)';
