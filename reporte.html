@@ -335,9 +335,7 @@
     btn.innerText = "Sincronizando a la Nube..."; 
     btn.disabled = true;
 
-    // --- INICIO DE MODIFICACIÓN ---
-    
-    // 1. Extraer datos base de las tiendas
+    // 1. Extraer datos base de los bloques de tienda (la "plantilla" de datos)
     const tiendasData = Array.from(document.querySelectorAll('.store-block')).map(b => ({
         nombre: getStoreName(b),
         estatus: b.querySelector('.store-status').value,
@@ -346,35 +344,40 @@
     }));
 
     let tiendasProcesadas = [];
-    let fotosUsadas = new Set();
 
-    // Función para formatear el link
-    const formatLink = (p) => `${p.categoria} (${p.nombreTienda}): ${p.src}`;
+    // --- LOGICA DE GENERACIÓN DE FILAS CON LINKS ---
 
-    // 2. Emparejar tiendas con su primera foto
-    tiendasData.forEach(tienda => {
-        const fIdx = photos.findIndex((p, i) => p.nombreTienda === tienda.nombre && !fotosUsadas.has(i));
+    // Primero: Generamos una fila por cada FOTO adjunta
+    photos.forEach((p) => {
+        // Buscamos si hay una tienda creada que coincida con el nombre que le pusiste a la foto
+        const infoTienda = tiendasData.find(t => t.nombre === p.nombreTienda) || {
+            nombre: p.nombreTienda || "General/Adjunto",
+            estatus: "N/A", 
+            cantidad: "N/A", 
+            acciones: "Evidencia fotográfica"
+        };
+
+        // Creamos la fila incluyendo el link (DataURL) en la propiedad 'foto'
         tiendasProcesadas.push({
-            ...tienda,
-            foto: fIdx !== -1 ? (fotosUsadas.add(fIdx), formatLink(photos[fIdx])) : ""
+            ...infoTienda,
+            foto: `${p.categoria} (${p.nombreTienda || "Sin nombre"}): ${p.src}`
         });
     });
 
-    // 3. Generar filas adicionales para fotos sobrantes (de tiendas existentes o nuevas)
-    photos.forEach((p, i) => {
-        if (!fotosUsadas.has(i)) {
-            const base = tiendasData.find(t => t.nombre === p.nombreTienda) || {
-                nombre: p.nombreTienda || "General",
-                estatus: "N/A", cantidad: "N/A", acciones: "Evidencia adicional"
-            };
-            tiendasProcesadas.push({ ...base, foto: formatLink(p) });
+    // Segundo: Añadimos las tiendas que NO tienen fotos (para que su reporte no se pierda)
+    tiendasData.forEach(t => {
+        const tieneFotos = photos.some(p => p.nombreTienda === t.nombre);
+        if (!tieneFotos) {
+            tiendasProcesadas.push({
+                ...t,
+                foto: "" // Fila sin foto, solo datos de gestión
+            });
         }
     });
 
-    // --- FIN DE MODIFICACIÓN ---
-
     const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbzjFY3EJICcNvQI3VNqUej7uTehPvjEWRKZiU9g_-of1vuMvfYWu650-mlhWwmR_cXzDg/exec";
 
+    // Datos generales del reporte
     const baseData = {
         fecha: document.getElementById('date').value,
         especialista: document.getElementById('staffName').value,
@@ -382,12 +385,12 @@
         region: document.getElementById('region').value,
         competencia: document.getElementById('competitorActions').value,
         dinamica: document.getElementById('marketDynamics').value,
-        fotos: [] // Enviamos vacío para evitar duplicidad de datos pesados
+        fotos: [] // Ya no enviamos el array global para no saturar la petición
     };
 
     const payloadR1 = {
         ...baseData,
-        tiendas: tiendasProcesadas, // Enviamos el nuevo array con filas separadas
+        tiendas: tiendasProcesadas, // Aquí viajan todas las filas (con y sin fotos)
         retailer: document.getElementById('retailerName').value,
         tiendasObjetivo: document.getElementById('shopsQty').value,
         metaCamon: document.getElementById('salesTarget').value,
@@ -400,8 +403,10 @@
     };
 
     try {
+        // Enviamos el primer Retailer
         await fetch(WEBHOOK_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payloadR1) });
 
+        // Si el Retailer 2 está activo, lo enviamos (usualmente sin duplicar las tiendas del R1)
         if (isR2Active() && document.getElementById('retailerName2').value !== "") {
             const payloadR2 = {
                 ...baseData,
