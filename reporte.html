@@ -329,148 +329,104 @@
 
     // --- 1. EXPORTACIÓN A GOOGLE SHEETS (SIN DUPLICAR TIENDAS EN R2) ---
     async function enviarAGoogleSheets() {
-
-        if (!document.getElementById('staffName').value) { alert("Selecciona un especialista"); return; }
-
-        
-
-        const btn = document.getElementById('btnSincronizar');
-
-        btn.innerText = "Sincronizando a la Nube..."; 
-
-        btn.disabled = true;
-
-
-
-        const tiendasData = Array.from(document.querySelectorAll('.store-block')).map(b => ({
-
-            nombre: getStoreName(b),
-
-            estatus: b.querySelector('.store-status').value,
-
-            cantidad: b.querySelector('.store-qty').value || "N/A",
-
-            acciones: b.querySelector('.store-actions').value
-
-        }));
-
-
-
-        const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbzjFY3EJICcNvQI3VNqUej7uTehPvjEWRKZiU9g_-of1vuMvfYWu650-mlhWwmR_cXzDg/exec";
-
-
-
-        
-
-        const fotosConcatenadas = photos.map(p => `${p.categoria} (${p.nombreTienda}): ${p.src}`).join("\n");
-
-        
-
-        const baseData = {
-
-            fecha: document.getElementById('date').value,
-
-            especialista: document.getElementById('staffName').value,
-
-            cargo: document.getElementById('role').value,
-
-            region: document.getElementById('region').value,
-
-            
-
-            competencia: document.getElementById('competitorActions').value,
-
-            dinamica: document.getElementById('marketDynamics').value,
-
-            fotos: photos
-
-        };
-
-
-
-        const payloadR1 = {
-
-            ...baseData,
-
-            tiendas: tiendasData, // Las tiendas solo se van en el R1
-
-            retailer: document.getElementById('retailerName').value,
-
-            tiendasObjetivo: document.getElementById('shopsQty').value,
-
-            metaCamon: document.getElementById('salesTarget').value,
-
-            ventaHoy: document.getElementById('todaySales').value,
-
-            acumulado: document.getElementById('accumulatedSales').value,
-
-            dcr: document.getElementById('dcrRate').value,
-
-            covPro: document.getElementById('coverage50Pro').value,
-
-            covUltra: document.getElementById('coverage50Ultra').value,
-
-            probStock: document.getElementById('stockIssues').value,
-
-        };
-
-
-
-        try {
-
-            await fetch(WEBHOOK_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payloadR1) });
-
-
-
-            if (isR2Active() && document.getElementById('retailerName2').value !== "") {
-
-                const payloadR2 = {
-
-                    ...baseData,
-
-                    tiendas: [], // ARRAY VACÍO PARA NO DUPLICAR TIENDAS
-
-                    retailer: document.getElementById('retailerName2').value,
-
-                    tiendasObjetivo: document.getElementById('shopsQty2').value,
-
-                    metaCamon: document.getElementById('salesTarget2').value,
-
-                    ventaHoy: document.getElementById('todaySales2').value,
-
-                    acumulado: document.getElementById('accumulatedSales2').value,
-
-                    dcr: document.getElementById('dcrRate2').value,
-
-                    covPro: document.getElementById('coverage50Pro2').value,
-
-                    covUltra: document.getElementById('coverage50Ultra2').value,
-
-                    probStock: document.getElementById('stockIssues2').value,
-
-                };
-
-                await fetch(WEBHOOK_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payloadR2) });
-
-            }
-
-
-
-            alert("¡Sincronización completa con la Nube!");
-
-        } catch (e) {
-
-            alert("Error de conexión al servidor.");
-
-        } finally {
-
-            btn.innerText = "Exportar Excel A La Nube"; 
-
-            btn.disabled = false;
-
+    if (!document.getElementById('staffName').value) { alert("Selecciona un especialista"); return; }
+
+    const btn = document.getElementById('btnSincronizar');
+    btn.innerText = "Sincronizando a la Nube..."; 
+    btn.disabled = true;
+
+    // --- INICIO DE MODIFICACIÓN ---
+    
+    // 1. Extraer datos base de las tiendas
+    const tiendasData = Array.from(document.querySelectorAll('.store-block')).map(b => ({
+        nombre: getStoreName(b),
+        estatus: b.querySelector('.store-status').value,
+        cantidad: b.querySelector('.store-qty').value || "N/A",
+        acciones: b.querySelector('.store-actions').value
+    }));
+
+    let tiendasProcesadas = [];
+    let fotosUsadas = new Set();
+
+    // Función para formatear el link
+    const formatLink = (p) => `${p.categoria} (${p.nombreTienda}): ${p.src}`;
+
+    // 2. Emparejar tiendas con su primera foto
+    tiendasData.forEach(tienda => {
+        const fIdx = photos.findIndex((p, i) => p.nombreTienda === tienda.nombre && !fotosUsadas.has(i));
+        tiendasProcesadas.push({
+            ...tienda,
+            foto: fIdx !== -1 ? (fotosUsadas.add(fIdx), formatLink(photos[fIdx])) : ""
+        });
+    });
+
+    // 3. Generar filas adicionales para fotos sobrantes (de tiendas existentes o nuevas)
+    photos.forEach((p, i) => {
+        if (!fotosUsadas.has(i)) {
+            const base = tiendasData.find(t => t.nombre === p.nombreTienda) || {
+                nombre: p.nombreTienda || "General",
+                estatus: "N/A", cantidad: "N/A", acciones: "Evidencia adicional"
+            };
+            tiendasProcesadas.push({ ...base, foto: formatLink(p) });
+        }
+    });
+
+    // --- FIN DE MODIFICACIÓN ---
+
+    const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbzjFY3EJICcNvQI3VNqUej7uTehPvjEWRKZiU9g_-of1vuMvfYWu650-mlhWwmR_cXzDg/exec";
+
+    const baseData = {
+        fecha: document.getElementById('date').value,
+        especialista: document.getElementById('staffName').value,
+        cargo: document.getElementById('role').value,
+        region: document.getElementById('region').value,
+        competencia: document.getElementById('competitorActions').value,
+        dinamica: document.getElementById('marketDynamics').value,
+        fotos: [] // Enviamos vacío para evitar duplicidad de datos pesados
+    };
+
+    const payloadR1 = {
+        ...baseData,
+        tiendas: tiendasProcesadas, // Enviamos el nuevo array con filas separadas
+        retailer: document.getElementById('retailerName').value,
+        tiendasObjetivo: document.getElementById('shopsQty').value,
+        metaCamon: document.getElementById('salesTarget').value,
+        ventaHoy: document.getElementById('todaySales').value,
+        acumulado: document.getElementById('accumulatedSales').value,
+        dcr: document.getElementById('dcrRate').value,
+        covPro: document.getElementById('coverage50Pro').value,
+        covUltra: document.getElementById('coverage50Ultra').value,
+        probStock: document.getElementById('stockIssues').value,
+    };
+
+    try {
+        await fetch(WEBHOOK_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payloadR1) });
+
+        if (isR2Active() && document.getElementById('retailerName2').value !== "") {
+            const payloadR2 = {
+                ...baseData,
+                tiendas: [], 
+                retailer: document.getElementById('retailerName2').value,
+                tiendasObjetivo: document.getElementById('shopsQty2').value,
+                metaCamon: document.getElementById('salesTarget2').value,
+                ventaHoy: document.getElementById('todaySales2').value,
+                acumulado: document.getElementById('accumulatedSales2').value,
+                dcr: document.getElementById('dcrRate2').value,
+                covPro: document.getElementById('coverage50Pro2').value,
+                covUltra: document.getElementById('coverage50Ultra2').value,
+                probStock: document.getElementById('stockIssues2').value,
+            };
+            await fetch(WEBHOOK_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payloadR2) });
         }
 
+        alert("¡Sincronización completa con la Nube!");
+    } catch (e) {
+        alert("Error de conexión al servidor.");
+    } finally {
+        btn.innerText = "Exportar Excel A La Nube"; 
+        btn.disabled = false;
     }
+}
 
     // --- 2. EXPORTAR WORD (CON IMÁGENES A 200x200) ---
     function exportWord() {
