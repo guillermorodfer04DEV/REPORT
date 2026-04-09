@@ -335,7 +335,7 @@
     btn.innerText = "Sincronizando a la Nube..."; 
     btn.disabled = true;
 
-    // 1. Extraer tiendas del DOM
+    // 1. Extraer las tiendas creadas en el HTML
     let tiendasOriginales = Array.from(document.querySelectorAll('.store-block')).map(b => ({
         nombre: getStoreName(b),
         estatus: b.querySelector('.store-status').value,
@@ -344,47 +344,54 @@
     }));
 
     let tiendasProcesadas = [];
-    let fotosUsadas = new Set();
+    
+    // Función para armar el link tal como lo pide tu Google Apps Script
+    const formatPhotoLink = (p) => `${p.categoria} (${p.nombreTienda || "General"}): ${p.src}`;
 
-    // Función auxiliar para formatear el link de la foto como lo hace tu código original
-    const formatPhotoLink = (p) => `${p.categoria} (${p.nombreTienda}): ${p.src}`;
-
-    // 2. Distribuir fotos en filas individuales
-    tiendasOriginales.forEach(tienda => {
-        let nuevaTienda = { ...tienda, foto: "" };
-        // Buscar primera foto que coincida con el nombre de esta tienda
-        let fotoIndex = photos.findIndex((p, idx) => p.nombreTienda === tienda.nombre && !fotosUsadas.has(idx));
-        
-        if (fotoIndex !== -1) {
-            nuevaTienda.foto = formatPhotoLink(photos[fotoIndex]);
-            fotosUsadas.add(fotoIndex);
-        }
-        tiendasProcesadas.push(nuevaTienda);
+    // Agrupamos las fotos por el nombre de la tienda que el usuario escribió
+    let fotosPorTienda = {};
+    photos.forEach(p => {
+        let nombre = p.nombreTienda || "General/Adjunto";
+        if (!fotosPorTienda[nombre]) fotosPorTienda[nombre] = [];
+        fotosPorTienda[nombre].push(p);
     });
 
-    // 3. Si hay fotos sobrantes para una tienda, duplicamos la fila para que cada foto tenga su celda
-    photos.forEach((p, idx) => {
-        if (!fotosUsadas.has(idx)) {
-            let ultimaFilaCoincidente = [...tiendasProcesadas].reverse().find(t => t.nombre === p.nombreTienda);
+    // Agrupamos las tiendas originales por el nombre seleccionado
+    let tiendasPorNombre = {};
+    tiendasOriginales.forEach(t => {
+        let nombre = t.nombre;
+        if (!tiendasPorNombre[nombre]) tiendasPorNombre[nombre] = [];
+        tiendasPorNombre[nombre].push(t);
+    });
+
+    // Obtener todos los nombres (las tiendas declaradas + las fotos adjuntadas)
+    let todosLosNombres = new Set([...Object.keys(tiendasPorNombre), ...Object.keys(fotosPorTienda)]);
+
+    // Emparejamiento Exacto (1 link por fila, clonando la fila si hay más fotos)
+    todosLosNombres.forEach(nombre => {
+        let filasTienda = tiendasPorNombre[nombre] || [];
+        let fotosTienda = fotosPorTienda[nombre] || [];
+        
+        // Verificamos quién es mayor (si hay 1 fila pero 3 fotos, el bucle correrá 3 veces)
+        let maxIteraciones = Math.max(filasTienda.length, fotosTienda.length);
+        
+        for (let i = 0; i < maxIteraciones; i++) {
+            // Tomamos la fila correspondiente, si se acabaron las filas, tomamos la ÚLTIMA disponible de esa tienda
+            let filaBase = filasTienda[i] || filasTienda[filasTienda.length - 1] || {
+                nombre: nombre,
+                estatus: "N/A",
+                cantidad: "N/A",
+                acciones: "Evidencia fotográfica adicional"
+            };
             
-            if (ultimaFilaCoincidente) {
-                // Clonamos la información de la tienda pero con la nueva foto
-                tiendasProcesadas.push({ 
-                    ...ultimaFilaCoincidente, 
-                    foto: formatPhotoLink(p) 
-                });
-                fotosUsadas.add(idx);
-            } else {
-                // Si la foto no coincide con ninguna tienda (ej. competencia o general)
-                tiendasProcesadas.push({
-                    nombre: p.nombreTienda || "General/Adjunto",
-                    estatus: "N/A",
-                    cantidad: "N/A",
-                    acciones: "Evidencia adicional",
-                    foto: formatPhotoLink(p)
-                });
-                fotosUsadas.add(idx);
-            }
+            // Tomamos la foto correspondiente, si se acabaron las fotos, mandamos vacío para no duplicar links
+            let fotoStr = fotosTienda[i] ? formatPhotoLink(fotosTienda[i]) : "";
+            
+            // Inyectamos la propiedad 'foto' en la fila (que ahora viajará individualmente)
+            tiendasProcesadas.push({
+                ...filaBase,
+                foto: fotoStr
+            });
         }
     });
 
@@ -397,12 +404,12 @@
         region: document.getElementById('region').value,
         competencia: document.getElementById('competitorActions').value,
         dinamica: document.getElementById('marketDynamics').value,
-        fotos: [] // Enviamos vacío aquí para evitar la celda gigante con todos los links
+        fotos: [] // IMPORTANTE: Se envía vacío para evitar la celda gigante con todos los links
     };
 
     const payloadR1 = {
         ...baseData,
-        tiendas: tiendasProcesadas,
+        tiendas: tiendasProcesadas, // Aquí viajan las tiendas con sus fotos individuales
         retailer: document.getElementById('retailerName').value,
         tiendasObjetivo: document.getElementById('shopsQty').value,
         metaCamon: document.getElementById('salesTarget').value,
