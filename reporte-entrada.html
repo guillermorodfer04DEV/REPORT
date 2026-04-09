@@ -190,7 +190,7 @@
             <input type="number" id="cantidad" placeholder="Ej. 5" min="0">
         </div>
 
-        <button onclick="copiarTexto()" id="btnCopiar" class="btn-copiar">Copiar para WhatsApp</button>
+        <button onclick="copiarTexto()" id="btnCopiar" class="btn-copiar">Copiar para WhatsApp a</button>
     </div>
 
     <script>
@@ -242,7 +242,7 @@
                 
                 // Restaurar el botón después de 3 segundos
                 setTimeout(() => {
-                    btn.innerText = 'Copiar para WhatsApp a';
+                    btn.innerText = 'Copiar para WhatsApp';
                     btn.style.backgroundColor = 'var(--whatsapp-green)';
                 }, 3000);
             }).catch(err => {
