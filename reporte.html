@@ -335,7 +335,7 @@
     btn.innerText = "Sincronizando a la Nube..."; 
     btn.disabled = true;
 
-    // 1. Extraer la información base de las tiendas en el DOM
+    // 1. Extraer tiendas del DOM
     let tiendasOriginales = Array.from(document.querySelectorAll('.store-block')).map(b => ({
         nombre: getStoreName(b),
         estatus: b.querySelector('.store-status').value,
@@ -343,40 +343,47 @@
         acciones: b.querySelector('.store-actions').value
     }));
 
-    // 2. Lógica para distribuir las fotos: 1 foto por fila, creando nuevas filas si hay fotos extra
     let tiendasProcesadas = [];
     let fotosUsadas = new Set();
 
-    // Paso A: Asignar la primera foto disponible a las tiendas ya creadas
+    // Función auxiliar para formatear el link de la foto como lo hace tu código original
+    const formatPhotoLink = (p) => `${p.categoria} (${p.nombreTienda}): ${p.src}`;
+
+    // 2. Distribuir fotos en filas individuales
     tiendasOriginales.forEach(tienda => {
-        let nuevaTienda = { ...tienda, foto: null };
+        let nuevaTienda = { ...tienda, foto: "" };
+        // Buscar primera foto que coincida con el nombre de esta tienda
         let fotoIndex = photos.findIndex((p, idx) => p.nombreTienda === tienda.nombre && !fotosUsadas.has(idx));
         
         if (fotoIndex !== -1) {
-            nuevaTienda.foto = photos[fotoIndex];
+            nuevaTienda.foto = formatPhotoLink(photos[fotoIndex]);
             fotosUsadas.add(fotoIndex);
         }
         tiendasProcesadas.push(nuevaTienda);
     });
 
-    // Paso B: Si el especialista subió más fotos que tiendas, duplicamos la última fila correspondiente
+    // 3. Si hay fotos sobrantes para una tienda, duplicamos la fila para que cada foto tenga su celda
     photos.forEach((p, idx) => {
         if (!fotosUsadas.has(idx)) {
-            // Buscar la última fila registrada con ese mismo nombre de tienda
-            let ultimaTienda = [...tiendasProcesadas].reverse().find(t => t.nombre === p.nombreTienda);
+            let ultimaFilaCoincidente = [...tiendasProcesadas].reverse().find(t => t.nombre === p.nombreTienda);
             
-            if (ultimaTienda) {
-                // Duplicamos la fila y le asignamos la nueva foto (esto creará una fila nueva en Sheets)
-                tiendasProcesadas.push({ ...ultimaTienda, foto: p });
+            if (ultimaFilaCoincidente) {
+                // Clonamos la información de la tienda pero con la nueva foto
+                tiendasProcesadas.push({ 
+                    ...ultimaFilaCoincidente, 
+                    foto: formatPhotoLink(p) 
+                });
+                fotosUsadas.add(idx);
             } else {
-                // Caso extremo: si subió una foto con un nombre que no coincide con ninguna tienda
+                // Si la foto no coincide con ninguna tienda (ej. competencia o general)
                 tiendasProcesadas.push({
-                    nombre: p.nombreTienda || "Sin Tienda",
+                    nombre: p.nombreTienda || "General/Adjunto",
                     estatus: "N/A",
                     cantidad: "N/A",
-                    acciones: "Foto adjunta sin reporte detallado",
-                    foto: p
+                    acciones: "Evidencia adicional",
+                    foto: formatPhotoLink(p)
                 });
+                fotosUsadas.add(idx);
             }
         }
     });
@@ -390,13 +397,12 @@
         region: document.getElementById('region').value,
         competencia: document.getElementById('competitorActions').value,
         dinamica: document.getElementById('marketDynamics').value,
-        // Vaciamos el arreglo global de fotos para que el App Script no las concatene todas en una celda
-        fotos: [] 
+        fotos: [] // Enviamos vacío aquí para evitar la celda gigante con todos los links
     };
 
     const payloadR1 = {
         ...baseData,
-        tiendas: tiendasProcesadas, // Ahora enviamos el arreglo procesado con las fotos distribuidas
+        tiendas: tiendasProcesadas,
         retailer: document.getElementById('retailerName').value,
         tiendasObjetivo: document.getElementById('shopsQty').value,
         metaCamon: document.getElementById('salesTarget').value,
@@ -414,7 +420,7 @@
         if (isR2Active() && document.getElementById('retailerName2').value !== "") {
             const payloadR2 = {
                 ...baseData,
-                tiendas: [], // ARRAY VACÍO PARA NO DUPLICAR TIENDAS
+                tiendas: [], 
                 retailer: document.getElementById('retailerName2').value,
                 tiendasObjetivo: document.getElementById('shopsQty2').value,
                 metaCamon: document.getElementById('salesTarget2').value,
