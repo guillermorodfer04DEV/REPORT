@@ -30,7 +30,7 @@
             color: var(--tecno-dark);
         }
 
-        /* ----- NUEVO: Estilos de la etiqueta del usuario ----- */
+        /* Etiqueta del usuario */
         .user-badge {
             position: fixed;
             top: 20px;
@@ -45,7 +45,7 @@
             box-shadow: 0 4px 10px rgba(0,0,0,0.05);
             border: 1px solid rgba(255, 255, 255, 0.6);
             z-index: 1000;
-            display: none; /* Se oculta hasta que haya nombre */
+            display: none; 
             animation: fadeInUp 0.5s ease-out;
         }
 
@@ -53,13 +53,25 @@
             margin-right: 5px;
         }
 
-        /* ----- NUEVO: Estilos del Modal de Registro ----- */
+        /* Indicador visual de que es desarrollador */
+        .dev-tag {
+            background-color: var(--tecno-dark);
+            color: var(--white);
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 8px;
+            margin-left: 8px;
+            vertical-align: middle;
+            display: none; /* Oculto por defecto */
+        }
+
+        /* Modal de Registro */
         .modal-overlay {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
             background: rgba(15, 23, 42, 0.6);
             backdrop-filter: blur(5px);
-            display: none; /* Se oculta por defecto */
+            display: none; 
             justify-content: center;
             align-items: center;
             z-index: 2000;
@@ -111,8 +123,8 @@
             justify-content: center;
             cursor: pointer;
         }
-        /* --------------------------------------------------- */
 
+        /* Contenedor principal */
         .container {
             text-align: center;
             width: 90%;
@@ -123,6 +135,7 @@
             border-radius: 24px;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
             border: 1px solid rgba(255, 255, 255, 0.6);
+            animation: fadeInUp 0.6s ease-out;
         }
 
         .logo-container {
@@ -137,10 +150,7 @@
             box-shadow: 0 10px 20px rgba(0, 86, 179, 0.1);
         }
 
-        .logo {
-            width: 70px;
-            height: auto;
-        }
+        .logo { width: 70px; height: auto; }
 
         h1 {
             font-size: 28px;
@@ -180,16 +190,8 @@
             transition: var(--transition);
         }
 
-        .btn-nav i {
-            font-size: 20px;
-            margin-right: 12px;
-        }
-
-        .btn-nav span {
-            flex-grow: 1;
-            text-align: left;
-        }
-
+        .btn-nav i { font-size: 20px; margin-right: 12px; }
+        .btn-nav span { flex-grow: 1; text-align: left; }
         .btn-nav:hover {
             border-color: var(--tecno-blue);
             transform: translateX(5px);
@@ -203,17 +205,13 @@
             border: none;
             box-shadow: 0 10px 20px rgba(0, 86, 179, 0.2);
         }
-
         .btn-nav.accent:hover {
             transform: translateY(-3px) scale(1.02);
             box-shadow: 0 15px 25px rgba(0, 86, 179, 0.3);
             filter: brightness(1.1);
         }
 
-        .arrow {
-            font-size: 12px;
-            opacity: 0.5;
-        }
+        .arrow { font-size: 12px; opacity: 0.5; }
 
         footer {
             position: absolute;
@@ -230,15 +228,22 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        .container {
-            animation: fadeInUp 0.6s ease-out;
+        /* Botón exclusivo para Devs */
+        #devPanelBtn {
+            border-color: var(--tecno-dark);
+            background-color: var(--tecno-dark);
+            color: var(--white);
+        }
+        #devPanelBtn:hover {
+            background-color: #1e293b;
         }
     </style>
 </head>
 <body>
     
     <div id="userBadge" class="user-badge">
-        <i>👤</i> Hola, <span id="displayUserName"></span>
+        <i>👤</i> <span id="displayUserName"></span>
+        <span id="devTag" class="dev-tag">DEV</span>
     </div>
 
     <div id="welcomeModal" class="modal-overlay">
@@ -276,6 +281,12 @@
                 <span>Imei QR Generator</span>
                 <b class="arrow">▶</b>
             </a>
+
+            <a href="#" id="devPanelBtn" class="btn-nav" style="display: none;">
+                <i>⚙️</i>
+                <span>Panel de Control</span>
+                <b class="arrow">▶</b>
+            </a>
         </div>
     </div>
 
@@ -290,57 +301,83 @@
             const saveBtn = document.getElementById("saveNameBtn");
             const userBadge = document.getElementById("userBadge");
             const displayUserName = document.getElementById("displayUserName");
+            const devTag = document.getElementById("devTag");
+            const devPanelBtn = document.getElementById("devPanelBtn");
 
-            // Función para generar un ID único simulado
+            // --- LISTA DE DESARROLLADORES AUTORIZADOS ---
+            // Se escriben en minúsculas para facilitar la comparación exacta
+            const developersList = [
+                "guillermo rodríguez",
+                "josé reina",
+                "alexandra guaimare",
+                "álvaro rodríguez"
+            ];
+
             const generateDeviceID = () => {
                 return 'DEV-' + Math.random().toString(36).substring(2, 10).toUpperCase() + '-' + Date.now();
             };
 
-            // Comprobamos si ya existe la información en el navegador (localStorage)
+            // Función para verificar si el nombre pertenece a la lista de Devs
+            const checkRole = (name) => {
+                const normalizedInput = name.trim().toLowerCase();
+                // Verifica si el nombre ingresado coincide con alguno de la lista
+                const isDev = developersList.some(devName => normalizedInput.includes(devName));
+                return isDev ? "dev" : "user";
+            };
+
+            // Función para aplicar los permisos visuales según el rol
+            const applyPermissions = (role) => {
+                if (role === "dev") {
+                    devTag.style.display = "inline-block"; // Muestra la etiqueta DEV junto al nombre
+                    devPanelBtn.style.display = "flex";    // Muestra el botón bloqueado
+                } else {
+                    devTag.style.display = "none";
+                    devPanelBtn.style.display = "none";
+                }
+            };
+
+            // Carga inicial: comprobamos localStorage
             const savedName = localStorage.getItem("tecno_user_name");
             const savedID = localStorage.getItem("tecno_device_id");
+            const savedRole = localStorage.getItem("tecno_user_role");
 
             if (savedName && savedID) {
-                // Si el usuario ya existe, mostramos su nombre y ocultamos el modal
                 showUserBadge(savedName);
-                console.log("Usuario detectado automáticamente. ID:", savedID);
+                applyPermissions(savedRole);
             } else {
-                // Si es primera vez, mostramos el modal para pedir el nombre
                 modal.style.display = "flex";
             }
 
-            // Lógica al hacer clic en "Guardar y Continuar"
+            // Lógica de guardado
             saveBtn.addEventListener("click", () => {
                 const userName = nameInput.value.trim();
 
                 if (userName !== "") {
                     const newDeviceID = generateDeviceID();
+                    const userRole = checkRole(userName); // Asigna "dev" o "user"
 
-                    // Guardamos los datos en el almacenamiento local del dispositivo
+                    // Guardado local
                     localStorage.setItem("tecno_user_name", userName);
                     localStorage.setItem("tecno_device_id", newDeviceID);
+                    localStorage.setItem("tecno_user_role", userRole);
 
-                    // Cerramos el modal y mostramos la etiqueta
                     modal.style.display = "none";
                     showUserBadge(userName);
+                    applyPermissions(userRole);
                     
-                    console.log("Nuevo usuario registrado. ID Asignada:", newDeviceID);
                 } else {
-                    // Pequeña animación de error si se deja en blanco
                     nameInput.style.borderColor = "red";
                     setTimeout(() => nameInput.style.borderColor = "#e2e8f0", 1500);
                     nameInput.focus();
                 }
             });
 
-            // Permitir guardar al presionar "Enter"
             nameInput.addEventListener("keypress", (e) => {
                 if (e.key === "Enter") {
                     saveBtn.click();
                 }
             });
 
-            // Función para actualizar y mostrar el nombre arriba a la derecha
             function showUserBadge(name) {
                 displayUserName.textContent = name;
                 userBadge.style.display = "block";
