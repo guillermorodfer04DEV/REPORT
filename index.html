@@ -209,6 +209,42 @@
                 localStorage.setItem("tecno_user_role", currentRole);
             };
 
+            // --- Lógica de Avatar por Colores ---
+            const userColors = [
+                { name: "Guillermo Rodriguez", color: "#10750d" }, // Verde
+                { name: "José Díaz", color: "#4823cc" },           // Azul
+                { name: "José Reina", color: "#dd57b5" },          // Rosa
+                { name: "Alexandra Guaimare", color: "#000000" }   // Negro
+            ];
+
+            const updateAvatar = (name) => {
+                const userIcon = document.querySelector(".user-badge i");
+                const cleanedInput = cleanText(name);
+                
+                // Buscar coincidencia en la lista de colores
+                const match = userColors.find(user => cleanText(user.name) === cleanedInput);
+
+                if (match) {
+                    // Crear círculo de color
+                    userIcon.innerHTML = `<span style="display: inline-block; width: 12px; height: 12px; background-color: ${match.color}; border-radius: 50%; margin-right: 2px;"></span>`;
+                } else {
+                    // Emoji por defecto
+                    userIcon.innerHTML = "👤";
+                }
+            };
+
+            // --- Integración en tu función existente ---
+            // Debes llamar a updateAvatar(name) dentro de tu función updateInterface
+            const originalUpdateInterface = updateInterface;
+            updateInterface = (name) => {
+                originalUpdateInterface(name);
+                updateAvatar(name);
+            };
+
+            // Ejecutar para el usuario cargado inicialmente
+            const savedName = localStorage.getItem("tecno_user_name");
+            if (savedName) updateAvatar(savedName);
+
             const loadUser = () => {
                 const savedName = localStorage.getItem("tecno_user_name");
                 if (savedName) {
