@@ -570,6 +570,124 @@
         navigator.clipboard.writeText(text).then(() => alert("¡Plantilla copiada con éxito para WhatsApp!"));
     }
 
+    // --- BLOQUE 1: AUTO-SELECCIÓN DE NOMBRE ---
+document.addEventListener("DOMContentLoaded", () => {
+    const savedName = localStorage.getItem("tecno_user_name");
+    const staffSelect = document.getElementById("staffName");
+
+    if (savedName && staffSelect) {
+        // Función auxiliar para comparar nombres sin acentos ni mayúsculas
+        const normalize = (t) => t.toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        const cleanSaved = normalize(savedName);
+
+        // Recorremos las opciones para ver si alguna coincide
+        Array.from(staffSelect.options).forEach(option => {
+            if (normalize(option.value) === cleanSaved) {
+                staffSelect.value = option.value;
+                console.log("Especialista auto-seleccionado: " + option.value);
+            }
+        });
+    }
+});
+
+// --- BLOQUE 2: DETECTOR DE DEV + BOTÓN DE TESTEO AUTOMÁTICO ---
+document.addEventListener("DOMContentLoaded", () => {
+    const developersList = [
+        "guillermo rodriguez",
+        "jose diaz",
+    ];
+
+    const savedName = localStorage.getItem("tecno_user_name");
+    const normalize = (t) => t ? t.toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "") : "";
+    const cleanUser = normalize(savedName);
+    const isDev = developersList.some(dev => normalize(dev) === cleanUser);
+
+    if (isDev) {
+        console.log("🛠️ Modo Desarrollador Activo");
+
+        // 1. Mostrar acceso a la nube
+        const cloudBtn = document.querySelector('.btn-group2');
+        if (cloudBtn) cloudBtn.style.display = "block";
+
+        // 2. Inyectar botón de Testeo
+        const testBtn = document.createElement('button');
+        testBtn.innerHTML = "🧪 Llenar Test";
+        testBtn.style = `
+            position: fixed; bottom: 20px; left: 20px; z-index: 10000;
+            background: #f08000; color: white; border: none; padding: 12px;
+            border-radius: 50px; cursor: pointer; font-weight: bold;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        `;
+        document.body.appendChild(testBtn);
+
+        testBtn.onclick = (e) => {
+            e.preventDefault();
+            llenarFormularioPrueba();
+        };
+    }
+
+    function llenarFormularioPrueba() {
+        // Datos Generales
+        document.getElementById('region').value = "Barquisimeto - C.C. Las Trinitarias";
+        
+        // Retailer 1
+        const r1 = document.getElementById('retailerName');
+        r1.value = "GLOBAL CELL";
+        document.getElementById('shopsQty').value = "5";
+        document.getElementById('salesTarget').value = "30 Unidades";
+        document.getElementById('todaySales').value = "4";
+        document.getElementById('accumulatedSales').value = "12";
+        document.getElementById('dcrRate').value = "85";
+        document.getElementById('coverage50Pro').value = "SI";
+        document.getElementById('coverage50Ultra').value = "NO";
+        document.getElementById('stockIssues').value = "Poca disponibilidad de color azul.";
+
+        // Activar y llenar Retailer 2
+        if (!isR2Active()) toggleSecondRetailer();
+        document.getElementById('retailerName2').value = "NC PHONE";
+        document.getElementById('shopsQty2').value = "3";
+        document.getElementById('salesTarget2').value = "20 Unidades";
+        document.getElementById('todaySales2').value = "2";
+        document.getElementById('accumulatedSales2').value = "5";
+        document.getElementById('dcrRate2').value = "100";
+        document.getElementById('coverage50Pro2').value = "SI";
+        document.getElementById('coverage50Ultra2').value = "SI";
+        document.getElementById('stockIssues2').value = "Sin problemas actuales.";
+
+        // Mercado
+        document.getElementById('competitorActions').value = "Samsung tiene promotores con nueva indumentaria.";
+        document.getElementById('marketDynamics').value = "Flujo alto de personas por quincena.";
+
+        // Actualizar títulos visuales
+        updateRetailerTitles();
+
+        // Agregar una tienda de ejemplo
+        addStore();
+        setTimeout(() => {
+            const lastStore = document.querySelector('.store-block:last-child');
+            if (lastStore) {
+                lastStore.querySelector('.store-select').value = "GLOBAL CELL";
+                lastStore.querySelector('.store-status').value = "Carga de ventas";
+                lastStore.querySelector('.store-qty').value = "3";
+                lastStore.querySelector('.store-actions').value = "Se verificó el inventario físico vs DCR.";
+            }
+        }, 100);
+
+        // Agregar Fotos de Prueba
+        const sampleImg = "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?q=80&w=300&auto=format&fit=crop";
+        
+        const testPhotos = [
+            { src: sampleImg, base64: "VGVzdERhdGE=", mimeType: "image/jpeg", name: "test1.jpg", categoria: "Vitrina Antes", nombreTienda: "GLOBAL CELL" },
+            { src: sampleImg, base64: "VGVzdERhdGE=", mimeType: "image/jpeg", name: "test2.jpg", categoria: "Competencia", nombreTienda: "Samsung Ref" }
+        ];
+
+        photos = [...photos, ...testPhotos];
+        renderPhotos();
+
+        console.log("✅ Formulario de prueba cargado correctamente.");
+    }
+});
+
     addStore();
 </script>
 </body>
