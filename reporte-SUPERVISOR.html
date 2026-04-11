@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <link rel="icon" type="image/png" href="https://guillermorodfer04dev.github.io/REPORT/TECNO-TOOL-icon.png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Reporte Diario TECNO - Supervisor</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        :root { --tecno-blue: #0056b3; --tecno-green: #217346; --bg: #f4f7f9; }
+        * { box-sizing: border-box; font-family: 'Segoe UI', Roboto, sans-serif; }
+        
+        body { background-color: var(--bg); margin: 0; padding: 10px; color: #333; line-height: 1.5; }
+        .container { background: white; max-width: 900px; margin: 0 auto; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
+        
+        header { border-bottom: 3px solid var(--tecno-blue); margin-bottom: 25px; padding-bottom: 10px; text-align: center; }
+        h1 { font-size: 1.5rem; color: var(--tecno-blue); margin: 0; text-transform: uppercase; }
+
+        .section-title { background: #e9ecef; padding: 12px; font-weight: bold; margin-top: 25px; border-radius: 6px; border-left: 6px solid var(--tecno-blue); font-size: 1rem; display: flex; justify-content: space-between; align-items: center; }
+        
+        .grid { display: grid; grid-template-columns: 1fr; gap: 15px; margin-top: 15px; }
+        @media (min-width: 768px) { .grid { grid-template-columns: 1fr 1fr; } }
+        .grid-3 { display: grid; grid-template-columns: 1fr; gap: 15px; margin-top: 15px; }
+        @media (min-width: 768px) { .grid-3 { grid-template-columns: 1fr 1fr 1fr; } }
+
+        .form-group { display: flex; flex-direction: column; }
+        label { font-size: 12px; font-weight: 700; margin-bottom: 5px; color: #555; }
+        input, textarea, select { padding: 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 14px; background: #fff; width: 100%; }
+        
+        .btn-add { background: var(--tecno-blue); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 14px; }
+        .btn-remove { background: #dc3545; color: white; border: none; padding: 10px; border-radius: 6px; font-size: 12px; margin-top: 10px; width: 100%; cursor: pointer; }
+
+        .issue-block { border: 1px solid #e0e0e0; padding: 15px; margin-top: 10px; border-radius: 10px; background: #fdfdfd; }
+
+        .btn-group { display: flex; flex-direction: column; gap: 12px; margin-top: 35px; }
+        @media (min-width: 768px) { .btn-group { flex-direction: row; } }
+        .btn-final { flex: 1; padding: 18px; border: none; border-radius: 10px; color: white; font-weight: bold; font-size: 16px; cursor: pointer; }
+        
+        .model-header { font-weight: bold; color: var(--tecno-blue); margin-top: 15px; border-bottom: 1px solid #ddd; padding-bottom: 5px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header><h1>Reporte Diario - Supervisor</h1></header>
+
+    <form id="reportForm">
+        <div class="grid">
+            <div class="form-group"><label>Fecha</label><input type="date" id="date"></div>
+            <div class="form-group">
+                <label>Reportado por (Nombre)</label>
+                <select id="staffName">
+                    <option value="">Seleccione...</option>
+                    <option value="José Díaz">José Díaz</option>
+                </select>
+            </div>
+            <div class="form-group"><label>Rol</label><input type="text" id="role" value="Supervisor" readonly></div>
+        </div>
+
+        <div class="section-title">1. Estado de Cobertura de Producto (CN5c & CN7c)</div>
+        
+        <div class="model-header">CAMON 50 PRO (CN5c)</div>
+        <div class="grid">
+            <div class="form-group"><label>Tiendas Objetivo Totales</label><input type="number" id="c50proTarget"></div>
+            <div class="form-group"><label>Tiendas Cubiertas (Stock/Ventas)</label><input type="number" id="c50proCovered"></div>
+            <div class="form-group"><label>Tasa de Cobertura (%)</label><input type="text" id="c50proRate"></div>
+            <div class="form-group"><label>Problemas y Próximas Acciones</label><input type="text" id="c50proIssues"></div>
+        </div>
+
+        <div class="model-header">CAMON 50 ULTRA 5G (CN7c)</div>
+        <div class="grid">
+            <div class="form-group"><label>Tiendas Objetivo Totales</label><input type="number" id="c50uTarget"></div>
+            <div class="form-group"><label>Tiendas Cubiertas (Stock/Ventas)</label><input type="number" id="c50uCovered"></div>
+            <div class="form-group"><label>Tasa de Cobertura (%)</label><input type="text" id="c50uRate"></div>
+            <div class="form-group"><label>Problemas y Próximas Acciones</label><input type="text" id="c50uIssues"></div>
+        </div>
+
+        <div class="form-group" style="margin-top:15px;">
+            <label>Minoristas de Alto Rendimiento (Ej: Soytechno, Canguro...)</label>
+            <input type="text" id="highPerformers" placeholder="Listar tiendas con casi 100% de cobertura">
+        </div>
+        <div class="form-group" style="margin-top:10px;">
+            <label>Minoristas de Bajo Rendimiento (Ej: Mundo Movil...)</label>
+            <input type="text" id="lowPerformers" placeholder="Listar tiendas con 0% o cobertura muy baja">
+        </div>
+
+        <div class="section-title">2. Logros de Sell-Out (SO)</div>
+        
+        <div class="model-header">CAMON 50 PRO (CN5c)</div>
+        <div class="grid-3">
+            <div class="form-group"><label>Activados Hoy</label><input type="number" id="c50proToday"></div>
+            <div class="form-group"><label>Meta Mensual SO</label><input type="number" id="c50proMonthTarget"></div>
+            <div class="form-group"><label>Total Mensual Logrado</label><input type="number" id="c50proMonthAchieved"></div>
+            <div class="form-group"><label>Tasa de Logro (%)</label><input type="text" id="c50proAchieveRate"></div>
+        </div>
+
+        <div class="model-header">CAMON 50 ULTRA 5G (CN7c)</div>
+        <div class="grid-3">
+            <div class="form-group"><label>Activados Hoy</label><input type="number" id="c50uToday"></div>
+            <div class="form-group"><label>Meta Mensual SO</label><input type="number" id="c50uMonthTarget"></div>
+            <div class="form-group"><label>Total Mensual Logrado</label><input type="number" id="c50uMonthAchieved"></div>
+            <div class="form-group"><label>Tasa de Logro (%)</label><input type="text" id="c50uAchieveRate"></div>
+        </div>
+
+        <div class="model-header">Notas de Rendimiento</div>
+        <div class="grid">
+            <div class="form-group"><label>Tendencia</label><input type="text" id="trend" placeholder="¿Sube, baja o estable?"></div>
+            <div class="form-group"><label>Impulsores Clave</label><input type="text" id="drivers" placeholder="Promociones, activaciones, redes..."></div>
+        </div>
+        <div class="form-group" style="margin-top:10px;"><label>Desafíos / Obstáculos</label><textarea id="challenges" rows="2" placeholder="Bajo tráfico, competencia..."></textarea></div>
+
+        <div class="section-title">3. Actividades Diarias y Ejecución</div>
+        <div class="form-group" style="margin-top:10px;">
+            <textarea id="dailyActivities" rows="3" placeholder="Documente las tareas clave realizadas..."></textarea>
+        </div>
+
+        <div class="section-title">4. Inteligencia Competitiva y Dinámica de Mercado</div>
+        <div class="form-group" style="margin-top:10px;">
+            <textarea id="marketIntel" rows="3" placeholder="Información de mercado y competidores..."></textarea>
+        </div>
+
+        <div class="section-title">
+            5. Problemas y Soporte Requerido
+            <button type="button" class="btn-add" onclick="addIssue()">+ Añadir Problema</button>
+        </div>
+        <div id="issues-container"></div>
+
+        <div class="btn-group">
+            <button type="button" class="btn-final" style="background: #2b579a;" onclick="exportWord()">Exportar Word (Plantilla)</button>
+            <button type="button" class="btn-final" style="background: #17a2b8;" onclick="window.open('https://docs.google.com/spreadsheets/d/168u-0pUmNMGVExY8duQJksMGCAjfxyPd44q0P-ESoKk/edit?gid=0#gid=0', '_blank')">☁️ Ir a la Nube</button>
+        </div>
+    </form>
+</div>
+
+<script>
+    document.getElementById('date').valueAsDate = new Date();
+
+    function addIssue() {
+        const id = Date.now();
+        const div = document.createElement('div');
+        div.className = 'issue-block';
+        div.id = `issue-${id}`;
+        div.innerHTML = `
+            <div class="form-group"><label>Descripción del Problema</label><input type="text" class="issue-desc" placeholder="Ej: Tiendas priorizan stock antiguo KM4"></div>
+            <div class="form-group" style="margin-top:10px;"><label>Urgencia</label>
+                <select class="issue-urgency">
+                    <option value="High">Alta (High)</option>
+                    <option value="Medium">Media (Medium)</option>
+                    <option value="Low">Baja (Low)</option>
+                </select>
+            </div>
+            <div class="form-group" style="margin-top:10px;"><label>Soporte Solicitado / Solución sugerida</label><textarea class="issue-support" rows="2" placeholder="Ej: Necesitamos apoyo con incentivos..."></textarea></div>
+            <button type="button" class="btn-remove" onclick="document.getElementById('issue-${id}').remove()">Eliminar Problema</button>
+        `;
+        document.getElementById('issues-container').appendChild(div);
+    }
+
+    function exportExcel() {
+        const data = [
+            ["SUPERVISOR DAILY WORK REPORT - TECNO"],
+            ["Date", document.getElementById('date').value],
+            ["Reported By", document.getElementById('staffName').value],
+            ["", ""],
+            ["1. PRODUCT COVERAGE STATUS"],
+            ["Model", "Total Key Retailer Shops Targeted", "Shops Covered", "Coverage Rate", "Issues & Next Actions"],
+            ["CN5c", document.getElementById('c50proTarget').value, document.getElementById('c50proCovered').value, document.getElementById('c50proRate').value, document.getElementById('c50proIssues').value],
+            ["CN7c", document.getElementById('c50uTarget').value, document.getElementById('c50uCovered').value, document.getElementById('c50uRate').value, document.getElementById('c50uIssues').value],
+            ["High Performing", document.getElementById('highPerformers').value],
+            ["Low Performing", document.getElementById('lowPerformers').value],
+            ["", ""],
+            ["2. SO ACHIEVEMENT"],
+            ["Model", "Today Activated", "Monthly SO Target", "Monthly SO Achieved", "Achievement Rate"],
+            ["CN5c", document.getElementById('c50proToday').value, document.getElementById('c50proMonthTarget').value, document.getElementById('c50proMonthAchieved').value, document.getElementById('c50proAchieveRate').value],
+            ["CN7c", document.getElementById('c50uToday').value, document.getElementById('c50uMonthTarget').value, document.getElementById('c50uMonthAchieved').value, document.getElementById('c50uAchieveRate').value],
+            ["", ""],
+            ["PERFORMANCE NOTES"],
+            ["Trend", document.getElementById('trend').value],
+            ["Key Drivers", document.getElementById('drivers').value],
+            ["Challenges", document.getElementById('challenges').value],
+            ["", ""],
+            ["3. DAILY ACTIVITIES", document.getElementById('dailyActivities').value],
+            ["4. COMPETITIVE INTEL", document.getElementById('marketIntel').value],
+            ["", ""],
+            ["5. ISSUES & SUPPORT REQUIRED"],
+            ["Issue Description", "Urgency", "Requested Support"]
+        ];
+
+        document.querySelectorAll('.issue-block').forEach(b => {
+            data.push([
+                b.querySelector('.issue-desc').value,
+                b.querySelector('.issue-urgency').value,
+                b.querySelector('.issue-support').value
+            ]);
+        });
+
+        const ws = XLSX.utils.aoa_to_sheet(data);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Supervisor Report");
+        XLSX.writeFile(wb, `Reporte_Supervisor_TECNO_${document.getElementById('staffName').value}.xlsx`);
+    }
+
+    function exportWord() {
+        let issuesTableRows = "";
+        document.querySelectorAll('.issue-block').forEach(b => {
+            issuesTableRows += `
+                <tr>
+                    <td style="border: 1px solid black; padding: 5px;">${b.querySelector('.issue-desc').value}</td>
+                    <td style="border: 1px solid black; padding: 5px;">${b.querySelector('.issue-urgency').value}</td>
+                    <td style="border: 1px solid black; padding: 5px;">${b.querySelector('.issue-support').value}</td>
+                </tr>`;
+        });
+
+        const content = `
+            <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+            <head><meta charset='utf-8'></head>
+            <body style="font-family: Arial, sans-serif; font-size: 11pt;">
+                
+                <h2 style="text-align:center;">Supervisor Daily Work Report for TECNO CAMON 50 Series Launch</h2>
+                <p><b>Reporting Date:</b> ${document.getElementById('date').value} &nbsp;&nbsp;&nbsp; <b>Reported By:</b> ${document.getElementById('staffName').value}</p>
+                <p><b>Role:</b> ${document.getElementById('role').value}</p>
+
+                <h3>1. Product Coverage Status (CN5c & CN7c)</h3>
+                <p>This section tracks the penetration of the new CAMON 50 models into the retail network.</p>
+                <p>The following table:</p>
+                <table style="width: 100%; border-collapse: collapse; border: 1px solid black;">
+                    <tr style="background-color: #f2f2f2;">
+                        <th style="border: 1px solid black; padding: 5px;">Model</th>
+                        <th style="border: 1px solid black; padding: 5px;">Total Key Retailer Shops Targeted</th>
+                        <th style="border: 1px solid black; padding: 5px;">Shops Covered (Stock / Sales)</th>
+                        <th style="border: 1px solid black; padding: 5px;">Coverage Rate</th>
+                        <th style="border: 1px solid black; padding: 5px;">Issues & Next Actions</th>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid black; padding: 5px;">CN5c<br>(CAMON 50 PRO)</td>
+                        <td style="border: 1px solid black; padding: 5px;">${document.getElementById('c50proTarget').value}</td>
+                        <td style="border: 1px solid black; padding: 5px;">${document.getElementById('c50proCovered').value}</td>
+                        <td style="border: 1px solid black; padding: 5px;">${document.getElementById('c50proRate').value}</td>
+                        <td style="border: 1px solid black; padding: 5px;">${document.getElementById('c50proIssues').value}</td>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid black; padding: 5px;">CN7c<br>(CAMON 50 ULTRA 5G)</td>
+                        <td style="border: 1px solid black; padding: 5px;">${document.getElementById('c50uTarget').value}</td>
+                        <td style="border: 1px solid black; padding: 5px;">${document.getElementById('c50uCovered').value}</td>
+                        <td style="border: 1px solid black; padding: 5px;">${document.getElementById('c50uRate').value}</td>
+                        <td style="border: 1px solid black; padding: 5px;">${document.getElementById('c50uIssues').value}</td>
+                    </tr>
+                </table>
+
+                <br>
+                <p><b>Key Retailer (KR) Coverage Analysis:</b></p>
+                <p><b>High Performing Retailers:</b> ${document.getElementById('highPerformers').value}</p>
+                <p><b>Low Performing Retailers:</b> ${document.getElementById('lowPerformers').value}</p>
+                <p>These are priority for follow-up.</p>
+
+                <h3>2. SO (Sell-Out) Achievement</h3>
+                <p>Track the daily activation and progress against the monthly SO targets for the new models.</p>
+                <p>The following table:</p>
+                <table style="width: 100%; border-collapse: collapse; border: 1px solid black;">
+                    <tr style="background-color: #f2f2f2;">
+                        <th style="border: 1px solid black; padding: 5px;">Model</th>
+                        <th style="border: 1px solid black; padding: 5px;">Activated Today</th>
+                        <th style="border: 1px solid black; padding: 5px;">Monthly SO Target</th>
+                        <th style="border: 1px solid black; padding: 5px;">Total Activated This Month</th>
+                        <th style="border: 1px solid black; padding: 5px;">Achievement Rate</th>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid black; padding: 5px;">CN5c (CAMON 50 PRO)</td>
+                        <td style="border: 1px solid black; padding: 5px;">${document.getElementById('c50proToday').value}</td>
+                        <td style="border: 1px solid black; padding: 5px;">${document.getElementById('c50proMonthTarget').value}</td>
+                        <td style="border: 1px solid black; padding: 5px;">${document.getElementById('c50proMonthAchieved').value}</td>
+                        <td style="border: 1px solid black; padding: 5px;">${document.getElementById('c50proAchieveRate').value}</td>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid black; padding: 5px;">CN7c (CAMON 50 ULTRA 5G)</td>
+                        <td style="border: 1px solid black; padding: 5px;">${document.getElementById('c50uToday').value}</td>
+                        <td style="border: 1px solid black; padding: 5px;">${document.getElementById('c50uMonthTarget').value}</td>
+                        <td style="border: 1px solid black; padding: 5px;">${document.getElementById('c50uMonthAchieved').value}</td>
+                        <td style="border: 1px solid black; padding: 5px;">${document.getElementById('c50uAchieveRate').value}</td>
+                    </tr>
+                </table>
+
+                <br>
+                <p><b>Performance Notes:</b></p>
+                <p><b>Trend:</b> ${document.getElementById('trend').value}</p>
+                <p><b>Key Drivers:</b> ${document.getElementById('drivers').value}</p>
+                <p><b>Challenges:</b> ${document.getElementById('challenges').value}</p>
+
+                <h3>3. Daily Activities & Execution</h3>
+                <p>Document the key tasks performed during the day, focusing on those that support product coverage and sales.</p>
+                <p>${document.getElementById('dailyActivities').value}</p>
+
+                <h3>4. Competitive Intelligence & Market Dynamics</h3>
+                <p>${document.getElementById('marketIntel').value}</p>
+
+                <h3>5. Issues & Support Required</h3>
+                <p>List any problems encountered during the day that require assistance from the team or management.</p>
+                <p>The following table:</p>
+                <table style="width: 100%; border-collapse: collapse; border: 1px solid black;">
+                    <tr style="background-color: #f2f2f2;">
+                        <th style="border: 1px solid black; padding: 5px;">Issue Description</th>
+                        <th style="border: 1px solid black; padding: 5px;">Urgency</th>
+                        <th style="border: 1px solid black; padding: 5px;">Requested Support / Suggested solutions</th>
+                    </tr>
+                    ${issuesTableRows || "<tr><td colspan='3' style='border: 1px solid black; padding: 5px; text-align: center;'>No issues reported</td></tr>"}
+                </table>
+
+            </body></html>`;
+
+        const blob = new Blob(['\ufeff', content], { type: 'application/msword' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `TECNO_SUPERVISOR_REPORT_${document.getElementById('staffName').value}.doc`;
+        a.click();
+    }
+
+    addIssue();
+</script>
+</body>
+</html>
