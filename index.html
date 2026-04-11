@@ -296,91 +296,88 @@
 
     <script>
         document.addEventListener("DOMContentLoaded", () => {
-            const modal = document.getElementById("welcomeModal");
-            const nameInput = document.getElementById("nameInput");
-            const saveBtn = document.getElementById("saveNameBtn");
-            const userBadge = document.getElementById("userBadge");
-            const displayUserName = document.getElementById("displayUserName");
-            const devTag = document.getElementById("devTag");
-            const devPanelBtn = document.getElementById("devPanelBtn");
+    const modal = document.getElementById("welcomeModal");
+    const nameInput = document.getElementById("nameInput");
+    const saveBtn = document.getElementById("saveNameBtn");
+    const userBadge = document.getElementById("userBadge");
+    const displayUserName = document.getElementById("displayUserName");
+    const devTag = document.getElementById("devTag");
+    const devPanelBtn = document.getElementById("devPanelBtn");
 
-            // --- LISTA DE DESARROLLADORES AUTORIZADOS ---
-            // Se escriben en minúsculas para facilitar la comparación exacta
-            const developersList = [
-                "Guillermo Rodríguez",
-                "José Díaz",
-            ];
+    // --- LISTA DE DESARROLLADORES ---
+    const developersList = [
+        "guillermo rodriguez",
+        "jose diaz",
+    ];
 
-            const generateDeviceID = () => {
-                return 'DEV-' + Math.random().toString(36).substring(2, 10).toUpperCase() + '-' + Date.now();
-            };
+    // Función para quitar acentos y dejar el texto "limpio"
+    const cleanText = (text) => {
+        return text.toLowerCase()
+                   .trim()
+                   .normalize("NFD")
+                   .replace(/[\u0300-\u036f]/g, ""); 
+    };
 
-            // Función para verificar si el nombre pertenece a la lista de Devs
-            const checkRole = (name) => {
-                const normalizedInput = name.trim().toLowerCase();
-                // Verifica si el nombre ingresado coincide con alguno de la lista
-                const isDev = developersList.some(devName => normalizedInput.includes(devName));
-                return isDev ? "dev" : "user";
-            };
+    const generateDeviceID = () => {
+        return 'DEV-' + Math.random().toString(36).substring(2, 10).toUpperCase() + '-' + Date.now();
+    };
 
-            // Función para aplicar los permisos visuales según el rol
-            const applyPermissions = (role) => {
-                if (role === "dev") {
-                    devTag.style.display = "inline-block"; // Muestra la etiqueta DEV junto al nombre
-                    devPanelBtn.style.display = "flex";    // Muestra el botón bloqueado
-                } else {
-                    devTag.style.display = "none";
-                    devPanelBtn.style.display = "none";
-                }
-            };
-
-            // Carga inicial: comprobamos localStorage
-            const savedName = localStorage.getItem("tecno_user_name");
-            const savedID = localStorage.getItem("tecno_device_id");
-            const savedRole = localStorage.getItem("tecno_user_role");
-
-            if (savedName && savedID) {
-                showUserBadge(savedName);
-                applyPermissions(savedRole);
-            } else {
-                modal.style.display = "flex";
-            }
-
-            // Lógica de guardado
-            saveBtn.addEventListener("click", () => {
-                const userName = nameInput.value.trim();
-
-                if (userName !== "") {
-                    const newDeviceID = generateDeviceID();
-                    const userRole = checkRole(userName); // Asigna "dev" o "user"
-
-                    // Guardado local
-                    localStorage.setItem("tecno_user_name", userName);
-                    localStorage.setItem("tecno_device_id", newDeviceID);
-                    localStorage.setItem("tecno_user_role", userRole);
-
-                    modal.style.display = "none";
-                    showUserBadge(userName);
-                    applyPermissions(userRole);
-                    
-                } else {
-                    nameInput.style.borderColor = "red";
-                    setTimeout(() => nameInput.style.borderColor = "#e2e8f0", 1500);
-                    nameInput.focus();
-                }
-            });
-
-            nameInput.addEventListener("keypress", (e) => {
-                if (e.key === "Enter") {
-                    saveBtn.click();
-                }
-            });
-
-            function showUserBadge(name) {
-                displayUserName.textContent = name;
-                userBadge.style.display = "block";
-            }
+    const checkRole = (name) => {
+        const cleanedInput = cleanText(name);
+        // Ahora comparamos contra la lista limpia de acentos
+        const isDev = developersList.some(devName => {
+            const cleanedDevName = cleanText(devName);
+            return cleanedInput.includes(cleanedDevName) || cleanedDevName.includes(cleanedInput);
         });
+        return isDev ? "dev" : "user";
+    };
+
+    const applyPermissions = (role) => {
+        if (role === "dev") {
+            devTag.style.display = "inline-block";
+            devPanelBtn.style.display = "flex";
+        } else {
+            devTag.style.display = "none";
+            devPanelBtn.style.display = "none";
+        }
+    };
+
+    // --- LÓGICA DE CARGA ---
+    let savedName = localStorage.getItem("tecno_user_name");
+    let savedID = localStorage.getItem("tecno_device_id");
+
+    if (savedName && savedID) {
+        // IMPORTANTE: Re-validamos el rol en cada carga por si la lista cambió
+        const currentRole = checkRole(savedName);
+        localStorage.setItem("tecno_user_role", currentRole);
+        
+        showUserBadge(savedName);
+        applyPermissions(currentRole);
+    } else {
+        modal.style.display = "flex";
+    }
+
+    saveBtn.addEventListener("click", () => {
+        const userName = nameInput.value.trim();
+        if (userName !== "") {
+            const newDeviceID = generateDeviceID();
+            const userRole = checkRole(userName);
+
+            localStorage.setItem("tecno_user_name", userName);
+            localStorage.setItem("tecno_device_id", newDeviceID);
+            localStorage.setItem("tecno_user_role", userRole);
+
+            modal.style.display = "none";
+            showUserBadge(userName);
+            applyPermissions(userRole);
+        }
+    });
+
+    function showUserBadge(name) {
+        displayUserName.textContent = name;
+        userBadge.style.display = "block";
+    }
+});
     </script>
 </body>
 </html>
