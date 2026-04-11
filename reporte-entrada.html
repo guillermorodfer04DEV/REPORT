@@ -261,6 +261,25 @@
             document.getElementById('minorista2').value = ""; // Reiniciar el valor al ocultar
         }
 
+        document.addEventListener('DOMContentLoaded', () => {
+            const selectNombre = document.getElementById('nombre');
+            const nombreGuardado = localStorage.getItem('tecno_user_name');
+
+            if (nombreGuardado && selectNombre) {
+                const nombreLimpio = nombreGuardado.toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                
+                const opciones = Array.from(selectNombre.options);
+                const coincidencia = opciones.find(opt => {
+                    const valorOpt = opt.value.toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                    return valorOpt === nombreLimpio;
+                });
+
+                if (coincidencia) {
+                    selectNombre.value = coincidencia.value;
+                }
+            }
+        });
+
         // Función para armar y copiar el texto
         function copiarTexto() {
             const fechaInput = document.getElementById('fecha').value;
