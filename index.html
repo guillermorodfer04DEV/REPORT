@@ -26,42 +26,31 @@
             min-height: 100vh; color: var(--tecno-dark);
         }
 
-        /* --- Etiqueta del usuario (AHORA CLICABLE) --- */
+        /* Badge de Usuario */
         .user-badge {
             position: fixed; top: 20px; right: 20px;
             background: rgba(255, 255, 255, 0.9);
             backdrop-filter: blur(10px);
-            padding: 8px 16px;
-            border-radius: 20px;
+            padding: 8px 16px; border-radius: 20px;
             font-size: 14px; font-weight: 600;
             color: var(--tecno-blue);
             box-shadow: 0 4px 10px rgba(0,0,0,0.05);
             border: 1px solid rgba(255, 255, 255, 0.6);
-            z-index: 1000;
-            display: none;
-            cursor: pointer; /* Indica que se puede hacer clic */
-            transition: var(--transition);
+            z-index: 1000; display: none;
+            cursor: pointer; transition: var(--transition);
             animation: fadeInUp 0.5s ease-out;
-            user-select: none;
         }
 
-        .user-badge:hover {
-            transform: translateY(-2px);
-            background: var(--white);
-            box-shadow: 0 6px 15px rgba(0, 86, 179, 0.15);
-        }
-
-        .user-badge i { margin-right: 5px; }
+        .user-badge:hover { transform: translateY(-2px); background: var(--white); }
 
         .dev-tag {
             background-color: var(--tecno-dark);
-            color: var(--white);
-            font-size: 10px; padding: 2px 6px;
-            border-radius: 8px; margin-left: 8px;
-            vertical-align: middle; display: none;
+            color: var(--white); font-size: 10px;
+            padding: 2px 6px; border-radius: 8px;
+            margin-left: 8px; display: none;
         }
 
-        /* --- Modal --- */
+        /* Modal */
         .modal-overlay {
             position: fixed; top: 0; left: 0; right: 0; bottom: 0;
             background: rgba(15, 23, 42, 0.6);
@@ -77,14 +66,12 @@
             animation: fadeInUp 0.4s ease-out;
         }
 
-        .modal-content h2 { margin: 0 0 10px 0; font-size: 22px; }
-        .modal-content p { font-size: 14px; color: #64748b; margin-bottom: 20px; }
         .modal-content input {
             width: 100%; padding: 12px 15px; border: 1px solid #e2e8f0;
-            border-radius: 12px; margin-bottom: 15px; font-family: inherit;
+            border-radius: 12px; margin: 15px 0; font-family: inherit;
         }
 
-        /* --- Interfaz General --- */
+        /* Contenedor e Interfaz */
         .container {
             text-align: center; width: 90%; max-width: 420px;
             padding: 50px 30px; background: rgba(255, 255, 255, 0.9);
@@ -101,11 +88,7 @@
         }
 
         .logo { width: 70px; }
-        h1 {
-            font-size: 28px; font-weight: 800; margin: 0;
-            background: var(--tecno-gradient);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-        }
+        h1 { font-size: 28px; font-weight: 800; background: var(--tecno-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 
         .menu-grid { display: flex; flex-direction: column; gap: 15px; margin-top: 30px; }
 
@@ -117,25 +100,14 @@
             border-radius: 14px; transition: var(--transition);
         }
 
-        .btn-nav:hover {
-            border-color: var(--tecno-blue); transform: translateX(5px);
-        }
+        .btn-nav:hover { border-color: var(--tecno-blue); transform: translateX(5px); }
+        .btn-nav.accent { background: var(--tecno-gradient); color: var(--white); border: none; }
 
-        .btn-nav.accent {
-            background: var(--tecno-gradient); color: var(--white); border: none;
-        }
+        #devPanelBtn { background-color: var(--tecno-dark); color: white; border: none; }
 
-        #devPanelBtn { background-color: var(--tecno-dark); color: white; }
+        footer { position: absolute; bottom: 30px; font-size: 11px; color: #94a3b8; font-weight: 600; }
 
-        footer {
-            position: absolute; bottom: 30px; font-size: 11px;
-            color: #94a3b8; font-weight: 600;
-        }
-
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
@@ -167,6 +139,9 @@
             <a href="reporte.html" class="btn-nav">
                 <i>📝</i> <span>Reporte Diario</span> <b>▶</b>
             </a>
+            <a href="https://docs.google.com/spreadsheets/d/1rWnxzCo7ttoErCXVy1yk6HIyHTtlDMWFr25gm71aqa0/edit?gid=646746000#gid=646746000" class="btn-nav">
+                <i>🔲</i> <span>Imei QR Generator</span> <b>▶</b>
+            </a>
             <a href="#" id="devPanelBtn" class="btn-nav" style="display: none;">
                 <i>⚙️</i> <span>Panel de Control</span> <b>▶</b>
             </a>
@@ -195,6 +170,7 @@
             ];
 
             const cleanText = (text) => {
+                if (!text) return "";
                 return text.toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, ""); 
             };
 
@@ -232,25 +208,25 @@
             const openModal = (isFirstTime = false) => {
                 modalTitle.textContent = isFirstTime ? "¡Bienvenido!" : "Cambiar Usuario";
                 modalDesc.textContent = isFirstTime ? "Ingresa tu nombre para comenzar." : "Actualiza tu nombre de usuario:";
-                nameInput.value = isFirstTime ? "" : localStorage.getItem("tecno_user_name");
+                nameInput.value = isFirstTime ? "" : (localStorage.getItem("tecno_user_name") || "");
                 modal.style.display = "flex";
                 nameInput.focus();
             };
 
-            // Evento para cambiar nombre al hacer clic en la esquina
-            userBadge.addEventListener("click", () => {
-                openModal(false);
-            });
+            userBadge.addEventListener("click", () => openModal(false));
 
             saveBtn.addEventListener("click", () => {
                 const userName = nameInput.value.trim();
                 if (userName !== "") {
+                    // Calculamos el rol basado en el nuevo nombre
                     const userRole = checkRole(userName);
+                    
+                    // Guardamos y forzamos la actualización del rol en localStorage
                     localStorage.setItem("tecno_user_name", userName);
                     localStorage.setItem("tecno_user_role", userRole);
                     
                     modal.style.display = "none";
-                    loadUser(); // Recargamos la interfaz
+                    loadUser(); 
                 }
             });
 
