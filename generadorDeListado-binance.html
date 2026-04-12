@@ -3,110 +3,159 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Registro de Promotores - Externo</title>
+  <title>Registro Profesional</title>
   <style>
-    :root { --primary: #0052cc; --success: #28a745; --danger: #dc3545; }
-    body { font-family: sans-serif; background: #f0f2f5; padding: 20px; display: flex; justify-content: center; }
-    .card { background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 100%; max-width: 500px; }
-    h2 { color: var(--primary); text-align: center; margin-top: 0; }
-    .entry-group { border: 1px solid #ddd; padding: 15px; border-radius: 8px; margin-bottom: 15px; position: relative; background: #fafafa; }
-    label { display: block; font-size: 12px; font-weight: bold; margin-bottom: 4px; color: #555; }
-    input { width: 100%; padding: 8px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-    .btn { cursor: pointer; border: none; border-radius: 4px; padding: 12px; font-weight: bold; width: 100%; transition: 0.3s; }
-    #btn-add { background: var(--success); color: white; margin-bottom: 10px; font-size: 20px; }
-    #btn-submit { background: var(--primary); color: white; }
-    #btn-submit:disabled { background: #ccc; }
-    .remove-btn { position: absolute; top: 10px; right: 10px; color: var(--danger); cursor: pointer; font-weight: bold; }
-    #msg { text-align: center; margin-top: 15px; font-weight: bold; }
+    :root {
+      --primary: #0066ff;
+      --bg: #f8f9fa;
+      --border: #e0e0e0;
+    }
+    body { font-family: 'Segoe UI', sans-serif; background: var(--bg); padding: 15px; display: flex; justify-content: center; }
+    .container { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.08); width: 100%; max-width: 800px; }
+    
+    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid var(--bg); padding-bottom: 10px; }
+    h2 { margin: 0; color: #333; font-size: 1.2rem; }
+
+    .row-header { display: grid; grid-template-columns: 2fr 1.5fr 1.5fr 1.5fr 40px; gap: 10px; padding: 0 10px; margin-bottom: 8px; font-size: 0.85rem; color: #666; font-weight: bold; }
+    .data-row { display: grid; grid-template-columns: 2fr 1.5fr 1.5fr 1.5fr 40px; gap: 10px; background: #fff; border: 1px solid var(--border); padding: 8px; border-radius: 8px; margin-bottom: 8px; align-items: center; transition: 0.2s; }
+    .data-row:hover { border-color: var(--primary); background: #f0f7ff; }
+
+    input { width: 100%; padding: 8px; border: 1px solid transparent; border-radius: 5px; font-size: 0.9rem; outline: none; background: var(--bg); transition: 0.3s; box-sizing: border-box; }
+    input:focus { background: white; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(0,102,255,0.1); }
+
+    .btn { cursor: pointer; border: none; border-radius: 6px; font-weight: 600; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
+    .btn-add { background: #eef4ff; color: var(--primary); padding: 8px 16px; font-size: 0.9rem; border: 1px dashed var(--primary); width: 100%; margin-top: 5px; }
+    .btn-add:hover { background: var(--primary); color: white; border-style: solid; }
+    
+    .btn-submit { background: var(--primary); color: white; padding: 12px; width: 100%; margin-top: 20px; font-size: 1rem; }
+    .btn-submit:hover { background: #0052cc; transform: translateY(-1px); }
+    .btn-submit:disabled { background: #ccc; cursor: not-allowed; }
+
+    .btn-del { background: none; color: #ff4d4d; font-size: 1.2rem; padding: 0; opacity: 0.6; }
+    .btn-del:hover { opacity: 1; }
+
+    #status { margin-top: 15px; text-align: center; font-size: 0.9rem; font-weight: 500; }
+    
+    @media (max-width: 600px) {
+      .row-header { display: none; }
+      .data-row { grid-template-columns: 1fr; gap: 5px; padding: 15px; }
+      .btn-del { position: absolute; right: 10px; }
+    }
   </style>
 </head>
 <body>
 
-<div class="card">
-  <h2>Carga de Datos</h2>
-  <div id="container">
-    <div class="entry-group" id="row-1">
-      <label>Nombre *</label>
-      <input type="text" class="nombre" required>
-      <label>ID *</label>
-      <input type="text" class="uid" required>
-      <label>Contacto (Opcional)</label>
-      <input type="text" class="contacto">
-      <label>Tienda (Opcional)</label>
-      <input type="text" class="tienda">
+<div class="container">
+  <header>
+    <h2>Carga Masiva de Datos</h2>
+    <div id="counter" style="color: #666; font-size: 0.8rem;">1 registro(s)</div>
+  </header>
+
+  <div class="row-header">
+    <div>Nombre *</div>
+    <div>ID *</div>
+    <div>Contacto</div>
+    <div>Tienda</div>
+    <div></div>
+  </div>
+
+  <div id="form-container">
+    <div class="data-row" id="row-1">
+      <input type="text" class="nombre" placeholder="Juan Pérez" required>
+      <input type="text" class="uid" placeholder="ID123" required>
+      <input type="text" class="contacto" placeholder="0412...">
+      <input type="text" class="tienda" placeholder="Sucursal 1">
+      <button class="btn btn-del" onclick="removeRow(1)">×</button>
     </div>
   </div>
 
-  <button class="btn" id="btn-add" onclick="addRow()">+</button>
-  <button class="btn" id="btn-submit" onclick="sendData()">Subir Data</button>
-  <div id="msg"></div>
+  <button class="btn btn-add" onclick="addRow()">+ Añadir otra fila</button>
+  
+  <button class="btn btn-submit" id="submit-btn" onclick="sendData()">Subir Data al Excel</button>
+  <div id="status"></div>
 </div>
 
 <script>
-  // IMPORTANTE: Pega aquí la URL que te dará Google tras implementar
-  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzqSA7o-kLONM9G6X818T8IzJkjCpZFJ_4O_GBxpG8BEm0qVXv78bNJpTNEtiRhfNG8_A/exec";
-  let rowCount = 1;
+  // IMPORTANTE: Sustituye con tu URL de despliegue
+  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbznjOfKntwUuOJj6s6N84uqKXL9np1KnPPZcbuxxyTQH05uzicp0-o3ebbCm3q-QiYxUg/exec";
+  let count = 1;
 
   function addRow() {
-    rowCount++;
+    count++;
+    const container = document.getElementById('form-container');
     const div = document.createElement('div');
-    div.className = 'entry-group';
-    div.id = `row-${rowCount}`;
+    div.className = 'data-row';
+    div.id = `row-${count}`;
     div.innerHTML = `
-      <span class="remove-btn" onclick="document.getElementById('row-${rowCount}').remove()">✕</span>
-      <label>Nombre *</label>
-      <input type="text" class="nombre" required>
-      <label>ID *</label>
-      <input type="text" class="uid" required>
-      <label>Contacto (Opcional)</label>
-      <input type="text" class="contacto">
-      <label>Tienda (Opcional)</label>
-      <input type="text" class="tienda">
+      <input type="text" class="nombre" placeholder="Nombre" required>
+      <input type="text" class="uid" placeholder="ID" required>
+      <input type="text" class="contacto" placeholder="Contacto">
+      <input type="text" class="tienda" placeholder="Tienda">
+      <button class="btn btn-del" onclick="removeRow(${count})">×</button>
     `;
-    document.getElementById('container').appendChild(div);
+    container.appendChild(div);
+    updateCounter();
+  }
+
+  function removeRow(id) {
+    const rows = document.querySelectorAll('.data-row');
+    if(rows.length > 1) {
+      document.getElementById(`row-${id}`).remove();
+      updateCounter();
+    }
+  }
+
+  function updateCounter() {
+    document.getElementById('counter').innerText = `${document.querySelectorAll('.data-row').length} registro(s)`;
   }
 
   async function sendData() {
-    const btn = document.getElementById('btn-submit');
-    const msg = document.getElementById('msg');
-    const rows = document.querySelectorAll('.entry-group');
+    const btn = document.getElementById('submit-btn');
+    const status = document.getElementById('status');
+    const rows = document.querySelectorAll('.data-row');
     const payload = [];
 
     for (let row of rows) {
-      const nombre = row.querySelector('.nombre').value;
-      const id = row.querySelector('.uid').value;
+      const n = row.querySelector('.nombre').value.trim();
+      const i = row.querySelector('.uid').value.trim();
+      if (!n || !i) return alert("El Nombre e ID son obligatorios en todas las filas.");
       
-      if (!nombre || !id) return alert("Nombre e ID son obligatorios.");
-
       payload.push({
-        nombre: nombre,
-        id: id,
-        contacto: row.querySelector('.contacto').value,
-        tienda: row.querySelector('.tienda').value
+        nombre: n,
+        id: i,
+        contacto: row.querySelector('.contacto').value.trim(),
+        tienda: row.querySelector('.tienda').value.trim()
       });
     }
 
     btn.disabled = true;
-    msg.innerText = "Enviando...";
+    status.innerText = "⏳ Enviando datos...";
+    status.style.color = "#666";
 
     try {
-      // Usamos fetch con modo 'no-cors' o manejando la redirección de Google
+      // Usamos 'text/plain' para evitar problemas de CORS pre-flight en algunos navegadores
       const response = await fetch(WEB_APP_URL, {
         method: "POST",
-        mode: "no-cors", // Crucial para evitar problemas de CORS con Google Apps Script
-        headers: { "Content-Type": "application/json" },
+        mode: "no-cors", 
+        headers: { "Content-Type": "text/plain" },
         body: JSON.stringify(payload)
       });
 
-      // Nota: Con 'no-cors' no podemos leer la respuesta exacta de Google, 
-      // pero si no hay error de red, asumimos éxito.
-      msg.style.color = "green";
-      msg.innerText = "¡Datos enviados correctamente!";
-      setTimeout(() => location.reload(), 2000);
+      // Con no-cors no podemos leer la respuesta, pero si llega aquí, la petición salió.
+      status.innerText = "✅ ¡Datos enviados con éxito!";
+      status.style.color = "#28a745";
+      
+      setTimeout(() => {
+        if(confirm("¿Deseas limpiar el formulario?")) location.reload();
+        else {
+          btn.disabled = false;
+          status.innerText = "";
+        }
+      }, 1000);
 
     } catch (err) {
-      msg.style.color = "red";
-      msg.innerText = "Error de conexión.";
+      status.innerText = "❌ Error de conexión.";
+      status.style.color = "#dc3545";
       btn.disabled = false;
     }
   }
