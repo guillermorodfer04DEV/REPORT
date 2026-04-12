@@ -3,27 +3,47 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Registro Profesional</title>
+  <title>Registro Profesional - TECNO</title>
   <style>
     :root {
       --primary: #0066ff;
       --bg: #f8f9fa;
       --border: #e0e0e0;
+      --success: #28a745;
     }
     body { font-family: 'Segoe UI', sans-serif; background: var(--bg); padding: 15px; display: flex; justify-content: center; }
-    .container { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.08); width: 100%; max-width: 800px; }
+    .container { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.08); width: 100%; max-width: 900px; }
     
     header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid var(--bg); padding-bottom: 10px; }
     h2 { margin: 0; color: #333; font-size: 1.2rem; }
 
-    .row-header { display: grid; grid-template-columns: 2fr 1.5fr 1.5fr 1.5fr 40px; gap: 10px; padding: 0 10px; margin-bottom: 8px; font-size: 0.85rem; color: #666; font-weight: bold; }
-    .data-row { display: grid; grid-template-columns: 2fr 1.5fr 1.5fr 1.5fr 40px; gap: 10px; background: #fff; border: 1px solid var(--border); padding: 8px; border-radius: 8px; margin-bottom: 8px; align-items: center; transition: 0.2s; }
+    /* Panel de pegado de texto */
+    .paste-section { background: #eef4ff; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px dashed var(--primary); display: none; }
+    .paste-section textarea { width: 100%; height: 120px; padding: 10px; border: 1px solid var(--border); border-radius: 6px; box-sizing: border-box; resize: vertical; margin-bottom: 10px; font-family: monospace; font-size: 0.85rem;}
+    
+    .btn-toggle-paste { background: #fff; color: var(--primary); border: 1px solid var(--primary); padding: 8px 15px; border-radius: 6px; font-weight: 600; cursor: pointer; margin-bottom: 15px; display: inline-flex; align-items: center; gap: 5px; transition: 0.2s; }
+    .btn-toggle-paste:hover { background: #f0f7ff; }
+
+    /* Grilla de datos */
+    .row-header { display: grid; grid-template-columns: 2fr 2fr 1.5fr 1.5fr 40px; gap: 10px; padding: 0 10px; margin-bottom: 8px; font-size: 0.85rem; color: #666; font-weight: bold; }
+    .data-row { display: grid; grid-template-columns: 2fr 2fr 1.5fr 1.5fr 40px; gap: 10px; background: #fff; border: 1px solid var(--border); padding: 8px; border-radius: 8px; margin-bottom: 8px; align-items: center; transition: 0.2s; }
     .data-row:hover { border-color: var(--primary); background: #f0f7ff; }
 
-    input { width: 100%; padding: 8px; border: 1px solid transparent; border-radius: 5px; font-size: 0.9rem; outline: none; background: var(--bg); transition: 0.3s; box-sizing: border-box; }
-    input:focus { background: white; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(0,102,255,0.1); }
+    input[type="text"] { width: 100%; padding: 8px; border: 1px solid transparent; border-radius: 5px; font-size: 0.9rem; outline: none; background: var(--bg); transition: 0.3s; box-sizing: border-box; }
+    input[type="text"]:focus { background: white; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(0,102,255,0.1); }
+    input[type="text"]:disabled { background: #e9ecef; color: #6c757d; font-weight: bold; text-align: center; }
+
+    /* Contenedor del ID y Checkbox */
+    .id-container { display: flex; align-items: center; gap: 8px; background: var(--bg); border-radius: 5px; padding-right: 8px; }
+    .id-container input[type="text"] { background: transparent; }
+    .id-container input[type="text"]:focus { background: white; }
+    .chk-wrapper { display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; }
+    .chk-wrapper span { font-size: 0.6rem; color: #666; font-weight: bold; margin-bottom: 2px;}
 
     .btn { cursor: pointer; border: none; border-radius: 6px; font-weight: 600; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
+    .btn-action { background: var(--success); color: white; padding: 8px 15px; }
+    .btn-action:hover { background: #218838; }
+
     .btn-add { background: #eef4ff; color: var(--primary); padding: 8px 16px; font-size: 0.9rem; border: 1px dashed var(--primary); width: 100%; margin-top: 5px; }
     .btn-add:hover { background: var(--primary); color: white; border-style: solid; }
     
@@ -39,7 +59,8 @@
     @media (max-width: 600px) {
       .row-header { display: none; }
       .data-row { grid-template-columns: 1fr; gap: 5px; padding: 15px; }
-      .btn-del { position: absolute; right: 10px; }
+      .btn-del { position: absolute; right: 10px; margin-top: 10px; }
+      .id-container { border: 1px solid var(--border); }
     }
   </style>
 </head>
@@ -47,50 +68,86 @@
 
 <div class="container">
   <header>
-    <h2>Carga Masiva de Datos</h2>
-    <div id="counter" style="color: #666; font-size: 0.8rem;">1 registro(s)</div>
+    <h2>Carga de Datos (Binance ID)</h2>
+    <div id="counter" style="color: #666; font-size: 0.8rem;">0 registro(s)</div>
   </header>
+
+  <button class="btn-toggle-paste" onclick="togglePasteArea()">
+    📋 Importar desde WhatsApp
+  </button>
+
+  <div class="paste-section" id="paste-section">
+    <p style="margin-top:0; font-size:0.85rem; color:#555;">Pega aquí los mensajes directamente desde WhatsApp. El sistema extraerá los datos automáticamente.</p>
+    <textarea id="whatsapp-text" placeholder="[11/4, 7:48 p.m.] Nombre: Amanda Velasquez..."></textarea>
+    <button class="btn btn-action" onclick="procesarTexto()">Filtrar y Cargar a la Tabla</button>
+  </div>
 
   <div class="row-header">
     <div>Nombre *</div>
-    <div>ID *</div>
+    <div>Binance ID *</div>
     <div>Contacto</div>
     <div>Tienda</div>
     <div></div>
   </div>
 
   <div id="form-container">
-    <div class="data-row" id="row-1">
-      <input type="text" class="nombre" placeholder="Juan Pérez" required>
-      <input type="text" class="uid" placeholder="ID123" required>
-      <input type="text" class="contacto" placeholder="0412...">
-      <input type="text" class="tienda" placeholder="Sucursal 1">
-      <button class="btn btn-del" onclick="removeRow(1)">×</button>
     </div>
-  </div>
 
-  <button class="btn btn-add" onclick="addRow()">+ Añadir otra fila</button>
+  <button class="btn btn-add" onclick="addRow()">+ Añadir fila manualmente</button>
   
   <button class="btn btn-submit" id="submit-btn" onclick="sendData()">Subir Data al Excel</button>
   <div id="status"></div>
 </div>
 
 <script>
-  // IMPORTANTE: Sustituye con tu URL de despliegue
-  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbznjOfKntwUuOJj6s6N84uqKXL9np1KnPPZcbuxxyTQH05uzicp0-o3ebbCm3q-QiYxUg/exec";
-  let count = 1;
+  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyhKpNjhJYn5NcPg5_4g93G_tRe0DguTYIISCr_pYMJP_S3VCvWZGjsCrriymj3xGtc8g/exec";
+  let count = 0;
 
-  function addRow() {
+  // Iniciar con una fila vacía
+  window.onload = () => addRow();
+
+  function togglePasteArea() {
+    const section = document.getElementById('paste-section');
+    section.style.display = section.style.display === 'block' ? 'none' : 'block';
+  }
+
+  function togglePending(chk) {
+    const input = chk.closest('.id-container').querySelector('.uid');
+    if (chk.checked) {
+      input.dataset.oldValue = input.value;
+      input.value = "EN ESPERA";
+      input.disabled = true;
+    } else {
+      input.disabled = false;
+      input.value = input.dataset.oldValue || "";
+    }
+  }
+
+  function addRow(nombre = "", id = "", contacto = "", tienda = "", pendiente = false) {
     count++;
     const container = document.getElementById('form-container');
     const div = document.createElement('div');
     div.className = 'data-row';
     div.id = `row-${count}`;
+    
+    // Si viene marcado como pendiente, preconfiguramos el estado visual
+    const chkChecked = pendiente ? "checked" : "";
+    const idDisabled = pendiente ? "disabled" : "";
+    const idValue = pendiente ? "EN ESPERA" : id;
+
     div.innerHTML = `
-      <input type="text" class="nombre" placeholder="Nombre" required>
-      <input type="text" class="uid" placeholder="ID" required>
-      <input type="text" class="contacto" placeholder="Contacto">
-      <input type="text" class="tienda" placeholder="Tienda">
+      <input type="text" class="nombre" placeholder="Nombre y Apellido" value="${nombre}" required>
+      
+      <div class="id-container">
+        <input type="text" class="uid" placeholder="ID de Binance" value="${idValue}" ${idDisabled} required>
+        <label class="chk-wrapper" title="Marcar como pendiente">
+          <span>Espera</span>
+          <input type="checkbox" class="chk-pendiente" onchange="togglePending(this)" ${chkChecked}>
+        </label>
+      </div>
+
+      <input type="text" class="contacto" placeholder="0412..." value="${contacto}">
+      <input type="text" class="tienda" placeholder="Sucursal" value="${tienda}">
       <button class="btn btn-del" onclick="removeRow(${count})">×</button>
     `;
     container.appendChild(div);
@@ -98,9 +155,9 @@
   }
 
   function removeRow(id) {
-    const rows = document.querySelectorAll('.data-row');
-    if(rows.length > 1) {
-      document.getElementById(`row-${id}`).remove();
+    const row = document.getElementById(`row-${id}`);
+    if (row) {
+      row.remove();
       updateCounter();
     }
   }
@@ -109,16 +166,99 @@
     document.getElementById('counter').innerText = `${document.querySelectorAll('.data-row').length} registro(s)`;
   }
 
+  // ALGORITMO DE EXTRACCIÓN DE WHATSAPP
+  function procesarTexto() {
+    const text = document.getElementById('whatsapp-text').value;
+    if (!text.trim()) return alert("Pega el texto primero.");
+
+    // Dividir los mensajes usando el patrón de fecha/hora de WhatsApp
+    const regexHeader = /\[\d{1,2}\/\d{1,2}.*?\] .*?:/g;
+    const parts = text.split(regexHeader).filter(p => p.trim() !== '');
+
+    if (parts.length === 0) {
+      return alert("No se detectó el formato de WhatsApp. Verifica el texto pegado.");
+    }
+
+    // Si la primera fila de la tabla está totalmente vacía, la eliminamos para no dejar espacios en blanco
+    const firstRow = document.querySelector('.data-row');
+    if (firstRow) {
+      const inputs = firstRow.querySelectorAll('input[type="text"]');
+      const isEmpty = Array.from(inputs).every(i => i.value === "");
+      if (isEmpty) firstRow.remove();
+    }
+
+    parts.forEach(part => {
+      let pText = part.trim();
+      let n = "", i = "", c = "", t = "", p = false;
+
+      // 1. Detectar si está pendiente
+      if (/pendiente/i.test(pText)) {
+        p = true;
+        pText = pText.replace(/pendiente/gi, '').trim();
+      }
+
+      // 2. Limpiar etiquetas basuras
+      pText = pText.replace(/Id:/gi, '').trim();
+
+      // 3. Extraer Teléfono (Formato VE: 0412, 0414, 0424, 0416, 0426 + 7 digitos)
+      const phoneMatch = pText.match(/(04(?:12|14|24|16|26)\d{7})/);
+      if (phoneMatch) {
+        c = phoneMatch[1];
+        pText = pText.replace(phoneMatch[1], ' ').trim();
+      }
+
+      // 4. Extraer ID Binance (Cualquier bloque numérico restante de 8 o más dígitos)
+      const idMatch = pText.match(/(\d{8,11})/);
+      if (idMatch) {
+        i = idMatch[1];
+        pText = pText.replace(idMatch[1], ' ').trim();
+      }
+
+      // 5. Lo que queda es Nombre y Tienda. Limpiamos símbolos raros.
+      let lines = pText.split('\n').map(l => l.trim()).filter(l => l !== '');
+      
+      if (lines.length === 1) {
+        // Si todo quedó en una línea (Ej: "Fabiola nieves corpo")
+        let words = lines[0].split(' ').filter(w => w !== '');
+        if (words.length > 2) {
+          n = words.slice(0, 2).join(' '); // Asumimos primeros 2 nombres
+          t = words.slice(2).join(' ');    // El resto es tienda
+        } else {
+          n = lines[0];
+        }
+      } else if (lines.length >= 2) {
+        // Si hay saltos de línea (Ej: Linea 1 Nombre, Linea 2 Tienda)
+        n = lines[0];
+        t = lines.slice(1).join(' ');
+      }
+
+      // Limpieza final de nombre (quitar guiones o caracteres raros sobrantes)
+      n = n.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '').replace(/\s+/g, ' ').trim();
+      t = t.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s]/g, '').replace(/\s+/g, ' ').trim();
+
+      addRow(n, i, c, t, p);
+    });
+
+    // Limpiar el textarea y ocultar panel tras procesar
+    document.getElementById('whatsapp-text').value = "";
+    togglePasteArea();
+  }
+
   async function sendData() {
     const btn = document.getElementById('submit-btn');
     const status = document.getElementById('status');
     const rows = document.querySelectorAll('.data-row');
     const payload = [];
 
+    if(rows.length === 0) return alert("No hay datos para enviar.");
+
     for (let row of rows) {
       const n = row.querySelector('.nombre').value.trim();
-      const i = row.querySelector('.uid').value.trim();
-      if (!n || !i) return alert("El Nombre e ID son obligatorios en todas las filas.");
+      const chk = row.querySelector('.chk-pendiente');
+      // Si está chequeado mandamos "EN ESPERA", sino el valor del input
+      const i = chk.checked ? "EN ESPERA" : row.querySelector('.uid').value.trim();
+      
+      if (!n || !i) return alert("El Nombre y el ID (o marcar Espera) son obligatorios en todas las filas.");
       
       payload.push({
         nombre: n,
@@ -133,7 +273,6 @@
     status.style.color = "#666";
 
     try {
-      // Usamos 'text/plain' para evitar problemas de CORS pre-flight en algunos navegadores
       const response = await fetch(WEB_APP_URL, {
         method: "POST",
         mode: "no-cors", 
@@ -141,13 +280,16 @@
         body: JSON.stringify(payload)
       });
 
-      // Con no-cors no podemos leer la respuesta, pero si llega aquí, la petición salió.
       status.innerText = "✅ ¡Datos enviados con éxito!";
       status.style.color = "#28a745";
       
       setTimeout(() => {
-        if(confirm("¿Deseas limpiar el formulario?")) location.reload();
-        else {
+        if(confirm("¿Deseas limpiar el formulario para una nueva carga?")) {
+          document.getElementById('form-container').innerHTML = '';
+          addRow();
+          btn.disabled = false;
+          status.innerText = "";
+        } else {
           btn.disabled = false;
           status.innerText = "";
         }
