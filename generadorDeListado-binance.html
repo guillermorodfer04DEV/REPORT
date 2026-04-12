@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Registro de Promotores - Externo</title>
+  <style>
+    :root { --primary: #0052cc; --success: #28a745; --danger: #dc3545; }
+    body { font-family: sans-serif; background: #f0f2f5; padding: 20px; display: flex; justify-content: center; }
+    .card { background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 100%; max-width: 500px; }
+    h2 { color: var(--primary); text-align: center; margin-top: 0; }
+    .entry-group { border: 1px solid #ddd; padding: 15px; border-radius: 8px; margin-bottom: 15px; position: relative; background: #fafafa; }
+    label { display: block; font-size: 12px; font-weight: bold; margin-bottom: 4px; color: #555; }
+    input { width: 100%; padding: 8px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+    .btn { cursor: pointer; border: none; border-radius: 4px; padding: 12px; font-weight: bold; width: 100%; transition: 0.3s; }
+    #btn-add { background: var(--success); color: white; margin-bottom: 10px; font-size: 20px; }
+    #btn-submit { background: var(--primary); color: white; }
+    #btn-submit:disabled { background: #ccc; }
+    .remove-btn { position: absolute; top: 10px; right: 10px; color: var(--danger); cursor: pointer; font-weight: bold; }
+    #msg { text-align: center; margin-top: 15px; font-weight: bold; }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <h2>Carga de Datos</h2>
+  <div id="container">
+    <div class="entry-group" id="row-1">
+      <label>Nombre *</label>
+      <input type="text" class="nombre" required>
+      <label>ID *</label>
+      <input type="text" class="uid" required>
+      <label>Contacto (Opcional)</label>
+      <input type="text" class="contacto">
+      <label>Tienda (Opcional)</label>
+      <input type="text" class="tienda">
+    </div>
+  </div>
+
+  <button class="btn" id="btn-add" onclick="addRow()">+</button>
+  <button class="btn" id="btn-submit" onclick="sendData()">Subir Data</button>
+  <div id="msg"></div>
+</div>
+
+<script>
+  // IMPORTANTE: Pega aquí la URL que te dará Google tras implementar
+  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzqSA7o-kLONM9G6X818T8IzJkjCpZFJ_4O_GBxpG8BEm0qVXv78bNJpTNEtiRhfNG8_A/exec";
+  let rowCount = 1;
+
+  function addRow() {
+    rowCount++;
+    const div = document.createElement('div');
+    div.className = 'entry-group';
+    div.id = `row-${rowCount}`;
+    div.innerHTML = `
+      <span class="remove-btn" onclick="document.getElementById('row-${rowCount}').remove()">✕</span>
+      <label>Nombre *</label>
+      <input type="text" class="nombre" required>
+      <label>ID *</label>
+      <input type="text" class="uid" required>
+      <label>Contacto (Opcional)</label>
+      <input type="text" class="contacto">
+      <label>Tienda (Opcional)</label>
+      <input type="text" class="tienda">
+    `;
+    document.getElementById('container').appendChild(div);
+  }
+
+  async function sendData() {
+    const btn = document.getElementById('btn-submit');
+    const msg = document.getElementById('msg');
+    const rows = document.querySelectorAll('.entry-group');
+    const payload = [];
+
+    for (let row of rows) {
+      const nombre = row.querySelector('.nombre').value;
+      const id = row.querySelector('.uid').value;
+      
+      if (!nombre || !id) return alert("Nombre e ID son obligatorios.");
+
+      payload.push({
+        nombre: nombre,
+        id: id,
+        contacto: row.querySelector('.contacto').value,
+        tienda: row.querySelector('.tienda').value
+      });
+    }
+
+    btn.disabled = true;
+    msg.innerText = "Enviando...";
+
+    try {
+      // Usamos fetch con modo 'no-cors' o manejando la redirección de Google
+      const response = await fetch(WEB_APP_URL, {
+        method: "POST",
+        mode: "no-cors", // Crucial para evitar problemas de CORS con Google Apps Script
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      // Nota: Con 'no-cors' no podemos leer la respuesta exacta de Google, 
+      // pero si no hay error de red, asumimos éxito.
+      msg.style.color = "green";
+      msg.innerText = "¡Datos enviados correctamente!";
+      setTimeout(() => location.reload(), 2000);
+
+    } catch (err) {
+      msg.style.color = "red";
+      msg.innerText = "Error de conexión.";
+      btn.disabled = false;
+    }
+  }
+</script>
+
+</body>
+</html>
