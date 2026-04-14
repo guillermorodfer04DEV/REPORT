@@ -85,6 +85,19 @@
 
   <div class="paste-section" id="paste-section">
     <p style="margin-top:0; font-size:0.85rem; color:#555;">Pega aquí los mensajes directamente. Soporta múltiples formatos simultáneamente.</p>
+    
+    <div style="margin-bottom: 10px;">
+      <label style="font-size: 0.85rem; font-weight: bold; color: #333;">Asignar Key Retailer a todas estas filas:</label>
+      <select id="global-ka" style="width: 100%; margin-top: 5px; margin-bottom: 10px;">
+        <option value="">-- Autodetectar según el nombre de la tienda --</option>
+        <option value="GLOBAL CELL">GLOBAL CELL</option>
+        <option value="TECNO CORP">TECNO CORP</option>
+        <option value="NC PHONE">NC PHONE</option>
+        <option value="DAMASCO">DAMASCO</option>
+        <option value="CANGURO">CANGURO</option>
+      </select>
+    </div>
+
     <textarea id="whatsapp-text" placeholder="* Nombre - Tienda - ID&#10;o formato clásico: [11/4, 7:48 p.m.] Nombre: Amanda..."></textarea>
     <button class="btn btn-action" onclick="procesarTexto()">Filtrar y Cargar a la Tabla</button>
   </div>
@@ -104,6 +117,7 @@
   <button class="btn btn-add" onclick="addRow()">+ Añadir fila manualmente</button>
   
   <button class="btn btn-submit" id="submit-btn" onclick="sendData()">Subir Data al Excel</button>
+  <a href="https://docs.google.com/spreadsheets/d/1jxtciGW1QgATZehf190-s-SuUDB3BxeL0tjooWx-kdI/edit?usp=sharing" target="_blank" class="btn-nube">☁️ Ir a la nube</a>
   <div id="status"></div>
 </div>
 
@@ -199,11 +213,13 @@
   }
 
   // ALGORITMO DUAL DE EXTRACCIÓN
+  // ALGORITMO DUAL DE EXTRACCIÓN (Actualizado con KA Global)
   function procesarTexto() {
     const text = document.getElementById('whatsapp-text').value;
+    const globalKA = document.getElementById('global-ka').value; // Lee la selección global
+
     if (!text.trim()) return alert("Pega el texto primero.");
 
-    // Eliminar fila vacía inicial
     const firstRow = document.querySelector('.data-row');
     if (firstRow) {
       const n = firstRow.querySelector('.nombre').value;
@@ -214,18 +230,14 @@
     const lines = text.split('\n');
     let remainingText = "";
 
-    // 1. PRIMER PASO: Buscar el formato nuevo (con guiones y asteriscos)
     lines.forEach(line => {
-      // Coincide con lineas que empiezan con "*"
       const bulletMatch = line.trim().match(/^\*\s+(.*)$/);
       if (bulletMatch) {
-        // Separamos por guiones con espacios " - "
         const parts = bulletMatch[1].split(/\s+-\s+/);
         if (parts.length >= 3) {
-          let rawId = parts.pop().trim(); // El ultimo bloque es ID o pendiente
-          let n = parts.shift().trim();   // El primer bloque es Nombre
-          let t = parts.join(" - ").trim(); // Lo que quede en medio es Tienda
-
+          let rawId = parts.pop().trim();
+          let n = parts.shift().trim();
+          let t = parts.join(" - ").trim();
           let i = "", p = false, c = "";
           
           if (/pendiente/i.test(rawId)) {
@@ -235,16 +247,15 @@
             if (idMatch) i = idMatch[1];
           }
           
-          const ka = autoDetectKA(t);
+          // Si el usuario seleccionó un KA global, lo usa. Si no, autodetecta.
+          const ka = globalKA !== "" ? globalKA : autoDetectKA(t);
           addRow(n, i, c, t, p, ka);
-          return; // Saltamos a la siguiente línea
+          return; 
         }
       }
-      // Si no es viñeta, lo guardamos para el procesador clásico
       remainingText += line + "\n";
     });
 
-    // 2. SEGUNDO PASO: Procesar el formato clásico de WhatsApp
     if (remainingText.trim()) {
       const regexHeader = /\[\d{1,2}\/\d{1,2}.*?\] .*?:/g;
       const parts = remainingText.split(regexHeader).filter(p => p.trim() !== '');
@@ -291,13 +302,16 @@
         t = t.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s]/g, '').replace(/\s+/g, ' ').trim();
 
         if(n || i || c || t || p) {
-          const ka = autoDetectKA(t);
+          // Si el usuario seleccionó un KA global, lo usa. Si no, autodetecta.
+          const ka = globalKA !== "" ? globalKA : autoDetectKA(t);
           addRow(n, i, c, t, p, ka);
         }
       });
     }
 
     document.getElementById('whatsapp-text').value = "";
+    // Opcional: Reiniciar el desplegable global después de procesar
+    document.getElementById('global-ka').value = "";
     togglePasteArea();
   }
 
