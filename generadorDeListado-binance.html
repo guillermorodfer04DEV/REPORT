@@ -10,10 +10,15 @@
       --bg: #f8f9fa;
       --border: #e0e0e0;
       --success: #28a745;
+      --dark: #343a40;
     }
     body { font-family: 'Segoe UI', sans-serif; background: var(--bg); padding: 15px; display: flex; justify-content: center; }
-    .container { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.08); width: 100%; max-width: 900px; }
+    .container { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.08); width: 100%; max-width: 1000px; }
     
+    /* Botón Volver */
+    .btn-back { background: var(--dark); color: white; padding: 8px 16px; margin-bottom: 20px; border-radius: 6px; text-decoration: none; display: inline-flex; font-size: 0.9rem; border: none; cursor: pointer; transition: 0.2s; }
+    .btn-back:hover { background: #23272b; }
+
     header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid var(--bg); padding-bottom: 10px; }
     h2 { margin: 0; color: #333; font-size: 1.2rem; }
 
@@ -24,19 +29,20 @@
     .btn-toggle-paste { background: #fff; color: var(--primary); border: 1px solid var(--primary); padding: 8px 15px; border-radius: 6px; font-weight: 600; cursor: pointer; margin-bottom: 15px; display: inline-flex; align-items: center; gap: 5px; transition: 0.2s; }
     .btn-toggle-paste:hover { background: #f0f7ff; }
 
-    /* Grilla de datos */
-    .row-header { display: grid; grid-template-columns: 2fr 2fr 1.5fr 1.5fr 40px; gap: 10px; padding: 0 10px; margin-bottom: 8px; font-size: 0.85rem; color: #666; font-weight: bold; }
-    .data-row { display: grid; grid-template-columns: 2fr 2fr 1.5fr 1.5fr 40px; gap: 10px; background: #fff; border: 1px solid var(--border); padding: 8px; border-radius: 8px; margin-bottom: 8px; align-items: center; transition: 0.2s; }
+    /* Grilla de datos - Ajustada a 6 columnas */
+    .row-header { display: grid; grid-template-columns: 1.5fr 1.5fr 1fr 1.2fr 1.2fr 40px; gap: 8px; padding: 0 10px; margin-bottom: 8px; font-size: 0.85rem; color: #666; font-weight: bold; }
+    .data-row { display: grid; grid-template-columns: 1.5fr 1.5fr 1fr 1.2fr 1.2fr 40px; gap: 8px; background: #fff; border: 1px solid var(--border); padding: 8px; border-radius: 8px; margin-bottom: 8px; align-items: center; transition: 0.2s; }
     .data-row:hover { border-color: var(--primary); background: #f0f7ff; }
 
-    input[type="text"] { width: 100%; padding: 8px; border: 1px solid transparent; border-radius: 5px; font-size: 0.9rem; outline: none; background: var(--bg); transition: 0.3s; box-sizing: border-box; }
-    input[type="text"]:focus { background: white; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(0,102,255,0.1); }
+    input[type="text"], select { width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 5px; font-size: 0.85rem; outline: none; background: var(--bg); transition: 0.3s; box-sizing: border-box; }
+    input[type="text"]:focus, select:focus { background: white; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(0,102,255,0.1); }
     input[type="text"]:disabled { background: #e9ecef; color: #6c757d; font-weight: bold; text-align: center; }
+    select { cursor: pointer; }
 
     /* Contenedor del ID y Checkbox */
-    .id-container { display: flex; align-items: center; gap: 8px; background: var(--bg); border-radius: 5px; padding-right: 8px; }
-    .id-container input[type="text"] { background: transparent; }
-    .id-container input[type="text"]:focus { background: white; }
+    .id-container { display: flex; align-items: center; gap: 8px; background: var(--bg); border-radius: 5px; padding-right: 8px; border: 1px solid var(--border); }
+    .id-container input[type="text"] { background: transparent; border: none; }
+    .id-container input[type="text"]:focus { background: white; box-shadow: none;}
     .chk-wrapper { display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; }
     .chk-wrapper span { font-size: 0.6rem; color: #666; font-weight: bold; margin-bottom: 2px;}
 
@@ -56,17 +62,18 @@
 
     #status { margin-top: 15px; text-align: center; font-size: 0.9rem; font-weight: 500; }
     
-    @media (max-width: 600px) {
+    @media (max-width: 768px) {
       .row-header { display: none; }
-      .data-row { grid-template-columns: 1fr; gap: 5px; padding: 15px; }
-      .btn-del { position: absolute; right: 10px; margin-top: 10px; }
-      .id-container { border: 1px solid var(--border); }
+      .data-row { grid-template-columns: 1fr; gap: 5px; padding: 15px; position: relative;}
+      .btn-del { position: absolute; top: 10px; right: 10px; }
     }
   </style>
 </head>
 <body>
 
 <div class="container">
+  <button class="btn-back" onclick="volverMenu()">← Volver al Menú Principal</button>
+
   <header>
     <h2>Carga de Datos (Binance ID)</h2>
     <div id="counter" style="color: #666; font-size: 0.8rem;">0 registro(s)</div>
@@ -77,8 +84,8 @@
   </button>
 
   <div class="paste-section" id="paste-section">
-    <p style="margin-top:0; font-size:0.85rem; color:#555;">Pega aquí los mensajes directamente desde WhatsApp. El sistema extraerá los datos automáticamente.</p>
-    <textarea id="whatsapp-text" placeholder="[11/4, 7:48 p.m.] Nombre: Amanda Velasquez..."></textarea>
+    <p style="margin-top:0; font-size:0.85rem; color:#555;">Pega aquí los mensajes directamente. Soporta múltiples formatos simultáneamente.</p>
+    <textarea id="whatsapp-text" placeholder="* Nombre - Tienda - ID&#10;o formato clásico: [11/4, 7:48 p.m.] Nombre: Amanda..."></textarea>
     <button class="btn btn-action" onclick="procesarTexto()">Filtrar y Cargar a la Tabla</button>
   </div>
 
@@ -87,6 +94,7 @@
     <div>Binance ID *</div>
     <div>Contacto</div>
     <div>Tienda</div>
+    <div>Key Retailer</div>
     <div></div>
   </div>
 
@@ -103,8 +111,12 @@
   const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyhKpNjhJYn5NcPg5_4g93G_tRe0DguTYIISCr_pYMJP_S3VCvWZGjsCrriymj3xGtc8g/exec";
   let count = 0;
 
-  // Iniciar con una fila vacía
   window.onload = () => addRow();
+
+  function volverMenu() {
+    // Puedes cambiar '/' por el enlace real a tu menú principal (ej. 'menu.html')
+    window.location.href = '/'; 
+  }
 
   function togglePasteArea() {
     const section = document.getElementById('paste-section');
@@ -123,14 +135,13 @@
     }
   }
 
-  function addRow(nombre = "", id = "", contacto = "", tienda = "", pendiente = false) {
+  function addRow(nombre = "", id = "", contacto = "", tienda = "", pendiente = false, ka = "") {
     count++;
     const container = document.getElementById('form-container');
     const div = document.createElement('div');
     div.className = 'data-row';
     div.id = `row-${count}`;
     
-    // Si viene marcado como pendiente, preconfiguramos el estado visual
     const chkChecked = pendiente ? "checked" : "";
     const idDisabled = pendiente ? "disabled" : "";
     const idValue = pendiente ? "EN ESPERA" : id;
@@ -139,7 +150,7 @@
       <input type="text" class="nombre" placeholder="Nombre y Apellido" value="${nombre}" required>
       
       <div class="id-container">
-        <input type="text" class="uid" placeholder="ID de Binance" value="${idValue}" ${idDisabled} required>
+        <input type="text" class="uid" placeholder="ID" value="${idValue}" ${idDisabled} required>
         <label class="chk-wrapper" title="Marcar como pendiente">
           <span>Espera</span>
           <input type="checkbox" class="chk-pendiente" onchange="togglePending(this)" ${chkChecked}>
@@ -148,6 +159,16 @@
 
       <input type="text" class="contacto" placeholder="0412..." value="${contacto}">
       <input type="text" class="tienda" placeholder="Sucursal" value="${tienda}">
+      
+      <select class="key-retailer">
+        <option value="" ${ka === "" ? "selected" : ""}>-- Seleccionar --</option>
+        <option value="GLOBAL CELL" ${ka === "GLOBAL CELL" ? "selected" : ""}>GLOBAL CELL</option>
+        <option value="TECNO CORP" ${ka === "TECNO CORP" ? "selected" : ""}>TECNO CORP</option>
+        <option value="NC PHONE" ${ka === "NC PHONE" ? "selected" : ""}>NC PHONE</option>
+        <option value="DAMASCO" ${ka === "DAMASCO" ? "selected" : ""}>DAMASCO</option>
+        <option value="CANGURO" ${ka === "CANGURO" ? "selected" : ""}>CANGURO</option>
+      </select>
+
       <button class="btn btn-del" onclick="removeRow(${count})">×</button>
     `;
     container.appendChild(div);
@@ -166,80 +187,116 @@
     document.getElementById('counter').innerText = `${document.querySelectorAll('.data-row').length} registro(s)`;
   }
 
-  // ALGORITMO DE EXTRACCIÓN DE WHATSAPP
+  // Función para autodetectar el Key Retailer según el nombre de la tienda
+  function autoDetectKA(textoTienda) {
+    const t = textoTienda.toUpperCase();
+    if (t.includes("GLOBAL")) return "GLOBAL CELL";
+    if (t.includes("TECNO")) return "TECNO CORP";
+    if (t.includes("NC")) return "NC PHONE";
+    if (t.includes("DAMASCO")) return "DAMASCO";
+    if (t.includes("CANGURO")) return "CANGURO";
+    return "";
+  }
+
+  // ALGORITMO DUAL DE EXTRACCIÓN
   function procesarTexto() {
     const text = document.getElementById('whatsapp-text').value;
     if (!text.trim()) return alert("Pega el texto primero.");
 
-    // Dividir los mensajes usando el patrón de fecha/hora de WhatsApp
-    const regexHeader = /\[\d{1,2}\/\d{1,2}.*?\] .*?:/g;
-    const parts = text.split(regexHeader).filter(p => p.trim() !== '');
-
-    if (parts.length === 0) {
-      return alert("No se detectó el formato de WhatsApp. Verifica el texto pegado.");
-    }
-
-    // Si la primera fila de la tabla está totalmente vacía, la eliminamos para no dejar espacios en blanco
+    // Eliminar fila vacía inicial
     const firstRow = document.querySelector('.data-row');
     if (firstRow) {
-      const inputs = firstRow.querySelectorAll('input[type="text"]');
-      const isEmpty = Array.from(inputs).every(i => i.value === "");
-      if (isEmpty) firstRow.remove();
+      const n = firstRow.querySelector('.nombre').value;
+      const uid = firstRow.querySelector('.uid').value;
+      if (!n && (!uid || uid === "EN ESPERA" || uid === "")) firstRow.remove();
     }
 
-    parts.forEach(part => {
-      let pText = part.trim();
-      let n = "", i = "", c = "", t = "", p = false;
+    const lines = text.split('\n');
+    let remainingText = "";
 
-      // 1. Detectar si está pendiente
-      if (/pendiente/i.test(pText)) {
-        p = true;
-        pText = pText.replace(/pendiente/gi, '').trim();
-      }
+    // 1. PRIMER PASO: Buscar el formato nuevo (con guiones y asteriscos)
+    lines.forEach(line => {
+      // Coincide con lineas que empiezan con "*"
+      const bulletMatch = line.trim().match(/^\*\s+(.*)$/);
+      if (bulletMatch) {
+        // Separamos por guiones con espacios " - "
+        const parts = bulletMatch[1].split(/\s+-\s+/);
+        if (parts.length >= 3) {
+          let rawId = parts.pop().trim(); // El ultimo bloque es ID o pendiente
+          let n = parts.shift().trim();   // El primer bloque es Nombre
+          let t = parts.join(" - ").trim(); // Lo que quede en medio es Tienda
 
-      // 2. Limpiar etiquetas basuras
-      pText = pText.replace(/Id:/gi, '').trim();
-
-      // 3. Extraer Teléfono (Formato VE: 0412, 0414, 0424, 0416, 0426 + 7 digitos)
-      const phoneMatch = pText.match(/(04(?:12|14|24|16|26)\d{7})/);
-      if (phoneMatch) {
-        c = phoneMatch[1];
-        pText = pText.replace(phoneMatch[1], ' ').trim();
-      }
-
-      // 4. Extraer ID Binance (Cualquier bloque numérico restante de 8 o más dígitos)
-      const idMatch = pText.match(/(\d{8,11})/);
-      if (idMatch) {
-        i = idMatch[1];
-        pText = pText.replace(idMatch[1], ' ').trim();
-      }
-
-      // 5. Lo que queda es Nombre y Tienda. Limpiamos símbolos raros.
-      let lines = pText.split('\n').map(l => l.trim()).filter(l => l !== '');
-      
-      if (lines.length === 1) {
-        // Si todo quedó en una línea (Ej: "Fabiola nieves corpo")
-        let words = lines[0].split(' ').filter(w => w !== '');
-        if (words.length > 2) {
-          n = words.slice(0, 2).join(' '); // Asumimos primeros 2 nombres
-          t = words.slice(2).join(' ');    // El resto es tienda
-        } else {
-          n = lines[0];
+          let i = "", p = false, c = "";
+          
+          if (/pendiente/i.test(rawId)) {
+            p = true;
+          } else {
+            const idMatch = rawId.match(/(\d+)/);
+            if (idMatch) i = idMatch[1];
+          }
+          
+          const ka = autoDetectKA(t);
+          addRow(n, i, c, t, p, ka);
+          return; // Saltamos a la siguiente línea
         }
-      } else if (lines.length >= 2) {
-        // Si hay saltos de línea (Ej: Linea 1 Nombre, Linea 2 Tienda)
-        n = lines[0];
-        t = lines.slice(1).join(' ');
       }
-
-      // Limpieza final de nombre (quitar guiones o caracteres raros sobrantes)
-      n = n.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '').replace(/\s+/g, ' ').trim();
-      t = t.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s]/g, '').replace(/\s+/g, ' ').trim();
-
-      addRow(n, i, c, t, p);
+      // Si no es viñeta, lo guardamos para el procesador clásico
+      remainingText += line + "\n";
     });
 
-    // Limpiar el textarea y ocultar panel tras procesar
+    // 2. SEGUNDO PASO: Procesar el formato clásico de WhatsApp
+    if (remainingText.trim()) {
+      const regexHeader = /\[\d{1,2}\/\d{1,2}.*?\] .*?:/g;
+      const parts = remainingText.split(regexHeader).filter(p => p.trim() !== '');
+
+      parts.forEach(part => {
+        let pText = part.trim();
+        let n = "", i = "", c = "", t = "", p = false;
+
+        if (/pendiente/i.test(pText)) {
+          p = true;
+          pText = pText.replace(/pendiente/gi, '').trim();
+        }
+
+        pText = pText.replace(/Id:/gi, '').trim();
+
+        const phoneMatch = pText.match(/(04(?:12|14|24|16|26)\d{7})/);
+        if (phoneMatch) {
+          c = phoneMatch[1];
+          pText = pText.replace(phoneMatch[1], ' ').trim();
+        }
+
+        const idMatch = pText.match(/(\d{8,11})/);
+        if (idMatch) {
+          i = idMatch[1];
+          pText = pText.replace(idMatch[1], ' ').trim();
+        }
+
+        let linesData = pText.split('\n').map(l => l.trim()).filter(l => l !== '');
+        
+        if (linesData.length === 1) {
+          let words = linesData[0].split(' ').filter(w => w !== '');
+          if (words.length > 2) {
+            n = words.slice(0, 2).join(' ');
+            t = words.slice(2).join(' ');
+          } else {
+            n = linesData[0];
+          }
+        } else if (linesData.length >= 2) {
+          n = linesData[0];
+          t = linesData.slice(1).join(' ');
+        }
+
+        n = n.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '').replace(/\s+/g, ' ').trim();
+        t = t.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s]/g, '').replace(/\s+/g, ' ').trim();
+
+        if(n || i || c || t || p) {
+          const ka = autoDetectKA(t);
+          addRow(n, i, c, t, p, ka);
+        }
+      });
+    }
+
     document.getElementById('whatsapp-text').value = "";
     togglePasteArea();
   }
@@ -255,7 +312,6 @@
     for (let row of rows) {
       const n = row.querySelector('.nombre').value.trim();
       const chk = row.querySelector('.chk-pendiente');
-      // Si está chequeado mandamos "EN ESPERA", sino el valor del input
       const i = chk.checked ? "EN ESPERA" : row.querySelector('.uid').value.trim();
       
       if (!n || !i) return alert("El Nombre y el ID (o marcar Espera) son obligatorios en todas las filas.");
@@ -264,7 +320,8 @@
         nombre: n,
         id: i,
         contacto: row.querySelector('.contacto').value.trim(),
-        tienda: row.querySelector('.tienda').value.trim()
+        tienda: row.querySelector('.tienda').value.trim(),
+        ka: row.querySelector('.key-retailer').value // Añadido al envío
       });
     }
 
