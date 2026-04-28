@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inventario de Equipos - TECNO</title>
+  <link rel="icon" type="image/png" href="https://guillermorodfer04dev.github.io/REPORT/TECNO-TOOL-icon.png">
+  <style>
+    :root {
+      --primary: #0066ff;
+      --bg: #f4f7f6;
+      --border: #dce1e6;
+      --success: #28a745;
+      --dark: #2b3035;
+      --card-bg: #ffffff;
+    }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); padding: 15px; display: flex; justify-content: center; margin: 0; color: #333; }
+    .container { background: transparent; width: 100%; max-width: 1100px; }
+    
+    /* Encabezados y Botones Generales */
+    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: var(--card-bg); padding: 15px 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+    h2 { margin: 0; color: var(--dark); font-size: 1.4rem; display: flex; align-items: center; gap: 10px; }
+
+    .btn { cursor: pointer; border: none; border-radius: 6px; font-weight: 600; transition: 0.2s; display: inline-flex; align-items: center; justify-content: center; padding: 8px 16px; font-size: 0.9rem; }
+    .btn-nube-ir { background: #17a2b8; color: white; text-decoration: none; margin-left: 10px; }
+    .btn-nube-ir:hover { background: #138496; }
+    .btn-nube-subir { background: var(--primary); color: white; width: 100%; padding: 12px; font-size: 1.05rem; margin-top: 20px; box-shadow: 0 4px 10px rgba(0,102,255,0.2); }
+    .btn-nube-subir:hover { background: #0052cc; transform: translateY(-1px); }
+    .btn-nube-subir:disabled { background: #a0c4ff; cursor: not-allowed; transform: none; box-shadow: none; }
+    .btn-action { background: var(--success); color: white; }
+    .btn-action:hover { background: #218838; }
+    .btn-outline { background: #fff; color: var(--primary); border: 1px solid var(--primary); }
+    .btn-outline:hover { background: #f0f7ff; }
+
+    /* Secciones de Configuración e Importación */
+    .section-panel { background: var(--card-bg); padding: 15px 20px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); border: 1px solid var(--border); }
+    .section-header { font-size: 0.95rem; font-weight: bold; color: var(--dark); margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+    
+    textarea { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; box-sizing: border-box; resize: vertical; font-family: monospace; font-size: 0.85rem; background: #fafafa; }
+    textarea:focus { outline: none; border-color: var(--primary); background: #fff; }
+
+    .import-area { display: none; margin-top: 10px; }
+
+    /* Tarjetas de Tienda (Diseño Compacto) */
+    .store-card { background: var(--card-bg); border-radius: 10px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); border: 1px solid var(--border); position: relative; transition: 0.2s; }
+    .store-card:hover { border-color: #b3d4ff; box-shadow: 0 4px 12px rgba(0,102,255,0.08); }
+    
+    .store-header { display: grid; grid-template-columns: 2fr 1fr auto; gap: 10px; margin-bottom: 12px; align-items: center; padding-bottom: 10px; border-bottom: 1px dashed var(--border); }
+    
+    input[type="text"], select, input[type="number"] { width: 100%; padding: 7px 10px; border: 1px solid var(--border); border-radius: 5px; font-size: 0.85rem; outline: none; background: #fff; box-sizing: border-box; transition: 0.3s; }
+    input[type="text"]:focus, select:focus, input[type="number"]:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(0,102,255,0.1); }
+    
+    .btn-del { background: #ffe6e6; color: #ff4d4d; border-radius: 5px; padding: 6px 10px; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; }
+    .btn-del:hover { background: #ff4d4d; color: white; }
+
+    /* Grilla de Equipos */
+    .device-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 8px; }
+    .device-item { display: flex; align-items: center; justify-content: space-between; background: #f8f9fa; padding: 6px 10px; border-radius: 6px; border: 1px solid #edf1f5; }
+    .device-item label { font-size: 0.75rem; font-weight: 600; color: #555; line-height: 1.2; padding-right: 8px; flex: 1; }
+    .device-item input[type="number"] { width: 60px; text-align: center; font-weight: bold; color: var(--primary); padding: 4px; border-color: #ddd; }
+
+    .btn-add-store { background: #eef4ff; color: var(--primary); border: 1px dashed var(--primary); width: 100%; padding: 12px; margin-top: 10px; border-radius: 10px; }
+    .btn-add-store:hover { background: var(--primary); color: white; border-style: solid; }
+
+    #status { margin-top: 15px; text-align: center; font-size: 0.95rem; font-weight: 600; }
+
+    @media (max-width: 600px) {
+      .store-header { grid-template-columns: 1fr; gap: 8px; }
+      .store-header .btn-del { position: absolute; top: 15px; right: 15px; width: auto; }
+      .device-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  
+  <header>
+    <h2>📦 Registro de Inventario</h2>
+    <div>
+      <span id="counter" style="color: #666; font-size: 0.85rem; font-weight: 600; margin-right: 15px;">0 Tiendas</span>
+      <a href="https://docs.google.com/spreadsheets/d/1frMMsfmN-azH3ZsNtt5CB4niF4GzirZXKxWKIVSyRwY/edit?gid=0#gid=0" target="_blank" class="btn btn-nube-ir">☁️ Ir a la nube</a>
+    </div>
+  </header>
+
+  <div class="section-panel">
+    <div class="section-header">
+      <span>⚙️ Listado de Equipos a Reconocer</span>
+      <span style="font-size: 0.7rem; font-weight: normal; color:#777;">(Uno por línea)</span>
+    </div>
+    <textarea id="device-config" rows="4" placeholder="Ejemplo:&#10;SPARK 40 PRO&#10;Camon 40 pro">SPARK 40 PRO
+SPARK 40 PRO+
+Camon 40 pro
+Camon 40
+Camon 30S pro
+SPARK 30 pro
+SPARK 20 pro+</textarea>
+  </div>
+
+  <div class="section-panel">
+    <div class="section-header">
+      <span>📥 Importar de WhatsApp</span>
+      <button class="btn btn-outline" onclick="togglePasteArea()" style="padding: 4px 10px; font-size:0.8rem;">Mostrar/Ocultar Panel</button>
+    </div>
+    <div class="import-area" id="paste-section">
+      <textarea id="whatsapp-text" rows="6" placeholder="Pega los mensajes de WhatsApp aquí...&#10;Ejemplo:&#10;[28/4, 3:20 p.m.] Guille: Tienda: palacio 15&#10;* SPARK 40 PRO: 0&#10;* Camon 40 pro: 1"></textarea>
+      <button class="btn btn-action" onclick="procesarTexto()" style="margin-top: 10px; width: 100%;">Procesar y Extraer Datos</button>
+    </div>
+  </div>
+
+  <div id="stores-container"></div>
+
+  <button class="btn btn-add-store" onclick="addStoreCard()">+ Agregar Tienda Manualmente</button>
+  
+  <button class="btn btn-nube-subir" id="submit-btn" onclick="sendData()">☁️ Subir a la nube</button>
+  <div id="status"></div>
+
+</div>
+
+<script>
+  // Reemplaza esta URL por el enlace generado por Google Apps Script
+  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz9RXtke2gvwTLwxTicGnTm7oA4tiXiuJPikinIVdM8Wxq4aeDnvOgji3OGNDY2vp8z/exec";
+  let storeCount = 0;
+
+  window.onload = () => {
+    addStoreCard();
+  };
+
+  function togglePasteArea() {
+    const section = document.getElementById('paste-section');
+    section.style.display = section.style.display === 'block' ? 'none' : 'block';
+  }
+
+  function getActiveDevices() {
+    const raw = document.getElementById('device-config').value;
+    if (!raw.trim()) return [];
+    return raw.split('\n').map(d => d.trim()).filter(d => d !== "");
+  }
+
+  function addStoreCard(tiendaNombre = "", kaSelected = "", cantDevices = {}) {
+    storeCount++;
+    const container = document.getElementById('stores-container');
+    const devices = getActiveDevices();
+    
+    const card = document.createElement('div');
+    card.className = 'store-card';
+    card.id = `store-${storeCount}`;
+
+    // Generar Inputs de Equipos dinámicamente de forma compacta
+    let devicesHTML = '';
+    devices.forEach(device => {
+      // Buscar si el dispositivo existe en los datos extraídos (ignorando mayúsculas)
+      const devKey = Object.keys(cantDevices).find(k => k.toLowerCase() === device.toLowerCase());
+      const value = devKey ? cantDevices[devKey] : "";
+      
+      devicesHTML += `
+        <div class="device-item">
+          <label>${device}</label>
+          <input type="number" class="device-input" data-device="${device}" placeholder="0" min="0" value="${value}">
+        </div>
+      `;
+    });
+
+    card.innerHTML = `
+      <div class="store-header">
+        <input type="text" class="tienda-nombre" placeholder="Nombre de la Tienda" value="${tiendaNombre}" required>
+        <select class="key-retailer">
+          <option value="" ${kaSelected === "" ? "selected" : ""}>-- Key Retailer --</option>
+          <option value="GLOBAL CELL" ${kaSelected === "GLOBAL CELL" ? "selected" : ""}>GLOBAL CELL</option>
+          <option value="TECNO CORP" ${kaSelected === "TECNO CORP" ? "selected" : ""}>TECNO CORP</option>
+          <option value="NC PHONE" ${kaSelected === "NC PHONE" ? "selected" : ""}>NC PHONE</option>
+        </select>
+        <button class="btn btn-del" onclick="removeStore(${storeCount})" title="Eliminar tienda">×</button>
+      </div>
+      <div class="device-grid">
+        ${devicesHTML}
+      </div>
+    `;
+    
+    container.appendChild(card);
+    updateCounter();
+  }
+
+  function removeStore(id) {
+    const card = document.getElementById(`store-${id}`);
+    if (card) {
+      card.remove();
+      updateCounter();
+    }
+  }
+
+  function updateCounter() {
+    const count = document.querySelectorAll('.store-card').length;
+    document.getElementById('counter').innerText = `${count} Tienda(s)`;
+  }
+
+  // ALGORITMO DE EXTRACCIÓN WS
+  function procesarTexto() {
+    const text = document.getElementById('whatsapp-text').value;
+    if (!text.trim()) return alert("Pega el texto en el área primero.");
+
+    // Eliminar tarjetas vacías creadas por defecto si no han sido tocadas
+    const existingCards = document.querySelectorAll('.store-card');
+    if (existingCards.length === 1) {
+      const firstCard = existingCards[0];
+      const tName = firstCard.querySelector('.tienda-nombre').value;
+      if (!tName) firstCard.remove();
+    }
+
+    // Dividir por la palabra "Tienda:"
+    const blocks = text.split(/Tienda:/i);
+    blocks.shift(); // El índice 0 es texto antes de la primera mención de "Tienda:"
+
+    if (blocks.length === 0) {
+      alert("No se encontró ninguna estructura válida con 'Tienda:'");
+      return;
+    }
+
+    blocks.forEach(block => {
+      const lines = block.split('\n');
+      
+      // La línea 0 tiene el nombre de la tienda. Quitamos basura del final si la siguiente cabecera WS se coló allí (poco probable por el \n, pero seguro)
+      let storeNameRaw = lines[0].trim();
+      let storeName = storeNameRaw.split('[')[0].trim(); // Por si la cabecera del sig. mensaje quedó en la misma línea
+
+      let parsedDevices = {};
+      
+      // Analizar líneas subsiguientes en el bloque para buscar asteriscos
+      lines.slice(1).forEach(line => {
+        // Ignora las cabeceras de whatsapp que puedan estar en el medio [28/4, 3:20 p.m.]...
+        const match = line.match(/\*\s*(.*?):\s*(\d+)/);
+        if (match) {
+          const deviceName = match[1].trim();
+          const quantity = match[2];
+          parsedDevices[deviceName] = quantity;
+        }
+      });
+
+      // Autodetectar Key Retailer básico basado en nombre de tienda
+      let ka = "";
+      const tUpper = storeName.toUpperCase();
+      if (tUpper.includes("GLOBAL")) ka = "GLOBAL CELL";
+      if (tUpper.includes("TECNO")) ka = "TECNO CORP";
+      if (tUpper.includes("NC")) ka = "NC PHONE";
+
+      addStoreCard(storeName, ka, parsedDevices);
+    });
+
+    document.getElementById('whatsapp-text').value = "";
+    togglePasteArea();
+  }
+
+  // ENVÍO DE DATOS
+  async function sendData() {
+    const btn = document.getElementById('submit-btn');
+    const status = document.getElementById('status');
+    const cards = document.querySelectorAll('.store-card');
+    const payload = [];
+
+    if(cards.length === 0) return alert("No hay tiendas para enviar.");
+
+    for (let card of cards) {
+      const tienda = card.querySelector('.tienda-nombre').value.trim();
+      const ka = card.querySelector('.key-retailer').value;
+      
+      if (!tienda) {
+        alert("Asegúrate de que todas las tiendas tengan un nombre.");
+        return;
+      }
+
+      // Estructura del objeto a enviar
+      let storeData = {
+        tienda: tienda,
+        key_retailer: ka,
+        inventario: {} 
+      };
+
+      // Recopilar cantidades de esta tarjeta
+      const inputs = card.querySelectorAll('.device-input');
+      inputs.forEach(input => {
+        const deviceName = input.getAttribute('data-device');
+        const qty = input.value === "" ? 0 : parseInt(input.value);
+        storeData.inventario[deviceName] = qty;
+        // Si prefieres que todo vaya en 1 solo nivel (flat json), descomenta esto:
+        // storeData[deviceName] = qty;
+      });
+
+      payload.push(storeData);
+    }
+
+    btn.disabled = true;
+    status.innerText = "⏳ Empaquetando y enviando datos...";
+    status.style.color = "#666";
+
+    try {
+      const response = await fetch(WEB_APP_URL, {
+        method: "POST",
+        mode: "no-cors", 
+        headers: { "Content-Type": "text/plain" },
+        body: JSON.stringify(payload)
+      });
+
+      status.innerText = "✅ ¡Datos subidos con éxito!";
+      status.style.color = "var(--success)";
+      
+      setTimeout(() => {
+        if(confirm("¿Deseas limpiar el formulario para nuevas capturas?")) {
+          document.getElementById('stores-container').innerHTML = '';
+          addStoreCard();
+          status.innerText = "";
+        }
+        btn.disabled = false;
+      }, 800);
+
+    } catch (err) {
+      status.innerText = "❌ Error de conexión al intentar enviar a la nube.";
+      status.style.color = "#dc3545";
+      btn.disabled = false;
+    }
+  }
+</script>
+
+</body>
+</html>

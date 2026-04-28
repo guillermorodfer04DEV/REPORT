@@ -50,7 +50,7 @@
             margin-left: 8px; display: none;
         }
 
-        /* --- Modal con Centrado Corregido --- */
+        /* --- Modal --- */
         .modal-overlay {
             position: fixed; top: 0; left: 0; right: 0; bottom: 0;
             background: rgba(15, 23, 42, 0.6);
@@ -64,55 +64,100 @@
             width: 90%; max-width: 350px; text-align: center;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
             animation: fadeInUp 0.4s ease-out;
-            box-sizing: border-box; /* Asegura que el padding no rompa el ancho */
+            box-sizing: border-box;
         }
 
         .modal-content h2 { margin-top: 0; font-size: 22px; color: var(--tecno-dark); }
 
         .modal-content input {
-            width: 100%; /* Ocupa el 100% del contenedor centrado */
+            width: 100%;
             padding: 12px 15px; border: 1px solid #e2e8f0;
             border-radius: 12px; margin: 20px 0; 
             font-family: inherit; font-size: 16px;
-            box-sizing: border-box; /* CORRECCIÓN DE CENTRADO */
+            box-sizing: border-box;
             text-align: center;
         }
 
         /* --- Contenedor Principal --- */
         .container {
-            text-align: center; width: 90%; max-width: 420px;
-            padding: 50px 30px; background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(10px); border-radius: 24px;
+            text-align: center; width: 95%; max-width: 450px;
+            padding: 40px 20px; background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px); border-radius: 32px;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
             border: 1px solid rgba(255, 255, 255, 0.6);
+            margin: 20px;
         }
 
         .logo-container {
-            background: var(--white); width: 200px; height: 200px;
-            margin: 0 auto 25px; display: flex; align-items: center;
+            background: var(--white); width: 120px; height: 120px;
+            margin: 0 auto 20px; display: flex; align-items: center;
             justify-content: center; border-radius: 20px;
             box-shadow: 0 10px 20px rgba(0, 86, 179, 0.1);
         }
 
-        .logo { width: 180px; }
-        h1 { font-size: 28px; font-weight: 800; background: var(--tecno-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .logo { width: 100px; }
+        h1 { font-size: 26px; font-weight: 800; margin-bottom: 30px; background: var(--tecno-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 
-        .menu-grid { display: flex; flex-direction: column; gap: 15px; margin-top: 30px; }
-
-        .btn-nav {
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 16px 20px; background-color: var(--white);
-            color: var(--tecno-dark); text-decoration: none;
-            font-weight: 600; border: 1px solid #e2e8f0;
-            border-radius: 14px; transition: var(--transition);
+        /* --- Cuadrícula de Botones Cuadrados --- */
+        .menu-grid { 
+            display: grid; 
+            grid-template-columns: repeat(2, 1fr); 
+            gap: 15px; 
+            margin-top: 10px; 
         }
 
-        .btn-nav:hover { border-color: var(--tecno-blue); transform: translateX(5px); }
-        .btn-nav.accent { background: var(--tecno-gradient); color: var(--white); border: none; }
+        .btn-nav {
+            display: flex;
+            flex-direction: column; /* Icono arriba, texto abajo */
+            align-items: center;
+            justify-content: center;
+            aspect-ratio: 1 / 1; /* Esto los hace cuadrados */
+            padding: 15px;
+            background-color: var(--white);
+            color: var(--tecno-dark);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            border: 1px solid #e2e8f0;
+            border-radius: 20px;
+            transition: var(--transition);
+            text-align: center;
+        }
 
-        #devPanelBtn { background-color: var(--tecno-dark); color: white; border: none; }
+        .btn-nav i {
+            font-size: 32px;
+            margin-bottom: 10px;
+            font-style: normal;
+        }
 
-        footer { position: absolute; bottom: 30px; font-size: 11px; color: #94a3b8; font-weight: 600; }
+        .btn-nav b { display: none; } /* Ocultamos la flecha en diseño cuadrado */
+
+        .btn-nav:hover { 
+            border-color: var(--tecno-blue); 
+            transform: translateY(-5px); 
+            box-shadow: 0 10px 15px rgba(0, 86, 179, 0.1);
+        }
+
+        .btn-nav.accent { 
+            background: var(--tecno-gradient); 
+            color: var(--white); 
+            border: none; 
+        }
+
+        /* El botón de supervisor ocupa las dos columnas para destacar */
+        #devPanelBtn { 
+            grid-column: span 2; 
+            aspect-ratio: auto; 
+            height: 70px; 
+            flex-direction: row;
+            background-color: var(--tecno-dark); 
+            color: white; 
+            border: none; 
+        }
+        
+        #devPanelBtn i { margin-bottom: 0; margin-right: 10px; font-size: 24px; }
+
+        footer { position: relative; margin-top: 30px; font-size: 11px; color: #94a3b8; font-weight: 600; }
 
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
     </style>
@@ -129,7 +174,7 @@
             <h2 id="modalTitle">¡Bienvenido!</h2>
             <p id="modalDesc">Ingresa tu nombre para comenzar.</p>
             <input type="text" id="nameInput" placeholder="Tu nombre aquí..." autocomplete="off">
-            <button id="saveNameBtn" class="btn-nav accent" style="width: 100%; justify-content: center; cursor: pointer;">Guardar y Actualizar</button>
+            <button id="saveNameBtn" class="btn-nav accent" style="width: 100%; height: auto; aspect-ratio: auto; padding: 12px; cursor: pointer;">Guardar y Actualizar</button>
         </div>
     </div>
 
@@ -141,24 +186,26 @@
         
         <div class="menu-grid">
             <a href="reporte-entrada.html" class="btn-nav accent">
-                <i>📍</i> <span>Reporte de Entrada</span> <b>▶</b>
+                <i>📍</i> <span>Reporte de Entrada</span>
             </a>
             <a href="reporte.html" class="btn-nav">
-                <i>📝</i> <span>Reporte Diario</span> <b>▶</b>
+                <i>📝</i> <span>Reporte Diario</span>
+            </a>
+            <a href="equiposDisponibles.html" class="btn-nav">
+                <i>📱</i> <span>Equipos Disponibles</span>
             </a>
             <a href="generadorDeListado-binance.html" class="btn-nav">
-                <i>🔶</i> <span>Listado de Binance ID</span> <b>▶</b>
+                <i>🔶</i> <span>Listado Binance ID</span>
             </a>
             <a href="https://docs.google.com/spreadsheets/d/1rWnxzCo7ttoErCXVy1yk6HIyHTtlDMWFr25gm71aqa0/edit?gid=646746000#gid=646746000" class="btn-nav">
-                <i>🔲</i> <span>Imei QR Generator</span> <b>▶</b>
+                <i>🔲</i> <span>Imei QR Generator</span>
             </a>
             <a href="reporte-SUPERVISOR.html" id="devPanelBtn" class="btn-nav" style="display: none;">
-                <i>⚙️📝</i> <span>Reporte Diario (Supervisor)</span> <b>▶</b>
+                <i>⚙️</i> <span>Reporte Diario (Supervisor)</span>
             </a>
         </div>
+        <footer>TECNO Mobile Venezuela &copy; 2026</footer>
     </div>
-
-    <footer>TECNO Mobile Venezuela &copy; 2026</footer>
 
     <script>
     document.addEventListener("DOMContentLoaded", () => {
@@ -172,10 +219,10 @@
 
         // --- Configuración de Usuarios y Colores ---
         const configUsuarios = [
-            { nombre: "Guillermo Rodriguez", color: "#10750d" }, // Verde
-            { nombre: "José Díaz", color: "#4823cc" },           // Azul
-            { nombre: "José Reina", color: "#dd57b5" },          // Rosa
-            { nombre: "Alexandra Guaimare", color: "#000000" }   // Negro
+            { nombre: "Guillermo Rodriguez", color: "#10750d" }, 
+            { nombre: "José Díaz", color: "#4823cc" },           
+            { nombre: "José Reina", color: "#dd57b5" },          
+            { nombre: "Alexandra Guaimare", color: "#000000" }   
         ];
 
         const developersList = ["guillermo rodriguez", "jose diaz"];
@@ -214,7 +261,7 @@
             displayUserName.textContent = name;
             userBadge.style.display = "block";
             applyPermissions(currentRole);
-            actualizarAvatar(name); // <-- Llamada al sistema de círculos de color
+            actualizarAvatar(name); 
             
             localStorage.setItem("tecno_user_name", name);
             localStorage.setItem("tecno_user_role", currentRole);
@@ -229,7 +276,6 @@
             }
         };
 
-        // Eventos
         userBadge.addEventListener("click", () => {
             modal.style.display = "flex";
             nameInput.value = localStorage.getItem("tecno_user_name") || "";
