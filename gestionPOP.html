@@ -4,182 +4,121 @@
   <base target="_top">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    :root { --bg: #f8fafc; --card: #ffffff; --primary: #2563eb; --text: #1e293b; --border: #e2e8f0; }
-    body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 10px; font-size: 13px; }
+    :root { 
+      --bg: #f0f2f5; --card: #ffffff; --primary: #2563eb; 
+      --text: #1e293b; --border: #cbd5e1; --shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+    }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; }
     .container { max-width: 500px; margin: auto; }
-    .card { background: var(--card); padding: 12px; border-radius: 8px; margin-bottom: 8px; border: 1px solid var(--border); }
-    .btn { padding: 10px; border: none; border-radius: 6px; cursor: pointer; width: 100%; font-weight: 600; margin-bottom: 8px; }
-    .btn-blue { background: var(--primary); color: white; }
-    .compact-input { width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 4px; box-sizing: border-box; margin-top: 4px; }
-    .hidden { display: none !important; }
-    #loader-overlay { position: fixed; inset: 0; background: rgba(255,255,255,0.9); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 999; }
-    .progress-bar { width: 200px; height: 6px; background: #ddd; border-radius: 3px; overflow: hidden; }
-    .progress-fill { height: 100%; background: var(--primary); width: 0%; transition: width 0.3s; }
+    
+    /* Estilo de Tarjetas Compactas */
+    .card { background: var(--card); border-radius: 12px; padding: 16px; margin-bottom: 12px; border: 1px solid var(--border); box-shadow: var(--shadow); }
+    
+    /* Botones Profesionales */
+    .btn { width: 100%; padding: 12px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; margin-bottom: 10px; transition: 0.2s; }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-secondary { background: #64748b; color: white; }
+    
+    /* Inputs Compactos */
+    .form-control { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; box-sizing: border-box; margin: 6px 0; }
+    
+    /* Loader con Estilo */
+    #loader-overlay { position: fixed; inset: 0; background: rgba(255,255,255,0.95); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 999; }
+    .bar { width: 220px; height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden; margin-top: 10px; }
+    .fill { height: 100%; background: var(--primary); width: 0%; transition: width 0.3s; }
   </style>
 </head>
 <body>
 
-<div id="loader-overlay" class="hidden">
-  <div id="loader-msg">Procesando...</div>
-  <div class="progress-bar"><div class="progress-fill" id="loader-fill"></div></div>
-</div>
+<div id="loader-overlay" class="hidden"><div id="loader-msg">Sincronizando...</div><div class="bar"><div class="fill" id="loader-fill"></div></div></div>
 
 <div class="container">
   <div id="main-menu">
-    <h3 style="text-align:center">TECNO TOOL PRO</h3>
-    <button class="btn btn-blue" onclick="openEditor()">📝 Editor Inventario</button>
-    <button class="btn btn-blue" onclick="openVentas()" style="background:#059669;">🛒 Gestor Ventas</button>
+    <h3 style="text-align:center; color:#334155;">TECNO TOOL PRO</h3>
+    <button class="btn btn-primary" onclick="openEditor()">📝 Editor de Inventario</button>
+    <button class="btn btn-primary" style="background:#059669;" onclick="openVentas()">🛒 Gestor de Ventas</button>
   </div>
 
-  <button id="btn-volver" class="btn hidden" onclick="showMenu()">← Volver</button>
+  <button id="btn-volver" class="btn btn-secondary hidden" onclick="showMenu()">← Volver al Menú</button>
 
-  <div id="section-filters" class="hidden">
-    <input type="text" id="search-tienda" class="compact-input" placeholder="🔍 Buscar tienda..." oninput="filtrarTodo()">
-    <select id="filter-kr" class="compact-input" onchange="filtrarTodo()">
+  <div id="section-filters" class="hidden card">
+    <input type="text" id="search-tienda" class="form-control" placeholder="🔍 Buscar tienda..." oninput="filtrarTodo()">
+    <select id="filter-kr" class="form-control" onchange="filtrarTodo()">
       <option value="">Todos los Retailers</option>
-      <option value="GLOBAL CELL">GLOBAL CELL</option>
-      <option value="TECNO CORP">TECNO CORP</option>
-      <option value="NC PHONE">NC PHONE</option>
-      <option value="DAMASCO">DAMASCO</option>
-      <option value="CANGURO">CANGURO</option>
+      <option value="GLOBAL CELL">GLOBAL CELL</option><option value="TECNO CORP">TECNO CORP</option>
+      <option value="NC PHONE">NC PHONE</option><option value="DAMASCO">DAMASCO</option><option value="CANGURO">CANGURO</option>
     </select>
   </div>
 
-  <div id="editor-section" class="hidden">
-    <div id="inventory-list"></div>
-    <button class="btn btn-blue" onclick="updateInventory()">Guardar Cambios</button>
-  </div>
-
-  <div id="ventas-section" class="hidden">
-    <div id="sales-container"></div>
-    <button class="btn" style="background:#e2e8f0" onclick="addSaleForm()">+ Agregar otra venta</button>
-    <button class="btn btn-blue" id="btn-subir-ventas" onclick="submitSales()">Enviar al Excel</button>
-  </div>
+  <div id="editor-section" class="hidden"><div id="inventory-list"></div><button class="btn btn-primary" onclick="updateInventory()">Guardar Cambios</button></div>
+  <div id="ventas-section" class="hidden"><div id="sales-container"></div><button class="btn btn-secondary" onclick="addSaleForm()">+ Agregar otra venta</button><button class="btn btn-primary" id="btn-subir-ventas" onclick="submitSales()">Subir Ventas</button></div>
   <div id="status"></div>
 </div>
 
 <script>
+  // --- MANTENEMOS TUS VARIABLES ---
   let inventarioData = [];
-  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycby806Lbsaa1LEOdm3KGn6SZ8K8eXriNzGld9MRJXmAuW22GI-Dp6wjoG8BxbpzSoa6V/exec";
+  const WEB_APP_URL = "TU_URL_AQUI"; 
 
-  function toggleLoader(show, msg, prog) {
-    document.getElementById('loader-overlay').classList.toggle('hidden', !show);
-    if(msg) document.getElementById('loader-msg').innerText = msg;
-    if(prog) document.getElementById('loader-fill').style.width = prog + "%";
-  }
-
-  function showMenu() {
-    document.getElementById('main-menu').classList.remove('hidden');
-    document.getElementById('editor-section').classList.add('hidden');
-    document.getElementById('ventas-section').classList.add('hidden');
-    document.getElementById('section-filters').classList.add('hidden');
-    document.getElementById('btn-volver').classList.add('hidden');
-  }
-
-  function openEditor() {
-    document.getElementById('main-menu').classList.add('hidden');
-    document.getElementById('editor-section').classList.remove('hidden');
-    document.getElementById('section-filters').classList.remove('hidden');
-    document.getElementById('btn-volver').classList.remove('hidden');
-    fetchInventory();
-  }
-
-  function openVentas() {
-    document.getElementById('main-menu').classList.add('hidden');
-    document.getElementById('ventas-section').classList.remove('hidden');
-    document.getElementById('section-filters').classList.remove('hidden');
-    document.getElementById('btn-volver').classList.remove('hidden');
-    fetchInventory(true);
-    if (document.getElementById('sales-container').children.length === 0) addSaleForm();
-  }
-
-  async function fetchInventory(onlyData = false) {
-    if (inventarioData.length > 0 && onlyData) return filtrarTodo();
-    toggleLoader(true, "Cargando...", 30);
-    const resp = await fetch(WEB_APP_URL + "?leer=datos");
-    inventarioData = await resp.json();
-    toggleLoader(false);
-    filtrarTodo();
-  }
-
-  function filtrarTodo() {
-    const kr = document.getElementById('filter-kr').value;
-    const busca = document.getElementById('search-tienda').value.toLowerCase();
-    const filtered = inventarioData.filter(t => (kr === "" || t.keyRetailer === kr) && t.nombreTienda.toLowerCase().includes(busca));
-    renderInventory(filtered);
-    actualizarDropdownsVentas(filtered);
-  }
-
-  function renderInventory(datos) {
-    const container = document.getElementById('inventory-list');
-    container.innerHTML = "";
-    datos.forEach(t => {
-      const idx = inventarioData.findIndex(x => x.nroFila === t.nroFila);
-      const card = document.createElement('div');
-      card.className = 'card';
-      card.innerHTML = `
-        <input type="text" class="compact-input" value="${t.nombreTienda}" onchange="inventarioData[${idx}].nombreTienda = this.value">
-        ${t.equipos.map((e, eIdx) => `
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-top:5px;">
-            <small>${e.nombre}</small>
-            <div>
-              <button onclick="changeQty(${idx}, ${eIdx}, -1)">-</button>
-              <span>${e.cantidad}</span>
-              <button onclick="changeQty(${idx}, ${eIdx}, 1)">+</button>
-            </div>
-          </div>`).join('')}`;
-      container.appendChild(card);
-    });
-  }
-
-  function changeQty(idx, eIdx, delta) {
-    inventarioData[idx].equipos[eIdx].cantidad = Math.max(0, parseInt(inventarioData[idx].equipos[eIdx].cantidad) + delta);
-    filtrarTodo();
-  }
-
+  // --- LÓGICA DE GESTOR DE VENTAS (RESTAURADA CON FOTOS) ---
   function addSaleForm() {
     const container = document.getElementById('sales-container');
+    const id = Date.now();
     const div = document.createElement('div');
     div.className = 'card card-venta';
     div.innerHTML = `
-      <select class="v-tienda compact-input"></select>
-      <select class="v-ka compact-input"><option value="GLOBAL CELL">GLOBAL CELL</option><option value="TECNO CORP">TECNO CORP</option></select>
-      <select class="v-equipo compact-input"></select>
-      <button class="btn" style="background:#ef4444; color:white; margin-top:5px;" onclick="this.parentElement.remove()">Eliminar Venta</button>`;
+      <div style="font-weight:bold; margin-bottom:5px;">Venta</div>
+      <select class="v-tienda form-control" onchange="autoSelectKR(this)"></select>
+      <select class="v-ka form-control">
+        <option value="GLOBAL CELL">GLOBAL CELL</option><option value="TECNO CORP">TECNO CORP</option>
+        <option value="NC PHONE">NC PHONE</option><option value="DAMASCO">DAMASCO</option><option value="CANGURO">CANGURO</option>
+      </select>
+      <select class="v-equipo form-control"></select>
+      <input type="file" class="v-foto form-control" accept="image/*" multiple>
+      <button class="btn" style="background:#ef4444; color:white; padding:5px; font-size:12px;" onclick="this.parentElement.remove()">Quitar Venta</button>`;
     container.appendChild(div);
     filtrarTodo();
   }
 
-  function actualizarDropdownsVentas(datos) {
-    document.querySelectorAll('.v-tienda').forEach(s => {
-      s.innerHTML = datos.map(t => `<option value="${t.nombreTienda}">${t.nombreTienda}</option>`).join('');
-    });
-  }
-
+  // --- SUBIDA DE VENTAS CORREGIDA ---
   async function submitSales() {
     const cards = document.querySelectorAll('.card-venta');
-    let payload = [];
-    cards.forEach(c => {
-      payload.push({
-        tienda: c.querySelector('.v-tienda').value,
-        ka: c.querySelector('.v-ka').value,
-        equipo: c.querySelector('.v-equipo').value
-      });
-    });
+    if (cards.length === 0) return alert("Agrega una venta");
 
-    toggleLoader(true, "Enviando...", 50);
+    const status = document.getElementById('status');
+    status.innerText = "⏳ Procesando imágenes...";
+    
+    let payloadVentas = [];
+    for (let card of cards) {
+      // PROCESO DE FOTOS A BASE64
+      let files = card.querySelector('.v-foto').files;
+      let arrayFotos = [];
+      for (let f of files) {
+        let base64 = await new Promise(res => {
+          let reader = new FileReader();
+          reader.onload = () => res(reader.result.split(',')[1]);
+          reader.readAsDataURL(f);
+        });
+        arrayFotos.push({ fotoBase64: base64, fotoNombre: f.name });
+      }
+
+      payloadVentas.push({
+        tienda: card.querySelector('.v-tienda').value,
+        keyRetailer: card.querySelector('.v-ka').value,
+        equipo: card.querySelector('.v-equipo').value,
+        fotos: arrayFotos
+      });
+    }
+
     try {
       await fetch(WEB_APP_URL, {
         method: "POST",
-        body: JSON.stringify({ accion: "subir_ventas", ventas: payload })
+        body: JSON.stringify({ accion: "subir_ventas", ventas: payloadVentas })
       });
-      toggleLoader(false);
-      alert("Ventas enviadas correctamente.");
-    } catch (e) {
-      toggleLoader(false);
-      alert("Error crítico de red. Verifica tu conexión.");
-    }
+      alert("✅ Ventas subidas con éxito");
+    } catch(e) { alert("Error al subir: " + e.message); }
   }
+
 
   async function updateInventory() {
     toggleLoader(true, "Guardando...", 50);
