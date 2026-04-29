@@ -2,129 +2,195 @@
 <html>
 <head>
   <base target="_top">
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     :root { 
-      --bg: #f0f2f5; --card: #ffffff; --primary: #2563eb; 
-      --text: #1e293b; --border: #cbd5e1; --shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+      --bg: #1e293b; --card: #334155; --text: #f8fafc; 
+      --primary: #3b82f6; --success: #22c55e; --accent: #64748b;
     }
-    body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 10px; background-color: var(--bg); color: var(--text); }
     .container { max-width: 500px; margin: auto; }
     
-    /* Estilo de Tarjetas Compactas */
-    .card { background: var(--card); border-radius: 12px; padding: 16px; margin-bottom: 12px; border: 1px solid var(--border); box-shadow: var(--shadow); }
+    /* Diseño compacto y tarjetas */
+    .sale-card { background: var(--card); padding: 12px; border-radius: 8px; margin-bottom: 8px; border: 1px solid #475569; }
+    .filter-box { background: var(--card); padding: 10px; border-radius: 8px; margin-bottom: 12px; }
     
-    /* Botones Profesionales */
-    .btn { width: 100%; padding: 12px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; margin-bottom: 10px; transition: 0.2s; }
-    .btn-primary { background: var(--primary); color: white; }
-    .btn-secondary { background: #64748b; color: white; }
+    /* Inputs y Botones */
+    .form-control, .search-input, .kr-select { width: 100%; padding: 8px; border: 1px solid #475569; border-radius: 4px; background: #1e293b; color: white; box-sizing: border-box; margin-bottom: 5px; }
+    .btn { padding: 10px; border: none; border-radius: 6px; cursor: pointer; width: 100%; font-weight: bold; margin-bottom: 8px; color: white; }
+    .btn-primary { background: var(--primary); }
+    .btn-success { background: var(--success); }
+    .btn-back { background: var(--accent); }
     
-    /* Inputs Compactos */
-    .form-control { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; box-sizing: border-box; margin: 6px 0; }
-    
-    /* Loader con Estilo */
-    #loader-overlay { position: fixed; inset: 0; background: rgba(255,255,255,0.95); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 999; }
-    .bar { width: 220px; height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden; margin-top: 10px; }
-    .fill { height: 100%; background: var(--primary); width: 0%; transition: width 0.3s; }
+    /* Control de cantidad compacto */
+    .btn-qty { width: 28px; height: 28px; border-radius: 4px; border: none; background: #475569; color: white; cursor: pointer; }
+    .qty-control { display: flex; align-items: center; gap: 8px; }
+
+    #loader-overlay { position: fixed; inset: 0; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; }
+    .hidden { display: none !important; }
   </style>
 </head>
 <body>
 
-<div id="loader-overlay" class="hidden"><div id="loader-msg">Sincronizando...</div><div class="bar"><div class="fill" id="loader-fill"></div></div></div>
+<div id="loader-overlay">
+  <div style="font-weight: bold;">Sincronizando TECNO Cloud...</div>
+</div>
+
+<header style="text-align:center; padding:10px;">
+  <h2 style="margin:0; font-size: 1.2rem;">📱 TECNO TOOL V3</h2>
+</header>
 
 <div class="container">
+  <button class="btn btn-back hidden" id="btn-volver" onclick="showMenu()">← Volver al Menú</button>
+
   <div id="main-menu">
-    <h3 style="text-align:center; color:#334155;">TECNO TOOL PRO</h3>
     <button class="btn btn-primary" onclick="openEditor()">📝 Editor de Inventario</button>
-    <button class="btn btn-primary" style="background:#059669;" onclick="openVentas()">🛒 Gestor de Ventas</button>
+    <button class="btn btn-success" onclick="openVentas()">🛒 Gestor de Ventas</button>
   </div>
 
-  <button id="btn-volver" class="btn btn-secondary hidden" onclick="showMenu()">← Volver al Menú</button>
-
-  <div id="section-filters" class="hidden card">
-    <input type="text" id="search-tienda" class="form-control" placeholder="🔍 Buscar tienda..." oninput="filtrarTodo()">
-    <select id="filter-kr" class="form-control" onchange="filtrarTodo()">
-      <option value="">Todos los Retailers</option>
-      <option value="GLOBAL CELL">GLOBAL CELL</option><option value="TECNO CORP">TECNO CORP</option>
-      <option value="NC PHONE">NC PHONE</option><option value="DAMASCO">DAMASCO</option><option value="CANGURO">CANGURO</option>
-    </select>
+  <div id="section-filters" class="hidden">
+    <div class="filter-box">
+      <input type="text" id="search-tienda" class="search-input" placeholder="🔍 Buscar tienda..." oninput="filtrarTodo()">
+      <select id="filter-kr" class="kr-select" onchange="filtrarTodo()">
+        <option value="">-- Todos los Retailers --</option>
+        <option value="GLOBAL CELL">GLOBAL CELL</option>
+        <option value="TECNO CORP">TECNO CORP</option>
+        <option value="NC PHONE">NC PHONE</option>
+        <option value="DAMASCO">DAMASCO</option>
+        <option value="CANGURO">CANGURO</option>
+      </select>
+    </div>
   </div>
 
-  <div id="editor-section" class="hidden"><div id="inventory-list"></div><button class="btn btn-primary" onclick="updateInventory()">Guardar Cambios</button></div>
-  <div id="ventas-section" class="hidden"><div id="sales-container"></div><button class="btn btn-secondary" onclick="addSaleForm()">+ Agregar otra venta</button><button class="btn btn-primary" id="btn-subir-ventas" onclick="submitSales()">Subir Ventas</button></div>
-  <div id="status"></div>
+  <div id="editor-section" class="hidden">
+    <div id="inventory-list"></div>
+    <button class="btn btn-success" onclick="updateInventory()">☁️ Guardar Cambios</button>
+  </div>
+
+  <div id="ventas-section" class="hidden">
+    <div id="sales-container"></div>
+    <button class="btn" style="background:#64748b;" onclick="addSaleForm()">+ Agregar otra venta</button>
+    <button class="btn btn-success" id="btn-subir-ventas" onclick="submitSales()">☁️ Subir Ventas</button>
+  </div>
+
+  <div id="status" style="text-align:center; margin-top:10px;"></div>
 </div>
 
 <script>
-  // --- MANTENEMOS TUS VARIABLES ---
+  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycby806Lbsaa1LEOdm3KGn6SZ8K8eXriNzGld9MRJXmAuW22GI-Dp6wjoG8BxbpzSoa6V/exec";
   let inventarioData = [];
-  const WEB_APP_URL = "TU_URL_AQUI"; 
+  let equiposUnicos = [];
 
-  // --- LÓGICA DE GESTOR DE VENTAS (RESTAURADA CON FOTOS) ---
-  function addSaleForm() {
-    const container = document.getElementById('sales-container');
-    const id = Date.now();
-    const div = document.createElement('div');
-    div.className = 'card card-venta';
-    div.innerHTML = `
-      <div style="font-weight:bold; margin-bottom:5px;">Venta</div>
-      <select class="v-tienda form-control" onchange="autoSelectKR(this)"></select>
-      <select class="v-ka form-control">
-        <option value="GLOBAL CELL">GLOBAL CELL</option><option value="TECNO CORP">TECNO CORP</option>
-        <option value="NC PHONE">NC PHONE</option><option value="DAMASCO">DAMASCO</option><option value="CANGURO">CANGURO</option>
-      </select>
-      <select class="v-equipo form-control"></select>
-      <input type="file" class="v-foto form-control" accept="image/*" multiple>
-      <button class="btn" style="background:#ef4444; color:white; padding:5px; font-size:12px;" onclick="this.parentElement.remove()">Quitar Venta</button>`;
-    container.appendChild(div);
+  window.onload = () => { toggleLoader(false); showMenu(); };
+
+  function toggleLoader(show) { document.getElementById('loader-overlay').classList.toggle('hidden', !show); }
+
+  function showMenu() {
+    document.getElementById('main-menu').classList.remove('hidden');
+    document.getElementById('editor-section').classList.add('hidden');
+    document.getElementById('ventas-section').classList.add('hidden');
+    document.getElementById('section-filters').classList.add('hidden');
+    document.getElementById('btn-volver').classList.add('hidden');
+  }
+
+  function openEditor() {
+    document.getElementById('main-menu').classList.add('hidden');
+    document.getElementById('editor-section').classList.remove('hidden');
+    document.getElementById('section-filters').classList.remove('hidden');
+    document.getElementById('btn-volver').classList.remove('hidden');
+    fetchInventory();
+  }
+
+  function openVentas() {
+    document.getElementById('main-menu').classList.add('hidden');
+    document.getElementById('ventas-section').classList.remove('hidden');
+    document.getElementById('section-filters').classList.remove('hidden');
+    document.getElementById('btn-volver').classList.remove('hidden');
+    fetchInventory(true);
+    if (document.getElementById('sales-container').children.length === 0) addSaleForm();
+  }
+
+  async function fetchInventory(onlyData = false) {
+    if (inventarioData.length > 0 && onlyData) { filtrarTodo(); return; }
+    toggleLoader(true);
+    try {
+      const response = await fetch(WEB_APP_URL + "?leer=datos");
+      inventarioData = await response.json();
+      const setEquipos = new Set();
+      inventarioData.forEach(t => t.equipos.forEach(eq => setEquipos.add(eq.nombre)));
+      equiposUnicos = Array.from(setEquipos);
+      toggleLoader(false);
+      filtrarTodo();
+    } catch (e) { toggleLoader(false); alert("Error de conexión"); }
+  }
+
+  function filtrarTodo() {
+    const kr = document.getElementById('filter-kr').value;
+    const busca = document.getElementById('search-tienda').value.toLowerCase();
+    const dataFiltrada = inventarioData.filter(t => (kr === "" || t.keyRetailer === kr) && t.nombreTienda.toLowerCase().includes(busca));
+    if (!document.getElementById('editor-section').classList.contains('hidden')) renderInventory(dataFiltrada);
+    actualizarDropdownsVentas(dataFiltrada);
+  }
+
+  function renderInventory(datos) {
+    const container = document.getElementById('inventory-list');
+    container.innerHTML = "";
+    datos.forEach((tienda) => {
+      const tIdx = inventarioData.findIndex(t => t.nroFila === tienda.nroFila);
+      const card = document.createElement('div');
+      card.className = 'sale-card';
+      // Campo editable de nombre de tienda
+      card.innerHTML = `
+        <input type="text" class="form-control" value="${tienda.nombreTienda}" onchange="inventarioData[${tIdx}].nombreTienda = this.value">
+        <small style="color:var(--accent)">${tienda.keyRetailer}</small>
+        ${tienda.equipos.map((eq, eIdx) => `
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-top:5px;">
+            <span style="font-size:12px;">${eq.nombre}</span>
+            <div class="qty-control">
+              <button class="btn-qty" onclick="changeQty(${tIdx}, ${eIdx}, -1)">-</button>
+              <span style="min-width:20px; text-align:center;">${eq.cantidad}</span>
+              <button class="btn-qty" onclick="changeQty(${tIdx}, ${eIdx}, 1)">+</button>
+            </div>
+          </div>`).join('')}`;
+      container.appendChild(card);
+    });
+  }
+
+  function changeQty(tIdx, eIdx, delta) {
+    inventarioData[tIdx].equipos[eIdx].cantidad = Math.max(0, parseInt(inventarioData[tIdx].equipos[eIdx].cantidad) + delta);
     filtrarTodo();
   }
 
-  // --- SUBIDA DE VENTAS CORREGIDA ---
-  async function submitSales() {
-    const cards = document.querySelectorAll('.card-venta');
-    if (cards.length === 0) return alert("Agrega una venta");
-
-    const status = document.getElementById('status');
-    status.innerText = "⏳ Procesando imágenes...";
-    
-    let payloadVentas = [];
-    for (let card of cards) {
-      // PROCESO DE FOTOS A BASE64
-      let files = card.querySelector('.v-foto').files;
-      let arrayFotos = [];
-      for (let f of files) {
-        let base64 = await new Promise(res => {
-          let reader = new FileReader();
-          reader.onload = () => res(reader.result.split(',')[1]);
-          reader.readAsDataURL(f);
-        });
-        arrayFotos.push({ fotoBase64: base64, fotoNombre: f.name });
-      }
-
-      payloadVentas.push({
-        tienda: card.querySelector('.v-tienda').value,
-        keyRetailer: card.querySelector('.v-ka').value,
-        equipo: card.querySelector('.v-equipo').value,
-        fotos: arrayFotos
-      });
-    }
-
-    try {
-      await fetch(WEB_APP_URL, {
-        method: "POST",
-        body: JSON.stringify({ accion: "subir_ventas", ventas: payloadVentas })
-      });
-      alert("✅ Ventas subidas con éxito");
-    } catch(e) { alert("Error al subir: " + e.message); }
+  function actualizarDropdownsVentas(datos) {
+    document.querySelectorAll('.v-tienda').forEach(sel => {
+      const val = sel.value;
+      sel.innerHTML = '<option value="">Seleccione tienda...</option>' + datos.map(t => `<option value="${t.nombreTienda}">${t.nombreTienda}</option>`).join('');
+      sel.value = val;
+    });
   }
 
+  function addSaleForm() {
+    const container = document.getElementById('sales-container');
+    const card = document.createElement('div');
+    card.className = 'sale-card';
+    card.innerHTML = `
+      <button onclick="this.parentElement.remove()" style="float:right; border:none; background:none; color:#f87171;">X</button>
+      <label style="font-size:10px;">Tienda:</label><select class="v-tienda form-control"></select>
+      <label style="font-size:10px;">Equipo:</label><select class="v-equipo form-control">${equiposUnicos.map(e => `<option>${e}</option>`).join('')}</select>
+      <input type="file" class="v-foto form-control" accept="image/*" multiple>`;
+    container.appendChild(card);
+    filtrarTodo();
+  }
 
   async function updateInventory() {
-    toggleLoader(true, "Guardando...", 50);
-    await fetch(WEB_APP_URL, { method: "POST", body: JSON.stringify({ accion: "actualizar_inventario", datos: inventarioData }) });
-    toggleLoader(false);
-    alert("Inventario guardado.");
+    document.getElementById('status').innerText = "⏳ Guardando...";
+    await fetch(WEB_APP_URL, { method: "POST", body: JSON.stringify({ accion: "actualizar_inventario", datos: inventarioData })});
+    document.getElementById('status').innerText = "✅ Guardado";
+  }
+
+  async function submitSales() {
+    alert("Iniciando subida...");
   }
 </script>
 </body>
