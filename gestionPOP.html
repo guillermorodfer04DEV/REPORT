@@ -101,7 +101,7 @@
   // ==========================================
   // CONFIGURACIÓN: PEGA AQUÍ TU URL DE APPS SCRIPT
   // ==========================================
-  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxwX3XCjzUHRZ2dznIePNT6rrVp3doC1BXvoDvd7ik0k2d9mAUIj2iq55QlWDVhkSGK/exec";
+  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycby806Lbsaa1LEOdm3KGn6SZ8K8eXriNzGld9MRJXmAuW22GI-Dp6wjoG8BxbpzSoa6V/exec";
   
   let inventarioData = [];
   let equiposDisponibles = [];
@@ -284,44 +284,53 @@ function updateStoreName(tIdx, nuevoNombre) {
     const id = Date.now();
     
     // Generar opciones del Select basándonos en el excel
-    let options = '<option value="">-- Selecciona el Equipo --</option>';
+    let options = '<option value="">-- Seleccione el Equipo --</option>';
     equiposDisponibles.forEach(eq => options += `<option value="${eq}">${eq}</option>`);
 
     const card = document.createElement('div');
     card.className = 'sale-card';
     card.id = `sale-${id}`;
+    
+    // CORRECCIÓN: Se cambiaron los id="venta-tienda" y "venta-equipo" por class="v-tienda" y "v-equipo"
     card.innerHTML = `
       <button class="btn-remove-sale" onclick="document.getElementById('sale-${id}').remove()">×</button>
       <div class="sale-grid">
         <div class="input-group">
           <label>Tienda:</label>
-          <select id="venta-tienda" class="form-control" onchange="actualizarKeyRetailer(this.value)">
+          <select class="v-tienda form-control" onchange="actualizarKeyRetailer(this.value)">
             <option value="">Seleccione una tienda...</option>
           </select>
         </div>
 
-        
-        <select class="v-ka" required>
-          <option value="">-- Key Retailer --</option>
-          <option value="GLOBAL CELL">GLOBAL CELL</option>
-          <option value="TECNO CORP">TECNO CORP</option>
-          <option value="NC PHONE">NC PHONE</option>
-          <option value="DAMASCO">DAMASCO</option>
-          <option value="CANGURO">CANGURO</option>
-        </select>
+        <div class="input-group">
+          <label>Key Retailer:</label>
+          <select class="v-ka form-control" required>
+            <option value="">-- Key Retailer --</option>
+            <option value="GLOBAL CELL">GLOBAL CELL</option>
+            <option value="TECNO CORP">TECNO CORP</option>
+            <option value="NC PHONE">NC PHONE</option>
+            <option value="DAMASCO">DAMASCO</option>
+            <option value="CANGURO">CANGURO</option>
+          </select>
+        </div>
+
         <div class="input-group">
           <label>Equipo:</label>
-          <select id="venta-equipo" class="form-control">
+          <select class="v-equipo form-control">
             <option value="">Seleccione un equipo...</option>
           </select>
         </div>
+        
         <div class="full-width">
-          <label style="font-size: 0.8rem; font-weight:bold; color:#555;">📸 Foto de la venta y obsequio:</label>
-          <input type="file" class="v-foto file-upload full-width" accept="image/*">
+          <label style="font-size: 0.8rem; font-weight:bold; color:#555;">📸 Fotos de la venta (Puedes elegir varias):</label>
+          <input type="file" class="v-foto file-upload full-width" accept="image/*" multiple>
         </div>
       </div>
     `;
     container.appendChild(card);
+    
+    // Volver a poblar los selectores dinámicos para esta nueva tarjeta
+    poblarSelectoresVentas();
   }
 
   // Helper para leer archivo a Base64
@@ -358,24 +367,26 @@ function updateStoreName(tIdx, nuevoNombre) {
         return;
       }
 
-      let fotoData = null;
-      let fotoMime = null;
-      let fotoName = null;
+      let arrayFotos = [];
 
+      // CORRECCIÓN: Bucle para procesar MÚLTIPLES archivos
       if (fileInput.files.length > 0) {
-        const file = fileInput.files[0];
-        fotoData = await fileToBase64(file);
-        fotoMime = file.type;
-        fotoName = `Venta_${tienda}_${equipo}_${Date.now()}`;
+        for (let i = 0; i < fileInput.files.length; i++) {
+          const file = fileInput.files[i];
+          const fotoData = await fileToBase64(file);
+          arrayFotos.push({
+            fotoBase64: fotoData,
+            fotoTipo: file.type,
+            fotoNombre: `Venta_${tienda}_${equipo}_${Date.now()}_${i}` // Se añade índice para que no se sobreescriban
+          });
+        }
       }
 
       payloadVentas.push({
         tienda: tienda,
         keyRetailer: ka,
         equipo: equipo,
-        fotoBase64: fotoData,
-        fotoTipo: fotoMime,
-        fotoNombre: fotoName
+        fotos: arrayFotos // Enviamos el array completo de fotos
       });
     }
 
@@ -392,6 +403,7 @@ function updateStoreName(tIdx, nuevoNombre) {
     } catch (e) {
       status.innerText = "❌ Error al subir ventas.";
       status.style.color = "red";
+      console.error(e);
     } finally {
       btn.disabled = false;
     }
