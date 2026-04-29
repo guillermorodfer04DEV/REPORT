@@ -130,22 +130,52 @@
     if (document.getElementById('sales-container').children.length === 0) addSaleForm();
   }
 
-  // --- LÓGICA EDITOR DE INVENTARIO ---
-  async function fetchInventory(onlyData = false) {
-    const status = document.getElementById('status');
-    if (!onlyData) document.getElementById('inventory-list').innerHTML = "⏳ Conectando con Google Sheets...";
+  let tiendasDisponibles = [];
+let equiposUnicos = [];
+
+async function fetchInventory(onlyData = false) {
+  try {
+    const response = await fetch(WEB_APP_URL + "?leer=datos");
+    inventarioData = await response.json();
     
-    try {
-      const response = await fetch(WEB_APP_URL + "?leer=datos");
-      inventarioData = await response.json();
-      equiposDisponibles = inventarioData.map(i => i.equipo);
+    if (inventarioData.length > 0) {
+      // 1. Extraer nombres de tiendas para el desplegable
+      tiendasDisponibles = inventarioData.map(t => t.nombreTienda);
+      
+      // 2. Extraer nombres únicos de equipos de todas las tiendas
+      // Usamos Set para que no se repitan los nombres
+      const setEquipos = new Set();
+      inventarioData.forEach(t => {
+        t.equipos.forEach(eq => setEquipos.add(eq.nombre));
+      });
+      equiposUnicos = Array.from(setEquipos);
+      
+      // 3. Poblar los selectores del Gestor de Ventas
+      poblarSelectoresVentas();
       
       if (!onlyData) renderInventory();
-    } catch (error) {
-      if (!onlyData) document.getElementById('inventory-list').innerHTML = "❌ Error al cargar datos.";
-      console.error(error);
     }
+  } catch (error) {
+    console.error("Error cargando datos:", error);
   }
+}
+
+function poblarSelectoresVentas() {
+  const selectTienda = document.getElementById('venta-tienda');
+  const selectEquipo = document.getElementById('venta-equipo');
+  
+  // Limpiar y llenar Tiendas
+  selectTienda.innerHTML = '<option value="">Seleccione una tienda...</option>';
+  tiendasDisponibles.forEach(t => {
+    selectTienda.innerHTML += `<option value="${t}">${t}</option>`;
+  });
+  
+  // Limpiar y llenar Equipos (Ya no saldrá undefined)
+  selectEquipo.innerHTML = '<option value="">Seleccione un equipo...</option>';
+  equiposUnicos.forEach(e => {
+    selectEquipo.innerHTML += `<option value="${e}">${e}</option>`;
+  });
+}
 
   // --- RENDERIZADO DEL EDITOR ACTUALIZADO ---
 function renderInventory() {
@@ -239,6 +269,15 @@ function updateStoreName(tIdx, nuevoNombre) {
     }
   }
 
+  function actualizarKeyRetailer(nombreTienda) {
+  const tiendaEncontrada = inventarioData.find(t => t.nombreTienda === nombreTienda);
+  if (tiendaEncontrada) {
+    // Si tienes un input para el Key Retailer, se llenará solo
+    const inputKR = document.getElementById('venta-key-retailer'); 
+    if (inputKR) inputKR.value = tiendaEncontrada.keyRetailer;
+  }
+}
+
   // --- LÓGICA GESTOR DE VENTAS ---
   function addSaleForm() {
     const container = document.getElementById('sales-container');
@@ -254,7 +293,14 @@ function updateStoreName(tIdx, nuevoNombre) {
     card.innerHTML = `
       <button class="btn-remove-sale" onclick="document.getElementById('sale-${id}').remove()">×</button>
       <div class="sale-grid">
-        <input type="text" class="v-tienda" placeholder="Nombre de la Tienda" required>
+        <div class="input-group">
+          <label>Tienda:</label>
+          <select id="venta-tienda" class="form-control" onchange="actualizarKeyRetailer(this.value)">
+            <option value="">Seleccione una tienda...</option>
+          </select>
+        </div>
+
+        
         <select class="v-ka" required>
           <option value="">-- Key Retailer --</option>
           <option value="GLOBAL CELL">GLOBAL CELL</option>
@@ -263,7 +309,12 @@ function updateStoreName(tIdx, nuevoNombre) {
           <option value="DAMASCO">DAMASCO</option>
           <option value="CANGURO">CANGURO</option>
         </select>
-        <select class="v-equipo full-width" required>${options}</select>
+        <div class="input-group">
+          <label>Equipo:</label>
+          <select id="venta-equipo" class="form-control">
+            <option value="">Seleccione un equipo...</option>
+          </select>
+        </div>
         <div class="full-width">
           <label style="font-size: 0.8rem; font-weight:bold; color:#555;">📸 Foto de la venta y obsequio:</label>
           <input type="file" class="v-foto file-upload full-width" accept="image/*">
