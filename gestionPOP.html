@@ -101,7 +101,7 @@
   // ==========================================
   // CONFIGURACIÓN: PEGA AQUÍ TU URL DE APPS SCRIPT
   // ==========================================
-  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycby5ZBv-LmHZqBTI9ajqtA7Nqz0tU4Y5MSUuoAqc6u3Kdl31UpDfym-ek88pwNtjlJ5z/exec";
+  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxwX3XCjzUHRZ2dznIePNT6rrVp3doC1BXvoDvd7ik0k2d9mAUIj2iq55QlWDVhkSGK/exec";
   
   let inventarioData = [];
   let equiposDisponibles = [];
@@ -147,26 +147,26 @@
     }
   }
 
-  // --- RENDERIZADO DEL EDITOR ---
+  // --- RENDERIZADO DEL EDITOR ACTUALIZADO ---
 function renderInventory() {
   const container = document.getElementById('inventory-list');
   container.innerHTML = '';
   
   if (inventarioData.length === 0) {
-    container.innerHTML = "<p>No hay datos en el rango seleccionado.</p>";
+    container.innerHTML = "<p>No hay datos. Revisa la Fila 5 de tu Excel.</p>";
     return;
   }
 
   inventarioData.forEach((tienda, tIdx) => {
     const card = document.createElement('div');
-    card.className = 'sale-card'; // Reutilizamos estilo de tarjeta
-    card.style.borderLeft = "5px solid var(--primary)";
+    card.className = 'sale-card';
+    card.style.borderLeft = "5px solid #0056b3"; // Estilo visual de TECNO
     
     let equiposHTML = '';
     tienda.equipos.forEach((eq, eIdx) => {
       equiposHTML += `
-        <div class="data-row" style="margin-bottom:5px; background:#f9f9f9;">
-          <div class="data-name" style="font-size:0.8rem;">${eq.nombre}</div>
+        <div class="data-row" style="margin-bottom:8px; padding:5px; background:#f4f4f4; border-radius:4px;">
+          <div class="data-name" style="font-size:0.85rem; font-weight:bold;">${eq.nombre}</div>
           <div class="qty-control">
             <button class="btn-qty" onclick="changeQty(${tIdx}, ${eIdx}, -1)">-</button>
             <input type="number" class="input-qty" value="${eq.cantidad}" 
@@ -178,9 +178,13 @@ function renderInventory() {
     });
 
     card.innerHTML = `
-      <div style="margin-bottom:10px;">
-        <strong style="color:var(--dark);">${tienda.nombreTienda}</strong> 
-        <span style="font-size:0.75rem; color:#666; margin-left:10px;">(${tienda.keyRetailer})</span>
+      <div style="margin-bottom:12px;">
+        <label style="font-size:0.7rem; color:#666; display:block;">NOMBRE DE LA TIENDA (EDITABLE):</label>
+        <input type="text" class="input-store" 
+               style="width:100%; border:1px solid #ccc; border-radius:4px; padding:5px; font-weight:bold; color:#333;" 
+               value="${tienda.nombreTienda}" 
+               onchange="updateStoreName(${tIdx}, this.value)">
+        <div style="font-size:0.75rem; color:#888; margin-top:4px;">Retailer: ${tienda.keyRetailer}</div>
       </div>
       <div style="display: grid; grid-template-columns: 1fr; gap: 5px;">
         ${equiposHTML}
@@ -189,6 +193,14 @@ function renderInventory() {
     container.appendChild(card);
   });
 }
+
+// --- NUEVA FUNCIÓN: Sincroniza el cambio de nombre ---
+function updateStoreName(tIdx, nuevoNombre) {
+  inventarioData[tIdx].nombreTienda = nuevoNombre;
+  console.log("Nombre actualizado localmente:", nuevoNombre);
+}
+
+// (Mantén tus funciones changeQty y updateVal igual que antes)
 
   // --- FUNCIONES DE CONTROL ---
   function changeQty(tIdx, eIdx, delta) {
