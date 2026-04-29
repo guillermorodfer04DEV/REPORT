@@ -78,7 +78,7 @@
 </div>
 
 <script>
-  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxhTsHK8n9i2TPeJaZtZsrnHd8be787jn5SOkYmi9KhI_ncCCY0po7YBMLKQFXjYqnt/exec";
+  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbw99cGCRzGZJ6pKqUnKD0SQuIvRQprLzmnTUpUm42rJtrA0-dMFvRh-oPVix5-oIEgh/exec";
   let inventarioData = [];
   let equiposUnicos = [];
 
@@ -195,63 +195,61 @@
     const status = document.getElementById('status');
     const btnSubir = document.getElementById('btn-subir-ventas');
     
-    if (cards.length === 0) return alert("No hay ventas para subir");
+    if (cards.length === 0) return alert("No hay ventas");
 
-    // 1. Iniciar pantalla de carga
-    toggleLoader(true); 
+    toggleLoader(true);
     btnSubir.disabled = true;
-    status.innerText = "⏳ Preparando envío...";
+    status.innerText = "⏳ Enviando...";
 
     try {
       let ventasProcesadas = [];
-
       for (let card of cards) {
-        // Obtenemos los elementos de la tarjeta actual
-        const tienda = card.querySelector('.v-tienda').value;
-        const equipo = card.querySelector('.v-equipo').value;
-        const ka = card.querySelector('.v-ka') ? card.querySelector('.v-ka').value : "N/A";
-        const files = card.querySelector('.v-foto').files;
-
-        if (!tienda || !equipo) continue;
-
-        let fotosBase64 = [];
-        // Convertimos fotos a Base64
+        let fotos = [];
+        let files = card.querySelector('.v-foto').files;
         for (let file of files) {
-          status.innerText = `🔄 Procesando foto: ${file.name}`;
-          const b64 = await new Promise((resolve) => {
-            const reader = new FileReader();
-            reader.onload = (e) => resolve(e.target.result.split(',')[1]);
+          let b64 = await new Promise(r => {
+            let reader = new FileReader();
+            reader.onload = e => r(e.target.result.split(',')[1]);
             reader.readAsDataURL(file);
           });
-          fotosBase64.push({ nombre: file.name, tipo: file.type, data: b64 });
+          fotos.push({ fotoBase64: b64, fotoTipo: file.type, fotoNombre: file.name });
         }
-
-        ventasProcesadas.push({ tienda, equipo, ka, fotos: fotosBase64 });
+        ventasProcesadas.push({
+          tienda: card.querySelector('.v-tienda').value,
+          keyRetailer: card.querySelector('.v-ka') ? card.querySelector('.v-ka').value : "N/A",
+          equipo: card.querySelector('.v-equipo').value,
+          fotos: fotos
+        });
       }
 
-      // 2. Enviar todo al servidor
-      status.innerText = "🚀 Enviando datos al servidor...";
       const response = await fetch(WEB_APP_URL, {
         method: "POST",
         body: JSON.stringify({ accion: "subir_ventas", ventas: ventasProcesadas })
       });
 
-      const resultado = await response.json();
-      
-      if (resultado.status === "success") {
-        alert("✅ ¡Ventas subidas correctamente!");
-        document.getElementById('sales-container').innerHTML = ""; // Limpiar
+      // LEER COMO TEXTO PRIMERO PARA DEPURAR
+      const textResponse = await response.text();
+      let res;
+      try {
+        res = JSON.parse(textResponse);
+      } catch (e) {
+        console.error("Respuesta cruda:", textResponse);
+        throw new Error("El servidor no devolvió un JSON válido.");
+      }
+
+      if (res.status === "success") {
+        alert("✅ Subido con éxito");
+        document.getElementById('sales-container').innerHTML = "";
         showMenu();
       } else {
-        throw new Error(resultado.message || "Error desconocido");
+        throw new Error(res.message || "Error desconocido");
       }
 
     } catch (e) {
-      alert("❌ Error al subir: " + e.message);
+      alert("❌ Error: " + e.message);
     } finally {
       toggleLoader(false);
       btnSubir.disabled = false;
-      status.innerText = "";
     }
   }
 </script>
