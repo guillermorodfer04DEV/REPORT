@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portal TECNO - Gestión</title>
+  <link rel="icon" type="image/png" href="https://guillermorodfer04dev.github.io/REPORT/TECNO-TOOL-icon.png">
+  <style>
+    :root {
+      --primary: #0066ff;
+      --bg: #f4f7f6;
+      --border: #dce1e6;
+      --success: #28a745;
+      --dark: #2b3035;
+      --card-bg: #ffffff;
+    }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); padding: 15px; margin: 0; color: #333; display: flex; justify-content: center; }
+    .container { width: 100%; max-width: 900px; }
+    
+    header { background: var(--card-bg); padding: 15px 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+    h2 { margin: 0; font-size: 1.4rem; color: var(--dark); }
+    
+    .hidden { display: none !important; }
+    
+    /* Botones */
+    .btn { cursor: pointer; border: none; border-radius: 6px; font-weight: 600; padding: 10px 16px; transition: 0.2s; font-size: 0.95rem; }
+    .btn-primary { background: var(--primary); color: white; box-shadow: 0 4px 10px rgba(0,102,255,0.2); }
+    .btn-primary:hover { background: #0052cc; transform: translateY(-1px); }
+    .btn-success { background: var(--success); color: white; width: 100%; margin-top: 15px; }
+    .btn-secondary { background: #eef4ff; color: var(--primary); border: 1px dashed var(--primary); width: 100%; margin-top: 10px; }
+    .btn-back { background: #e2e6ea; color: #495057; font-size: 0.85rem; padding: 6px 12px; }
+    
+    /* Menú Principal */
+    .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 50px; }
+    .menu-card { background: var(--card-bg); border-radius: 12px; padding: 40px 20px; text-align: center; cursor: pointer; border: 2px solid transparent; transition: 0.3s; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+    .menu-card:hover { border-color: var(--primary); transform: translateY(-5px); }
+    .menu-icon { font-size: 3rem; margin-bottom: 15px; }
+    .menu-title { font-size: 1.2rem; font-weight: bold; color: var(--dark); }
+
+    /* Editor de Datos */
+    .data-row { display: flex; justify-content: space-between; align-items: center; background: var(--card-bg); padding: 10px 15px; border-radius: 8px; margin-bottom: 8px; border: 1px solid var(--border); }
+    .data-name { font-weight: 600; font-size: 0.9rem; flex: 1; }
+    .qty-control { display: flex; align-items: center; gap: 10px; }
+    .btn-qty { background: #f0f2f5; border: 1px solid var(--border); width: 30px; height: 30px; border-radius: 50%; font-weight: bold; font-size: 1.1rem; cursor: pointer; color: var(--dark); }
+    .btn-qty:hover { background: #e2e6ea; }
+    .input-qty { width: 50px; text-align: center; border: 1px solid var(--border); border-radius: 5px; padding: 5px; font-weight: bold; color: var(--primary); outline: none; }
+
+    /* Gestor de Ventas - Compacto */
+    .sale-card { background: var(--card-bg); padding: 15px; border-radius: 10px; margin-bottom: 15px; border: 1px solid var(--border); box-shadow: 0 2px 8px rgba(0,0,0,0.03); position: relative; }
+    .sale-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .sale-grid input, .sale-grid select { padding: 8px 10px; border: 1px solid var(--border); border-radius: 5px; font-size: 0.85rem; width: 100%; box-sizing: border-box; outline: none; }
+    .sale-grid input:focus, .sale-grid select:focus { border-color: var(--primary); }
+    .full-width { grid-column: span 2; }
+    .btn-remove-sale { position: absolute; top: -10px; right: -10px; background: #ff4d4d; color: white; border: none; border-radius: 50%; width: 25px; height: 25px; cursor: pointer; font-weight: bold; }
+    
+    .file-upload { font-size: 0.8rem; padding: 8px; border: 1px dashed var(--border); border-radius: 5px; background: #fafafa; }
+    
+    #status { text-align: center; margin-top: 15px; font-weight: bold; }
+    
+    @media (max-width: 600px) {
+      .menu-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h2>📱 TECNO Portal</h2>
+    <button class="btn btn-back hidden" id="btn-volver" onclick="showMenu()">← Volver</button>
+  </header>
+
+  <div id="main-menu" class="menu-grid">
+    <div class="menu-card" onclick="openEditor()">
+      <div class="menu-icon">📊</div>
+      <div class="menu-title">Editor de Inventario</div>
+      <p style="font-size: 0.85rem; color: #666;">Actualiza el stock en la nube</p>
+    </div>
+    <div class="menu-card" onclick="openVentas()">
+      <div class="menu-icon">📸</div>
+      <div class="menu-title">Gestor de Ventas</div>
+      <p style="font-size: 0.85rem; color: #666;">Registra salidas y sube evidencias</p>
+    </div>
+  </div>
+
+  <div id="editor-section" class="hidden">
+    <div id="inventory-list">Cargando inventario...</div>
+    <button class="btn btn-primary btn-success" onclick="updateInventory()">☁️ Guardar Cambios en Excel</button>
+  </div>
+
+  <div id="ventas-section" class="hidden">
+    <div id="sales-container"></div>
+    <button class="btn btn-secondary" onclick="addSaleForm()">+ Agregar otra venta</button>
+    <button class="btn btn-primary btn-success" id="btn-subir-ventas" onclick="submitSales()">☁️ Subir Ventas a Excel</button>
+  </div>
+
+  <div id="status"></div>
+</div>
+
+<script>
+  // ==========================================
+  // CONFIGURACIÓN: PEGA AQUÍ TU URL DE APPS SCRIPT
+  // ==========================================
+  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzIBk4fmwYFJpPBXFMrq1qI1GInNsrqvDOBTqHirOIzl1wuIk9QUHZ9s513bZv1NMMR/exec";
+  
+  let inventarioData = [];
+  let equiposDisponibles = [];
+
+  // --- NAVEGACIÓN ---
+  function showMenu() {
+    document.getElementById('main-menu').classList.remove('hidden');
+    document.getElementById('editor-section').classList.add('hidden');
+    document.getElementById('ventas-section').classList.add('hidden');
+    document.getElementById('btn-volver').classList.add('hidden');
+    document.getElementById('status').innerText = "";
+  }
+
+  function openEditor() {
+    document.getElementById('main-menu').classList.add('hidden');
+    document.getElementById('editor-section').classList.remove('hidden');
+    document.getElementById('btn-volver').classList.remove('hidden');
+    fetchInventory();
+  }
+
+  function openVentas() {
+    document.getElementById('main-menu').classList.add('hidden');
+    document.getElementById('ventas-section').classList.remove('hidden');
+    document.getElementById('btn-volver').classList.remove('hidden');
+    if (equiposDisponibles.length === 0) fetchInventory(true); 
+    if (document.getElementById('sales-container').children.length === 0) addSaleForm();
+  }
+
+  // --- LÓGICA EDITOR DE INVENTARIO ---
+  async function fetchInventory(onlyData = false) {
+    const status = document.getElementById('status');
+    if (!onlyData) document.getElementById('inventory-list').innerHTML = "⏳ Conectando con Google Sheets...";
+    
+    try {
+      const response = await fetch(WEB_APP_URL + "?leer=datos");
+      inventarioData = await response.json();
+      equiposDisponibles = inventarioData.map(i => i.equipo);
+      
+      if (!onlyData) renderInventory();
+    } catch (error) {
+      if (!onlyData) document.getElementById('inventory-list').innerHTML = "❌ Error al cargar datos.";
+      console.error(error);
+    }
+  }
+
+  function renderInventory() {
+    const container = document.getElementById('inventory-list');
+    container.innerHTML = '';
+    
+    inventarioData.forEach((item, index) => {
+      const row = document.createElement('div');
+      row.className = 'data-row';
+      row.innerHTML = `
+        <div class="data-name">${item.equipo}</div>
+        <div class="qty-control">
+          <button class="btn-qty" onclick="changeQty(${index}, -1)">-</button>
+          <input type="number" class="input-qty" id="qty-${index}" value="${item.cantidad}" onchange="updateArray(${index})">
+          <button class="btn-qty" onclick="changeQty(${index}, 1)">+</button>
+        </div>
+      `;
+      container.appendChild(row);
+    });
+  }
+
+  function changeQty(index, delta) {
+    const input = document.getElementById(`qty-${index}`);
+    let newVal = parseInt(input.value) + delta;
+    if (newVal < 0) newVal = 0;
+    input.value = newVal;
+    inventarioData[index].cantidad = newVal;
+  }
+
+  function updateArray(index) {
+    const input = document.getElementById(`qty-${index}`);
+    inventarioData[index].cantidad = parseInt(input.value) || 0;
+  }
+
+  async function updateInventory() {
+    const status = document.getElementById('status');
+    status.innerText = "⏳ Guardando cambios...";
+    status.style.color = "#666";
+    
+    try {
+      await fetch(WEB_APP_URL, {
+        method: "POST",
+        body: JSON.stringify({ accion: "actualizar_inventario", datos: inventarioData })
+      });
+      status.innerText = "✅ Inventario actualizado correctamente";
+      status.style.color = "var(--success)";
+    } catch (e) {
+      status.innerText = "❌ Error al actualizar";
+      status.style.color = "red";
+    }
+  }
+
+  // --- LÓGICA GESTOR DE VENTAS ---
+  function addSaleForm() {
+    const container = document.getElementById('sales-container');
+    const id = Date.now();
+    
+    // Generar opciones del Select basándonos en el excel
+    let options = '<option value="">-- Selecciona el Equipo --</option>';
+    equiposDisponibles.forEach(eq => options += `<option value="${eq}">${eq}</option>`);
+
+    const card = document.createElement('div');
+    card.className = 'sale-card';
+    card.id = `sale-${id}`;
+    card.innerHTML = `
+      <button class="btn-remove-sale" onclick="document.getElementById('sale-${id}').remove()">×</button>
+      <div class="sale-grid">
+        <input type="text" class="v-tienda" placeholder="Nombre de la Tienda" required>
+        <select class="v-ka" required>
+          <option value="">-- Key Retailer --</option>
+          <option value="GLOBAL CELL">GLOBAL CELL</option>
+          <option value="TECNO CORP">TECNO CORP</option>
+          <option value="NC PHONE">NC PHONE</option>
+          <option value="DAMASCO">DAMASCO</option>
+          <option value="CANGURO">CANGURO</option>
+        </select>
+        <select class="v-equipo full-width" required>${options}</select>
+        <div class="full-width">
+          <label style="font-size: 0.8rem; font-weight:bold; color:#555;">📸 Foto de la venta y obsequio:</label>
+          <input type="file" class="v-foto file-upload full-width" accept="image/*">
+        </div>
+      </div>
+    `;
+    container.appendChild(card);
+  }
+
+  // Helper para leer archivo a Base64
+  const fileToBase64 = file => new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result.split(',')[1]);
+    reader.onerror = error => reject(error);
+  });
+
+  async function submitSales() {
+    const btn = document.getElementById('btn-subir-ventas');
+    const status = document.getElementById('status');
+    const cards = document.querySelectorAll('.sale-card');
+    
+    if (cards.length === 0) return alert("Agrega al menos una venta.");
+    
+    btn.disabled = true;
+    status.innerText = "⏳ Procesando imágenes y subiendo ventas... (esto puede tardar unos segundos)";
+    status.style.color = "#666";
+
+    let payloadVentas = [];
+
+    for (let card of cards) {
+      const tienda = card.querySelector('.v-tienda').value;
+      const ka = card.querySelector('.v-ka').value;
+      const equipo = card.querySelector('.v-equipo').value;
+      const fileInput = card.querySelector('.v-foto');
+
+      if (!tienda || !equipo) {
+        alert("Faltan datos en una de las ventas (Tienda o Equipo).");
+        btn.disabled = false;
+        status.innerText = "";
+        return;
+      }
+
+      let fotoData = null;
+      let fotoMime = null;
+      let fotoName = null;
+
+      if (fileInput.files.length > 0) {
+        const file = fileInput.files[0];
+        fotoData = await fileToBase64(file);
+        fotoMime = file.type;
+        fotoName = `Venta_${tienda}_${equipo}_${Date.now()}`;
+      }
+
+      payloadVentas.push({
+        tienda: tienda,
+        keyRetailer: ka,
+        equipo: equipo,
+        fotoBase64: fotoData,
+        fotoTipo: fotoMime,
+        fotoNombre: fotoName
+      });
+    }
+
+    try {
+      await fetch(WEB_APP_URL, {
+        method: "POST",
+        body: JSON.stringify({ accion: "subir_ventas", ventas: payloadVentas })
+      });
+      
+      status.innerText = "✅ Ventas subidas con éxito a la hoja y a Drive";
+      status.style.color = "var(--success)";
+      document.getElementById('sales-container').innerHTML = '';
+      addSaleForm();
+    } catch (e) {
+      status.innerText = "❌ Error al subir ventas.";
+      status.style.color = "red";
+    } finally {
+      btn.disabled = false;
+    }
+  }
+</script>
+
+</body>
+</html>
