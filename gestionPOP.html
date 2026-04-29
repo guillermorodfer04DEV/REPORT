@@ -21,6 +21,23 @@
     h2 { margin: 0; font-size: 1.4rem; color: var(--dark); }
     
     .hidden { display: none !important; }
+
+    /* Pantalla de Carga */
+    #loader-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(255,255,255,0.9); z-index: 9999;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+    }
+    .loader-bar-container { width: 250px; height: 8px; background: #e0e0e0; border-radius: 10px; overflow: hidden; margin-top: 15px; }
+    .loader-progress { width: 0%; height: 100%; background: var(--primary); transition: width 0.3s; }
+
+    /* Buscador y Filtros */
+    .filter-box {
+      background: #fff; padding: 15px; border-radius: 12px; margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05); display: flex; gap: 10px; flex-wrap: wrap;
+    }
+    .search-input { flex: 2; padding: 10px; border: 1px solid var(--border); border-radius: 8px; outline: none; }
+    .kr-select { flex: 1; padding: 10px; border: 1px solid var(--border); border-radius: 8px; background: white; min-width: 150px; }
     
     /* Botones */
     .btn { cursor: pointer; border: none; border-radius: 6px; font-weight: 600; padding: 10px 16px; transition: 0.2s; font-size: 0.95rem; }
@@ -64,27 +81,35 @@
 </head>
 <body>
 
+<div id="loader-overlay" class="hidden">
+  <div style="font-weight: bold; color: var(--dark);">Sincronizando con TECNO Cloud...</div>
+  <div class="loader-bar-container"><div class="loader-progress" id="loader-fill"></div></div>
+</div>
+
 <div class="container">
   <header>
     <h2>📱 TECNO Portal</h2>
     <button class="btn btn-back hidden" id="btn-volver" onclick="showMenu()">← Volver</button>
   </header>
 
-  <div id="main-menu" class="menu-grid">
-    <div class="menu-card" onclick="openEditor()">
-      <div class="menu-icon">📊</div>
-      <div class="menu-title">Editor de Inventario</div>
-      <p style="font-size: 0.85rem; color: #666;">Actualiza el stock en la nube</p>
-    </div>
-    <div class="menu-card" onclick="openVentas()">
-      <div class="menu-icon">📸</div>
-      <div class="menu-title">Gestor de Ventas</div>
-      <p style="font-size: 0.85rem; color: #666;">Registra salidas y sube evidencias</p>
+  <div id="main-menu" class="menu-grid"> ... </div>
+
+  <div id="section-filters" class="hidden">
+    <div class="filter-box">
+      <input type="text" id="search-tienda" class="search-input" placeholder="🔍 Buscar tienda por nombre..." oninput="filtrarTodo()">
+      <select id="filter-kr" class="kr-select" onchange="filtrarTodo()">
+        <option value="">-- Todos los Retailers --</option>
+        <option value="GLOBAL CELL">GLOBAL CELL</option>
+        <option value="TECNO CORP">TECNO CORP</option>
+        <option value="NC PHONE">NC PHONE</option>
+        <option value="DAMASCO">DAMASCO</option>
+        <option value="CANGURO">CANGURO</option>
+      </select>
     </div>
   </div>
 
   <div id="editor-section" class="hidden">
-    <div id="inventory-list">Cargando inventario...</div>
+    <div id="inventory-list"></div>
     <button class="btn btn-primary btn-success" onclick="updateInventory()">☁️ Guardar Cambios en Excel</button>
   </div>
 
@@ -93,24 +118,33 @@
     <button class="btn btn-secondary" onclick="addSaleForm()">+ Agregar otra venta</button>
     <button class="btn btn-primary btn-success" id="btn-subir-ventas" onclick="submitSales()">☁️ Subir Ventas a Excel</button>
   </div>
-
+  
   <div id="status"></div>
 </div>
 
 <script>
   // ==========================================
-  // CONFIGURACIÓN: PEGA AQUÍ TU URL DE APPS SCRIPT
+  // CONFIGURACIÓN
   // ==========================================
   const WEB_APP_URL = "https://script.google.com/macros/s/AKfycby806Lbsaa1LEOdm3KGn6SZ8K8eXriNzGld9MRJXmAuW22GI-Dp6wjoG8BxbpzSoa6V/exec";
   
   let inventarioData = [];
-  let equiposDisponibles = [];
+  let equiposUnicos = [];
+
+  // --- CONTROL DE CARGA (BARRA DE PROGRESO) ---
+  function toggleLoader(show, progress = 0) {
+    const loader = document.getElementById('loader-overlay');
+    const bar = document.getElementById('loader-fill');
+    if (loader) loader.classList.toggle('hidden', !show);
+    if (bar) bar.style.width = progress + "%";
+  }
 
   // --- NAVEGACIÓN ---
   function showMenu() {
     document.getElementById('main-menu').classList.remove('hidden');
     document.getElementById('editor-section').classList.add('hidden');
     document.getElementById('ventas-section').classList.add('hidden');
+    document.getElementById('section-filters').classList.add('hidden'); // Ocultar filtros en menú
     document.getElementById('btn-volver').classList.add('hidden');
     document.getElementById('status').innerText = "";
   }
@@ -118,6 +152,7 @@
   function openEditor() {
     document.getElementById('main-menu').classList.add('hidden');
     document.getElementById('editor-section').classList.remove('hidden');
+    document.getElementById('section-filters').classList.remove('hidden'); // Mostrar buscadores
     document.getElementById('btn-volver').classList.remove('hidden');
     fetchInventory();
   }
@@ -125,187 +160,207 @@
   function openVentas() {
     document.getElementById('main-menu').classList.add('hidden');
     document.getElementById('ventas-section').classList.remove('hidden');
+    document.getElementById('section-filters').classList.remove('hidden'); // Mostrar buscadores
     document.getElementById('btn-volver').classList.remove('hidden');
-    if (equiposDisponibles.length === 0) fetchInventory(true); 
+    fetchInventory(true); 
     if (document.getElementById('sales-container').children.length === 0) addSaleForm();
   }
 
-  let tiendasDisponibles = [];
-let equiposUnicos = [];
-
-async function fetchInventory(onlyData = false) {
-  try {
-    const response = await fetch(WEB_APP_URL + "?leer=datos");
-    inventarioData = await response.json();
-    
-    if (inventarioData.length > 0) {
-      // 1. Extraer nombres de tiendas para el desplegable
-      tiendasDisponibles = inventarioData.map(t => t.nombreTienda);
-      
-      // 2. Extraer nombres únicos de equipos de todas las tiendas
-      // Usamos Set para que no se repitan los nombres
-      const setEquipos = new Set();
-      inventarioData.forEach(t => {
-        t.equipos.forEach(eq => setEquipos.add(eq.nombre));
-      });
-      equiposUnicos = Array.from(setEquipos);
-      
-      // 3. Poblar los selectores del Gestor de Ventas
-      poblarSelectoresVentas();
-      
-      if (!onlyData) renderInventory();
+  // --- OBTENCIÓN DE DATOS ---
+  async function fetchInventory(onlyData = false) {
+    if (inventarioData.length > 0 && onlyData) {
+      filtrarTodo(); // Si ya hay data, solo aplicar filtros actuales
+      return;
     }
-  } catch (error) {
-    console.error("Error cargando datos:", error);
-  }
-}
 
-function poblarSelectoresVentas() {
-  const selectTienda = document.getElementById('venta-tienda');
-  const selectEquipo = document.getElementById('venta-equipo');
-  
-  // Limpiar y llenar Tiendas
-  selectTienda.innerHTML = '<option value="">Seleccione una tienda...</option>';
-  tiendasDisponibles.forEach(t => {
-    selectTienda.innerHTML += `<option value="${t}">${t}</option>`;
-  });
-  
-  // Limpiar y llenar Equipos (Ya no saldrá undefined)
-  selectEquipo.innerHTML = '<option value="">Seleccione un equipo...</option>';
-  equiposUnicos.forEach(e => {
-    selectEquipo.innerHTML += `<option value="${e}">${e}</option>`;
-  });
-}
-
-  // --- RENDERIZADO DEL EDITOR ACTUALIZADO ---
-function renderInventory() {
-  const container = document.getElementById('inventory-list');
-  container.innerHTML = '';
-  
-  if (inventarioData.length === 0) {
-    container.innerHTML = "<p>No hay datos. Revisa la Fila 5 de tu Excel.</p>";
-    return;
+    toggleLoader(true, 30);
+    try {
+      const response = await fetch(WEB_APP_URL + "?leer=datos");
+      inventarioData = await response.json();
+      
+      if (inventarioData.length > 0) {
+        // Extraer equipos únicos
+        const setEquipos = new Set();
+        inventarioData.forEach(t => t.equipos.forEach(eq => setEquipos.add(eq.nombre)));
+        equiposUnicos = Array.from(setEquipos);
+        
+        toggleLoader(true, 100);
+        setTimeout(() => toggleLoader(false), 500);
+        
+        filtrarTodo(); // Renderiza según filtros actuales
+      }
+    } catch (error) {
+      console.error("Error cargando datos:", error);
+      toggleLoader(false);
+      alert("Error al conectar con el servidor.");
+    }
   }
 
-  inventarioData.forEach((tienda, tIdx) => {
-    const card = document.createElement('div');
-    card.className = 'sale-card';
-    card.style.borderLeft = "5px solid #0056b3"; // Estilo visual de TECNO
+  // --- LÓGICA DE FILTRADO Y BUSCADOR ---
+  function filtrarTodo() {
+    const kr = document.getElementById('filter-kr').value;
+    const busca = document.getElementById('search-tienda').value.toLowerCase();
     
-    let equiposHTML = '';
-    tienda.equipos.forEach((eq, eIdx) => {
-      equiposHTML += `
-        <div class="data-row" style="margin-bottom:8px; padding:5px; background:#f4f4f4; border-radius:4px;">
-          <div class="data-name" style="font-size:0.85rem; font-weight:bold;">${eq.nombre}</div>
-          <div class="qty-control">
-            <button class="btn-qty" onclick="changeQty(${tIdx}, ${eIdx}, -1)">-</button>
-            <input type="number" class="input-qty" value="${eq.cantidad}" 
-                   onchange="updateVal(${tIdx}, ${eIdx}, this.value)">
-            <button class="btn-qty" onclick="changeQty(${tIdx}, ${eIdx}, 1)">+</button>
-          </div>
-        </div>
-      `;
+    // Filtrar array en memoria
+    const dataFiltrada = inventarioData.filter(t => {
+      const coincideKR = kr === "" || t.keyRetailer === kr;
+      const coincideNombre = t.nombreTienda.toLowerCase().includes(busca);
+      return coincideKR && coincideNombre;
     });
 
-    card.innerHTML = `
-      <div style="margin-bottom:12px;">
-        <label style="font-size:0.7rem; color:#666; display:block;">NOMBRE DE LA TIENDA (EDITABLE):</label>
-        <input type="text" class="input-store" 
-               style="width:100%; border:1px solid #ccc; border-radius:4px; padding:5px; font-weight:bold; color:#333;" 
-               value="${tienda.nombreTienda}" 
-               onchange="updateStoreName(${tIdx}, this.value)">
-        <div style="font-size:0.75rem; color:#888; margin-top:4px;">Retailer: ${tienda.keyRetailer}</div>
-      </div>
-      <div style="display: grid; grid-template-columns: 1fr; gap: 5px;">
-        ${equiposHTML}
-      </div>
-    `;
-    container.appendChild(card);
-  });
-}
+    // Actualizar vista según donde estemos
+    if (!document.getElementById('editor-section').classList.contains('hidden')) {
+      renderInventory(dataFiltrada);
+    }
+    actualizarDropdownsVentas(dataFiltrada);
+  }
 
-// --- NUEVA FUNCIÓN: Sincroniza el cambio de nombre ---
-function updateStoreName(tIdx, nuevoNombre) {
-  inventarioData[tIdx].nombreTienda = nuevoNombre;
-  console.log("Nombre actualizado localmente:", nuevoNombre);
-}
+  // --- RENDERIZADO DEL EDITOR ---
+  function renderInventory(datos) {
+    const container = document.getElementById('inventory-list');
+    container.innerHTML = '';
+    
+    if (datos.length === 0) {
+      container.innerHTML = "<p style='text-align:center; padding:20px;'>No se encontraron tiendas.</p>";
+      return;
+    }
 
-// (Mantén tus funciones changeQty y updateVal igual que antes)
+    datos.forEach((tienda) => {
+      // Buscamos el índice original en inventarioData para que la edición funcione
+      const tIdxOriginal = inventarioData.findIndex(t => t.nroFila === tienda.nroFila);
+      
+      const card = document.createElement('div');
+      card.className = 'sale-card';
+      card.style.borderLeft = "5px solid #0056b3";
+      
+      let equiposHTML = '';
+      tienda.equipos.forEach((eq, eIdx) => {
+        equiposHTML += `
+          <div class="data-row" style="margin-bottom:8px; padding:5px; background:#f4f4f4; border-radius:4px;">
+            <div class="data-name" style="font-size:0.85rem; font-weight:bold;">${eq.nombre}</div>
+            <div class="qty-control">
+              <button class="btn-qty" onclick="changeQty(${tIdxOriginal}, ${eIdx}, -1)">-</button>
+              <input type="number" class="input-qty" value="${eq.cantidad}" 
+                     onchange="updateVal(${tIdxOriginal}, ${eIdx}, this.value)">
+              <button class="btn-qty" onclick="changeQty(${tIdxOriginal}, ${eIdx}, 1)">+</button>
+            </div>
+          </div>`;
+      });
 
-  // --- FUNCIONES DE CONTROL ---
+      card.innerHTML = `
+        <div style="margin-bottom:12px;">
+          <label style="font-size:0.7rem; color:#666; display:block;">TIENDA:</label>
+          <input type="text" class="input-store" 
+                 style="width:100%; border:1px solid #ccc; border-radius:4px; padding:5px; font-weight:bold;" 
+                 value="${tienda.nombreTienda}" 
+                 onchange="updateStoreName(${tIdxOriginal}, this.value)">
+          <div style="font-size:0.75rem; color:#888; margin-top:4px;">Retailer: ${tienda.keyRetailer}</div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr; gap: 5px;">
+          ${equiposHTML}
+        </div>`;
+      container.appendChild(card);
+    });
+  }
+
+  // --- ACTUALIZACIÓN DE DROPDOWNS EN VENTAS ---
+  function actualizarDropdownsVentas(datos) {
+    const selectsTienda = document.querySelectorAll('.v-tienda');
+    const selectsEquipo = document.querySelectorAll('.v-equipo');
+
+    selectsTienda.forEach(sel => {
+      const currentVal = sel.value;
+      sel.innerHTML = '<option value="">Seleccione tienda...</option>';
+      datos.forEach(t => {
+        sel.innerHTML += `<option value="${t.nombreTienda}">${t.nombreTienda}</option>`;
+      });
+      sel.value = currentVal;
+    });
+
+    selectsEquipo.forEach(sel => {
+      if (sel.innerHTML.length < 50) { // Solo poblar si está vacío
+        sel.innerHTML = '<option value="">Seleccione equipo...</option>';
+        equiposUnicos.forEach(e => sel.innerHTML += `<option value="${e}">${e}</option>`);
+      }
+    });
+  }
+
+  function poblarSelectoresVentas() {
+    filtrarTodo(); // Usa la lógica de filtrado para poblar
+  }
+
+  // --- FUNCIONES DE CONTROL DE DATOS ---
+  function updateStoreName(tIdx, nuevoNombre) {
+    inventarioData[tIdx].nombreTienda = nuevoNombre;
+  }
+
   function changeQty(tIdx, eIdx, delta) {
     let currentQty = parseInt(inventarioData[tIdx].equipos[eIdx].cantidad) || 0;
-    let newVal = currentQty + delta;
-    if (newVal < 0) newVal = 0;
-    
+    let newVal = Math.max(0, currentQty + delta);
     inventarioData[tIdx].equipos[eIdx].cantidad = newVal;
-    renderInventory(); // Refrescar vista
+    filtrarTodo(); // Re-renderiza manteniendo el filtro
   }
 
   function updateVal(tIdx, eIdx, val) {
-    inventarioData[tIdx].equipos[eIdx].cantidad = parseInt(val) || 0;
-  }
-
-  function updateArray(index) {
-    const input = document.getElementById(`qty-${index}`);
-    inventarioData[index].cantidad = parseInt(input.value) || 0;
+    inventarioData[tIdx].equipos[eIdx].cantidad = Math.max(0, parseInt(val) || 0);
   }
 
   async function updateInventory() {
     const status = document.getElementById('status');
+    toggleLoader(true, 50);
     status.innerText = "⏳ Guardando cambios...";
-    status.style.color = "#666";
     
     try {
       await fetch(WEB_APP_URL, {
         method: "POST",
         body: JSON.stringify({ accion: "actualizar_inventario", datos: inventarioData })
       });
+      toggleLoader(false);
       status.innerText = "✅ Inventario actualizado correctamente";
       status.style.color = "var(--success)";
     } catch (e) {
+      toggleLoader(false);
       status.innerText = "❌ Error al actualizar";
       status.style.color = "red";
     }
   }
 
   function actualizarKeyRetailer(nombreTienda) {
-  const tiendaEncontrada = inventarioData.find(t => t.nombreTienda === nombreTienda);
-  if (tiendaEncontrada) {
-    // Si tienes un input para el Key Retailer, se llenará solo
-    const inputKR = document.getElementById('venta-key-retailer'); 
-    if (inputKR) inputKR.value = tiendaEncontrada.keyRetailer;
+    const tienda = inventarioData.find(t => t.nombreTienda === nombreTienda);
+    if (tienda) {
+      // Busca el select de KR dentro de la misma tarjeta de venta
+      const cards = document.querySelectorAll('.sale-card');
+      cards.forEach(card => {
+        const selTienda = card.querySelector('.v-tienda');
+        if (selTienda && selTienda.value === nombreTienda) {
+          const selKR = card.querySelector('.v-ka');
+          if (selKR) selKR.value = tienda.keyRetailer;
+        }
+      });
+    }
   }
-}
 
-  // --- LÓGICA GESTOR DE VENTAS ---
+  // --- GESTOR DE VENTAS ---
   function addSaleForm() {
     const container = document.getElementById('sales-container');
     const id = Date.now();
-    
-    // Generar opciones del Select basándonos en el excel
-    let options = '<option value="">-- Seleccione el Equipo --</option>';
-    equiposDisponibles.forEach(eq => options += `<option value="${eq}">${eq}</option>`);
-
     const card = document.createElement('div');
     card.className = 'sale-card';
     card.id = `sale-${id}`;
     
-    // CORRECCIÓN: Se cambiaron los id="venta-tienda" y "venta-equipo" por class="v-tienda" y "v-equipo"
     card.innerHTML = `
       <button class="btn-remove-sale" onclick="document.getElementById('sale-${id}').remove()">×</button>
       <div class="sale-grid">
         <div class="input-group">
           <label>Tienda:</label>
           <select class="v-tienda form-control" onchange="actualizarKeyRetailer(this.value)">
-            <option value="">Seleccione una tienda...</option>
+            <option value="">Cargando tiendas...</option>
           </select>
         </div>
-
         <div class="input-group">
           <label>Key Retailer:</label>
           <select class="v-ka form-control" required>
-            <option value="">-- Key Retailer --</option>
+            <option value="">-- KR --</option>
             <option value="GLOBAL CELL">GLOBAL CELL</option>
             <option value="TECNO CORP">TECNO CORP</option>
             <option value="NC PHONE">NC PHONE</option>
@@ -313,27 +368,21 @@ function updateStoreName(tIdx, nuevoNombre) {
             <option value="CANGURO">CANGURO</option>
           </select>
         </div>
-
         <div class="input-group">
           <label>Equipo:</label>
           <select class="v-equipo form-control">
-            <option value="">Seleccione un equipo...</option>
+            <option value="">Seleccione equipo...</option>
           </select>
         </div>
-        
         <div class="full-width">
-          <label style="font-size: 0.8rem; font-weight:bold; color:#555;">📸 Fotos de la venta (Puedes elegir varias):</label>
+          <label style="font-size: 0.8rem; font-weight:bold; color:#555;">📸 Fotos de la venta:</label>
           <input type="file" class="v-foto file-upload full-width" accept="image/*" multiple>
         </div>
-      </div>
-    `;
+      </div>`;
     container.appendChild(card);
-    
-    // Volver a poblar los selectores dinámicos para esta nueva tarjeta
-    poblarSelectoresVentas();
+    filtrarTodo(); // Poblar selectores de la nueva tarjeta
   }
 
-  // Helper para leer archivo a Base64
   const fileToBase64 = file => new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.readAsDataURL(file);
@@ -349,61 +398,48 @@ function updateStoreName(tIdx, nuevoNombre) {
     if (cards.length === 0) return alert("Agrega al menos una venta.");
     
     btn.disabled = true;
-    status.innerText = "⏳ Procesando imágenes y subiendo ventas... (esto puede tardar unos segundos)";
-    status.style.color = "#666";
-
-    let payloadVentas = [];
-
-    for (let card of cards) {
-      const tienda = card.querySelector('.v-tienda').value;
-      const ka = card.querySelector('.v-ka').value;
-      const equipo = card.querySelector('.v-equipo').value;
-      const fileInput = card.querySelector('.v-foto');
-
-      if (!tienda || !equipo) {
-        alert("Faltan datos en una de las ventas (Tienda o Equipo).");
-        btn.disabled = false;
-        status.innerText = "";
-        return;
-      }
-
-      let arrayFotos = [];
-
-      // CORRECCIÓN: Bucle para procesar MÚLTIPLES archivos
-      if (fileInput.files.length > 0) {
-        for (let i = 0; i < fileInput.files.length; i++) {
-          const file = fileInput.files[i];
-          const fotoData = await fileToBase64(file);
-          arrayFotos.push({
-            fotoBase64: fotoData,
-            fotoTipo: file.type,
-            fotoNombre: `Venta_${tienda}_${equipo}_${Date.now()}_${i}` // Se añade índice para que no se sobreescriban
-          });
-        }
-      }
-
-      payloadVentas.push({
-        tienda: tienda,
-        keyRetailer: ka,
-        equipo: equipo,
-        fotos: arrayFotos // Enviamos el array completo de fotos
-      });
-    }
+    toggleLoader(true, 20);
+    status.innerText = "⏳ Procesando imágenes y subiendo...";
 
     try {
+      let payloadVentas = [];
+      for (let card of cards) {
+        const tienda = card.querySelector('.v-tienda').value;
+        const ka = card.querySelector('.v-ka').value;
+        const equipo = card.querySelector('.v-equipo').value;
+        const fileInput = card.querySelector('.v-foto');
+
+        if (!tienda || !equipo) throw new Error("Faltan datos en las ventas.");
+
+        let arrayFotos = [];
+        if (fileInput.files.length > 0) {
+          for (let i = 0; i < fileInput.files.length; i++) {
+            const file = fileInput.files[i];
+            const fotoData = await fileToBase64(file);
+            arrayFotos.push({
+              fotoBase64: fotoData,
+              fotoTipo: file.type,
+              fotoNombre: `Venta_${tienda}_${Date.now()}_${i}`
+            });
+          }
+        }
+        payloadVentas.push({ tienda, keyRetailer: ka, equipo, fotos: arrayFotos });
+      }
+
       await fetch(WEB_APP_URL, {
         method: "POST",
         body: JSON.stringify({ accion: "subir_ventas", ventas: payloadVentas })
       });
       
-      status.innerText = "✅ Ventas subidas con éxito a la hoja y a Drive";
+      toggleLoader(false);
+      status.innerText = "✅ Ventas subidas con éxito";
       status.style.color = "var(--success)";
       document.getElementById('sales-container').innerHTML = '';
       addSaleForm();
     } catch (e) {
-      status.innerText = "❌ Error al subir ventas.";
+      toggleLoader(false);
+      status.innerText = "❌ " + e.message;
       status.style.color = "red";
-      console.error(e);
     } finally {
       btn.disabled = false;
     }
