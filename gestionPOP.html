@@ -101,7 +101,7 @@
   // ==========================================
   // CONFIGURACIÓN: PEGA AQUÍ TU URL DE APPS SCRIPT
   // ==========================================
-  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzIBk4fmwYFJpPBXFMrq1qI1GInNsrqvDOBTqHirOIzl1wuIk9QUHZ9s513bZv1NMMR/exec";
+  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycby5ZBv-LmHZqBTI9ajqtA7Nqz0tU4Y5MSUuoAqc6u3Kdl31UpDfym-ek88pwNtjlJ5z/exec";
   
   let inventarioData = [];
   let equiposDisponibles = [];
@@ -147,31 +147,61 @@
     }
   }
 
-  function renderInventory() {
-    const container = document.getElementById('inventory-list');
-    container.innerHTML = '';
-    
-    inventarioData.forEach((item, index) => {
-      const row = document.createElement('div');
-      row.className = 'data-row';
-      row.innerHTML = `
-        <div class="data-name">${item.equipo}</div>
-        <div class="qty-control">
-          <button class="btn-qty" onclick="changeQty(${index}, -1)">-</button>
-          <input type="number" class="input-qty" id="qty-${index}" value="${item.cantidad}" onchange="updateArray(${index})">
-          <button class="btn-qty" onclick="changeQty(${index}, 1)">+</button>
-        </div>
-      `;
-      container.appendChild(row);
-    });
+  // --- RENDERIZADO DEL EDITOR ---
+function renderInventory() {
+  const container = document.getElementById('inventory-list');
+  container.innerHTML = '';
+  
+  if (inventarioData.length === 0) {
+    container.innerHTML = "<p>No hay datos en el rango seleccionado.</p>";
+    return;
   }
 
-  function changeQty(index, delta) {
-    const input = document.getElementById(`qty-${index}`);
-    let newVal = parseInt(input.value) + delta;
+  inventarioData.forEach((tienda, tIdx) => {
+    const card = document.createElement('div');
+    card.className = 'sale-card'; // Reutilizamos estilo de tarjeta
+    card.style.borderLeft = "5px solid var(--primary)";
+    
+    let equiposHTML = '';
+    tienda.equipos.forEach((eq, eIdx) => {
+      equiposHTML += `
+        <div class="data-row" style="margin-bottom:5px; background:#f9f9f9;">
+          <div class="data-name" style="font-size:0.8rem;">${eq.nombre}</div>
+          <div class="qty-control">
+            <button class="btn-qty" onclick="changeQty(${tIdx}, ${eIdx}, -1)">-</button>
+            <input type="number" class="input-qty" value="${eq.cantidad}" 
+                   onchange="updateVal(${tIdx}, ${eIdx}, this.value)">
+            <button class="btn-qty" onclick="changeQty(${tIdx}, ${eIdx}, 1)">+</button>
+          </div>
+        </div>
+      `;
+    });
+
+    card.innerHTML = `
+      <div style="margin-bottom:10px;">
+        <strong style="color:var(--dark);">${tienda.nombreTienda}</strong> 
+        <span style="font-size:0.75rem; color:#666; margin-left:10px;">(${tienda.keyRetailer})</span>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr; gap: 5px;">
+        ${equiposHTML}
+      </div>
+    `;
+    container.appendChild(card);
+  });
+}
+
+  // --- FUNCIONES DE CONTROL ---
+  function changeQty(tIdx, eIdx, delta) {
+    let currentQty = parseInt(inventarioData[tIdx].equipos[eIdx].cantidad) || 0;
+    let newVal = currentQty + delta;
     if (newVal < 0) newVal = 0;
-    input.value = newVal;
-    inventarioData[index].cantidad = newVal;
+    
+    inventarioData[tIdx].equipos[eIdx].cantidad = newVal;
+    renderInventory(); // Refrescar vista
+  }
+
+  function updateVal(tIdx, eIdx, val) {
+    inventarioData[tIdx].equipos[eIdx].cantidad = parseInt(val) || 0;
   }
 
   function updateArray(index) {
