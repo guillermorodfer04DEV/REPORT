@@ -4,104 +4,161 @@
   <base target="_top">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
   <style>
-    :root { --primary: #0056b3; --success: #28a745; --dark: #333; --border: #ddd; }
-    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background-color: #f4f7f6; color: var(--dark); }
-    .container { max-width: 600px; margin: auto; padding: 20px; }
-    
-    /* PANTALLA DE CARGA (Obligatorio) */
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --success: #059669;
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --text: #1e293b;
+      --text-light: #64748b;
+      --border: #e2e8f0;
+    }
+
+    body { 
+      font-family: 'Inter', sans-serif; 
+      margin: 0; background-color: var(--bg); color: var(--text); 
+      line-height: 1.5;
+    }
+
+    /* PANTALLA DE CARGA MEJORADA */
     #loader-overlay {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: white; z-index: 9999;
+      background: rgba(255, 255, 255, 0.95); z-index: 9999;
       display: flex; flex-direction: column; align-items: center; justify-content: center;
+      backdrop-filter: blur(5px);
     }
-    .loader-bar-container { width: 200px; height: 10px; background: #eee; border-radius: 5px; overflow: hidden; margin-top: 10px; }
-    .loader-progress { width: 0%; height: 100%; background: var(--primary); transition: width 0.3s; }
+    .loader-bar-container { width: 280px; height: 8px; background: #e2e8f0; border-radius: 10px; overflow: hidden; margin-top: 15px; }
+    .loader-progress { width: 0%; height: 100%; background: var(--primary); transition: width 0.4s ease; }
+    #loader-msg { font-weight: 600; color: var(--primary); font-size: 0.9rem; }
 
-    /* FILTROS (Obligatorio) */
-    .filter-box { background: white; padding: 10px; border-radius: 8px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-    .search-input { width: 95%; padding: 10px; border: 1px solid var(--border); border-radius: 5px; margin-bottom: 10px; }
-    .kr-select { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 5px; }
+    header { 
+      background: white; border-bottom: 1px solid var(--border); 
+      padding: 1rem; text-align: center; position: sticky; top: 0; z-index: 100;
+    }
+    header h2 { margin: 0; font-size: 1.25rem; font-weight: 600; color: var(--primary); }
 
-    /* ESTILOS GENERALES */
-    .hidden { display: none !important; }
-    header { background: var(--primary); color: white; padding: 15px; text-align: center; margin-bottom: 20px; }
-    .btn { padding: 12px; border: none; border-radius: 6px; cursor: pointer; width: 100%; font-weight: bold; margin-bottom: 10px; transition: 0.3s; }
+    .container { max-width: 500px; margin: auto; padding: 1.5rem; }
+
+    /* BOTONES ESTÉTICOS */
+    .btn { 
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 0.75rem 1rem; border: none; border-radius: 10px; 
+      font-size: 0.95rem; font-weight: 600; cursor: pointer; 
+      transition: all 0.2s ease; width: 100%; margin-bottom: 1rem;
+    }
     .btn-primary { background: var(--primary); color: white; }
+    .btn-primary:hover { background: var(--primary-dark); transform: translateY(-1px); }
     .btn-success { background: var(--success); color: white; }
-    .btn-back { background: #666; color: white; margin-bottom: 20px; }
-    .sale-card { background: white; padding: 15px; border-radius: 8px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); position: relative; }
-    .qty-control { display: flex; align-items: center; gap: 10px; }
-    .btn-qty { width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--border); background: white; cursor: pointer; }
-    .input-qty { width: 40px; text-align: center; border: 1px solid var(--border); }
-    .form-control { width: 100%; padding: 10px; margin: 5px 0 15px 0; border: 1px solid var(--border); border-radius: 4px; box-sizing: border-box; }
-    #status { text-align: center; margin-top: 10px; font-weight: bold; }
+    .btn-outline { background: white; border: 1px solid var(--border); color: var(--text-light); }
+
+    /* FILTROS */
+    .filter-section {
+      background: white; padding: 1.25rem; border-radius: 16px; margin-bottom: 1.5rem;
+      box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); border: 1px solid var(--border);
+    }
+    .input-group label { display: block; font-size: 0.75rem; font-weight: 600; color: var(--text-light); margin-bottom: 0.5rem; text-transform: uppercase; }
+    .form-control { 
+      width: 100%; padding: 0.7rem; border: 1px solid var(--border); 
+      border-radius: 8px; font-size: 0.95rem; margin-bottom: 1rem;
+      box-sizing: border-box; outline: none; transition: border-color 0.2s;
+    }
+    .form-control:focus { border-color: var(--primary); ring: 2px var(--primary); }
+
+    /* TARJETAS */
+    .card { 
+      background: white; padding: 1.25rem; border-radius: 16px; margin-bottom: 1rem;
+      box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1); border: 1px solid var(--border);
+    }
+    .card-title { font-weight: 600; font-size: 1rem; margin-bottom: 0.25rem; display: block; }
+    .card-subtitle { font-size: 0.8rem; color: var(--text-light); margin-bottom: 1rem; display: block; }
+
+    /* CONTROLES DE CANTIDAD */
+    .qty-row { 
+      display: flex; justify-content: space-between; align-items: center; 
+      padding: 0.75rem 0; border-top: 1px solid var(--bg);
+    }
+    .qty-label { font-size: 0.85rem; font-weight: 500; }
+    .qty-controls { display: flex; align-items: center; gap: 12px; background: var(--bg); padding: 4px; border-radius: 8px; }
+    .btn-qty { 
+      width: 28px; height: 28px; border-radius: 6px; border: none; 
+      background: white; color: var(--text); font-weight: bold; cursor: pointer;
+      box-shadow: 0 1px 2px rgb(0 0 0 / 0.1);
+    }
+    .qty-val { font-size: 0.9rem; font-weight: 600; min-width: 20px; text-align: center; }
+
+    .hidden { display: none !important; }
+    #status { padding: 1rem; border-radius: 8px; text-align: center; font-size: 0.9rem; font-weight: 500; }
   </style>
 </head>
 <body>
 
-<div id="loader-overlay">
-  <div style="font-weight: bold;">Sincronizando TECNO Cloud...</div>
+<div id="loader-overlay" class="hidden">
+  <div id="loader-msg">Sincronizando con TECNO...</div>
   <div class="loader-bar-container"><div class="loader-progress" id="loader-fill"></div></div>
 </div>
 
 <header>
-  <h2 style="margin:0;">📱 TECNO TOOL V3</h2>
+  <h2>TECNO TOOL PRO</h2>
 </header>
 
 <div class="container">
-  <button class="btn btn-back hidden" id="btn-volver" onclick="showMenu()">← Volver al Menú</button>
+  <button class="btn btn-outline hidden" id="btn-volver" onclick="showMenu()">← Menú Principal</button>
 
   <div id="main-menu">
+    <div style="padding: 2rem 0; text-align: center;">
+      <p style="color: var(--text-light);">Bienvenido, selecciona una herramienta:</p>
+    </div>
     <button class="btn btn-primary" onclick="openEditor()">📝 Editor de Inventario</button>
     <button class="btn btn-success" onclick="openVentas()">🛒 Gestor de Ventas</button>
   </div>
 
   <div id="section-filters" class="hidden">
-    <div class="filter-box">
-      <input type="text" id="search-tienda" class="search-input" placeholder="🔍 Buscar tienda por nombre..." oninput="filtrarTodo()">
-      <select id="filter-kr" class="kr-select" onchange="filtrarTodo()">
-        <option value="">-- Todos los Retailers --</option>
-        <option value="GLOBAL CELL">GLOBAL CELL</option>
-        <option value="TECNO CORP">TECNO CORP</option>
-        <option value="NC PHONE">NC PHONE</option>
-        <option value="DAMASCO">DAMASCO</option>
-        <option value="CANGURO">CANGURO</option>
-      </select>
+    <div class="filter-section">
+      <div class="input-group">
+        <label>Buscar Tienda</label>
+        <input type="text" id="search-tienda" class="form-control" placeholder="Ej: Tienda Central..." oninput="filtrarTodo()">
+      </div>
+      <div class="input-group">
+        <label>Key Retailer</label>
+        <select id="filter-kr" class="form-control" onchange="filtrarTodo()">
+          <option value="">Todos los Retailers</option>
+          <option value="GLOBAL CELL">GLOBAL CELL</option>
+          <option value="TECNO CORP">TECNO CORP</option>
+          <option value="NC PHONE">NC PHONE</option>
+          <option value="DAMASCO">DAMASCO</option>
+          <option value="CANGURO">CANGURO</option>
+        </select>
+      </div>
     </div>
   </div>
 
   <div id="editor-section" class="hidden">
     <div id="inventory-list"></div>
-    <button class="btn btn-success" onclick="updateInventory()">☁️ Guardar Cambios en Excel</button>
+    <button class="btn btn-success" onclick="updateInventory()">Guardar cambios en Excel</button>
   </div>
 
   <div id="ventas-section" class="hidden">
     <div id="sales-container"></div>
-    <button class="btn btn-primary" style="background:#888;" onclick="addSaleForm()">+ Agregar otra venta</button>
-    <button class="btn btn-success" id="btn-subir-ventas" onclick="submitSales()">☁️ Subir Ventas a Excel</button>
+    <button class="btn btn-outline" onclick="addSaleForm()">+ Agregar otra venta</button>
+    <button class="btn btn-success" id="btn-subir-ventas" onclick="submitSales()">Finalizar y Subir Ventas</button>
   </div>
 
   <div id="status"></div>
 </div>
 
 <script>
-  // ==========================================
-  // CONFIGURACIÓN (Mantén tu URL)
-  // ==========================================
   const WEB_APP_URL = "https://script.google.com/macros/s/AKfycby806Lbsaa1LEOdm3KGn6SZ8K8eXriNzGld9MRJXmAuW22GI-Dp6wjoG8BxbpzSoa6V/exec";
-  
   let inventarioData = [];
   let equiposUnicos = [];
 
-  // Al cargar la página, ocultar el loader inicial y mostrar menú
-  window.onload = () => { toggleLoader(false); showMenu(); };
-
-  function toggleLoader(show, progress = 0) {
+  function toggleLoader(show, msg = "Cargando...", progress = 0) {
     const loader = document.getElementById('loader-overlay');
-    const bar = document.getElementById('loader-fill');
-    if (loader) loader.classList.toggle('hidden', !show);
-    if (bar) bar.style.width = progress + "%";
+    document.getElementById('loader-msg').innerText = msg;
+    document.getElementById('loader-fill').style.width = progress + "%";
+    loader.classList.toggle('hidden', !show);
   }
 
   function showMenu() {
@@ -110,7 +167,7 @@
     document.getElementById('ventas-section').classList.add('hidden');
     document.getElementById('section-filters').classList.add('hidden');
     document.getElementById('btn-volver').classList.add('hidden');
-    document.getElementById('status').innerText = "";
+    document.getElementById('status').className = 'hidden';
   }
 
   function openEditor() {
@@ -126,80 +183,75 @@
     document.getElementById('ventas-section').classList.remove('hidden');
     document.getElementById('section-filters').classList.remove('hidden');
     document.getElementById('btn-volver').classList.remove('hidden');
-    fetchInventory(true); 
+    fetchInventory(true);
     if (document.getElementById('sales-container').children.length === 0) addSaleForm();
   }
 
   async function fetchInventory(onlyData = false) {
     if (inventarioData.length > 0 && onlyData) { filtrarTodo(); return; }
-    toggleLoader(true, 30);
+    toggleLoader(true, "Descargando inventario...", 40);
     try {
-      const response = await fetch(WEB_APP_URL + "?leer=datos");
-      inventarioData = await response.json();
+      const resp = await fetch(WEB_APP_URL + "?leer=datos");
+      inventarioData = await resp.json();
       const setEquipos = new Set();
       inventarioData.forEach(t => t.equipos.forEach(eq => setEquipos.add(eq.nombre)));
       equiposUnicos = Array.from(setEquipos);
-      toggleLoader(true, 100);
-      setTimeout(() => toggleLoader(false), 500);
+      toggleLoader(true, "¡Listo!", 100);
+      setTimeout(() => toggleLoader(false), 400);
       filtrarTodo();
-    } catch (error) {
+    } catch (e) {
       toggleLoader(false);
-      alert("Error cargando datos. Verifica tu conexión.");
+      alert("Error de conexión");
     }
   }
 
   function filtrarTodo() {
     const kr = document.getElementById('filter-kr').value;
     const busca = document.getElementById('search-tienda').value.toLowerCase();
-    const dataFiltrada = inventarioData.filter(t => {
-      return (kr === "" || t.keyRetailer === kr) && t.nombreTienda.toLowerCase().includes(busca);
-    });
-    if (!document.getElementById('editor-section').classList.contains('hidden')) renderInventory(dataFiltrada);
-    actualizarDropdownsVentas(dataFiltrada);
+    const filtered = inventarioData.filter(t => (kr === "" || t.keyRetailer === kr) && t.nombreTienda.toLowerCase().includes(busca));
+    
+    if (!document.getElementById('editor-section').classList.contains('hidden')) renderInventory(filtered);
+    actualizarDropdownsVentas(filtered);
   }
 
   function renderInventory(datos) {
     const container = document.getElementById('inventory-list');
-    container.innerHTML = datos.length === 0 ? "<p>No hay resultados.</p>" : "";
-    datos.forEach((tienda) => {
+    container.innerHTML = "";
+    datos.forEach(tienda => {
       const tIdx = inventarioData.findIndex(t => t.nroFila === tienda.nroFila);
       const card = document.createElement('div');
-      card.className = 'sale-card';
-      card.style.borderLeft = "5px solid var(--primary)";
-      let equiposHTML = '';
+      card.className = 'card';
+      let html = `<span class="card-title">${tienda.nombreTienda}</span><span class="card-subtitle">${tienda.keyRetailer}</span>`;
       tienda.equipos.forEach((eq, eIdx) => {
-        equiposHTML += `
-          <div style="display:flex; justify-content:space-between; margin-bottom:5px; background:#f9f9f9; padding:5px;">
-            <span style="font-size:12px;">${eq.nombre}</span>
-            <div class="qty-control">
+        html += `
+          <div class="qty-row">
+            <span class="qty-label">${eq.nombre}</span>
+            <div class="qty-controls">
               <button class="btn-qty" onclick="changeQty(${tIdx}, ${eIdx}, -1)">-</button>
-              <span>${eq.cantidad}</span>
+              <span class="qty-val">${eq.cantidad}</span>
               <button class="btn-qty" onclick="changeQty(${tIdx}, ${eIdx}, 1)">+</button>
             </div>
           </div>`;
       });
-      card.innerHTML = `<strong>${tienda.nombreTienda}</strong><br><small>${tienda.keyRetailer}</small><hr>${equiposHTML}`;
+      card.innerHTML = html;
       container.appendChild(card);
     });
   }
 
   function changeQty(tIdx, eIdx, delta) {
-    let cant = parseInt(inventarioData[tIdx].equipos[eIdx].cantidad) + delta;
-    inventarioData[tIdx].equipos[eIdx].cantidad = Math.max(0, cant);
+    inventarioData[tIdx].equipos[eIdx].cantidad = Math.max(0, parseInt(inventarioData[tIdx].equipos[eIdx].cantidad) + delta);
     filtrarTodo();
   }
 
   function actualizarDropdownsVentas(datos) {
     document.querySelectorAll('.v-tienda').forEach(sel => {
       const val = sel.value;
-      sel.innerHTML = '<option value="">Seleccione tienda...</option>';
-      datos.forEach(t => sel.innerHTML += `<option value="${t.nombreTienda}">${t.nombreTienda}</option>`);
+      sel.innerHTML = '<option value="">Seleccione tienda...</option>' + datos.map(t => `<option value="${t.nombreTienda}">${t.nombreTienda}</option>`).join('');
       sel.value = val;
     });
     document.querySelectorAll('.v-equipo').forEach(sel => {
       if (sel.options.length <= 1) {
-        sel.innerHTML = '<option value="">Seleccione equipo...</option>';
-        equiposUnicos.forEach(e => sel.innerHTML += `<option value="${e}">${e}</option>`);
+        sel.innerHTML = '<option value="">Seleccione equipo...</option>' + equiposUnicos.map(e => `<option value="${e}">${e}</option>`).join('');
       }
     });
   }
@@ -207,37 +259,105 @@
   function addSaleForm() {
     const container = document.getElementById('sales-container');
     const id = Date.now();
-    const card = document.createElement('div');
-    card.className = 'sale-card';
-    card.id = `sale-${id}`;
-    card.innerHTML = `
-      <button onclick="this.parentElement.remove()" style="float:right; border:none; background:none; color:red; font-weight:bold;">X</button>
-      <label>Tienda:</label><select class="v-tienda form-control"></select>
-      <label>Equipo:</label><select class="v-equipo form-control"></select>
-      <label>Key Retailer:</label>
+    const div = document.createElement('div');
+    div.className = 'card';
+    div.id = `sale-${id}`;
+    div.innerHTML = `
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+        <span style="font-weight:600; color:var(--primary);">Nueva Venta</span>
+        <button onclick="document.getElementById('sale-${id}').remove()" style="color:red; background:none; border:none; cursor:pointer;">Eliminar</button>
+      </div>
+      <label class="qty-label">Tienda</label>
+      <select class="v-tienda form-control" onchange="autoSelectKR(this)"></select>
+      <label class="qty-label">Key Retailer</label>
       <select class="v-ka form-control">
+        <option value="">-- KR --</option>
         <option value="GLOBAL CELL">GLOBAL CELL</option><option value="TECNO CORP">TECNO CORP</option>
         <option value="NC PHONE">NC PHONE</option><option value="DAMASCO">DAMASCO</option><option value="CANGURO">CANGURO</option>
       </select>
+      <label class="qty-label">Equipo</label>
+      <select class="v-equipo form-control"></select>
+      <label class="qty-label">Evidencia (Fotos)</label>
       <input type="file" class="v-foto form-control" accept="image/*" multiple>`;
-    container.appendChild(card);
+    container.appendChild(div);
     filtrarTodo();
   }
 
-  async function updateInventory() {
-    const status = document.getElementById('status');
-    status.innerText = "⏳ Guardando...";
-    try {
-      await fetch(WEB_APP_URL, { method: "POST", body: JSON.stringify({ accion: "actualizar_inventario", datos: inventarioData })});
-      status.innerText = "✅ Guardado";
-    } catch (e) { status.innerText = "❌ Error"; }
+  function autoSelectKR(sel) {
+    const tienda = inventarioData.find(t => t.nombreTienda === sel.value);
+    if (tienda) sel.parentElement.querySelector('.v-ka').value = tienda.keyRetailer;
   }
 
-  // --- SUBIR VENTAS --- (Mismo procedimiento que antes)
+  const fileToBase64 = file => new Promise((res, rej) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => res({ data: reader.result.split(',')[1], type: file.type, name: file.name });
+    reader.onerror = rej;
+  });
+
   async function submitSales() {
-    // ... (Tu lógica de submitSales del paso anterior funciona bien aquí)
-    alert("Iniciando subida...");
+    const cards = document.querySelectorAll('#sales-container .card');
+    if (cards.length === 0) return alert("Agrega una venta");
+
+    const btn = document.getElementById('btn-subir-ventas');
+    btn.disabled = true;
+    toggleLoader(true, "Procesando ventas...", 10);
+
+    try {
+      let payload = [];
+      let i = 0;
+      for (const card of cards) {
+        i++;
+        const tienda = card.querySelector('.v-tienda').value;
+        const kr = card.querySelector('.v-ka').value;
+        const equipo = card.querySelector('.v-equipo').value;
+        const files = card.querySelector('.v-foto').files;
+
+        if (!tienda || !equipo) throw new Error("Faltan datos en la venta " + i);
+
+        let fotos = [];
+        for (const f of files) {
+          toggleLoader(true, `Convirtiendo fotos venta ${i}...`, 30);
+          const b64 = await fileToBase64(f);
+          fotos.push({ fotoBase64: b64.data, fotoTipo: b64.type, fotoNombre: b64.name });
+        }
+        payload.push({ tienda, keyRetailer: kr, equipo, fotos });
+      }
+
+      toggleLoader(true, "Subiendo a Google Sheets...", 70);
+      const response = await fetch(WEB_APP_URL, {
+        method: "POST",
+        body: JSON.stringify({ accion: "subir_ventas", ventas: payload })
+      });
+      const resData = await response.json();
+
+      if (resData.status === "success") {
+        toggleLoader(true, "¡Éxito!", 100);
+        setTimeout(() => {
+          toggleLoader(false);
+          document.getElementById('sales-container').innerHTML = '';
+          addSaleForm();
+          alert("Ventas registradas correctamente.");
+        }, 1000);
+      }
+    } catch (e) {
+      toggleLoader(false);
+      alert("Error: " + e.message);
+    } finally {
+      btn.disabled = false;
+    }
   }
+
+  async function updateInventory() {
+    toggleLoader(true, "Guardando cambios...", 50);
+    try {
+      await fetch(WEB_APP_URL, { method: "POST", body: JSON.stringify({ accion: "actualizar_inventario", datos: inventarioData })});
+      toggleLoader(true, "Guardado!", 100);
+      setTimeout(() => toggleLoader(false), 800);
+    } catch (e) { toggleLoader(false); alert("Error al guardar"); }
+  }
+
+  window.onload = () => { toggleLoader(false); showMenu(); };
 </script>
 </body>
 </html>
