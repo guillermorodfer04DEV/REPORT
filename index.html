@@ -168,18 +168,18 @@
         <div class="logo-container"><img src="TECNO-TOOL-icon.png" class="logo-img"></div>
         <h1>TECNO Tool</h1>
         <div class="menu-grid" id="gridContainer"></div>
-        <footer>TECNO Mobile Venezuela &copy; 2026</footer>
+        <footer>TECNO Mobile Venezuela &copy; | GuilleDev 2026</footer>
     </div>
 
     <script>
         const API_URL = 'https://GuillermoDev.pythonanywhere.com';
         
         const configBotones = [
-            { nombre: "Entrada", link: "reporte-entrada.html", icono: "entrada.png", emoji: "📍" },
-            { nombre: "Reporte Diario", link: "reporte.html", icono: "reporte.png", emoji: "📝" },
-            { nombre: "Equipos", link: "equiposDisponibles.html", icono: "phone.png", emoji: "📱" },
-            { nombre: "Material POP", link: "gestionPOP.html", icono: "box.png", emoji: "🎁" },
-            { nombre: "Binance ID", link: "generadorDeListado-binance.html", icono: "binance.png", emoji: "🔶" }
+            { nombre: "Reporte entrada",            link: "reporte-entrada.html",               icono: "entrada.png",   emoji: "📍" },
+            { nombre: "Reporte salida",             link: "reporte.html",                       icono: "reporte.png",   emoji: "📝" },
+            { nombre: "Registro de equipos",        link: "equiposDisponibles.html",            icono: "phone.png",     emoji: "📱" },
+            { nombre: "Gestion de material POP",    link: "gestionPOP.html",                    icono: "box.png",       emoji: "🎁" },
+            { nombre: "Gestion de binance ID",      link: "generadorDeListado-binance.html",    icono: "binance.png",   emoji: "🔶" },
         ];
 
         async function verificarSesion() {
@@ -218,7 +218,7 @@
                 const devBtn = document.createElement('div');
                 devBtn.className = 'btn-nav accent';
                 devBtn.style.cursor = 'pointer';
-                devBtn.innerHTML = `<i>⚙️</i><span>Crear Usuario</span>`;
+                devBtn.innerHTML = `<i>⚙️</i><span>Crear Usuario TecnoToolSystem</span>`;
                 devBtn.onclick = () => document.getElementById('createUserModal').style.display = 'flex';
                 container.appendChild(devBtn);
             }
