@@ -7,7 +7,6 @@ from flask_cors import CORS  # <--- Esta línea es vital
 app = Flask(__name__)
 CORS(app) # <--- Esta línea da el permiso para que GitHub hable con Python
 
-app = Flask(__name__)
 app.secret_key = 'SECURITY_KEY_LOL'
 
 # URL del Google Apps Script que creaste en el paso 1
