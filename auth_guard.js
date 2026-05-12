@@ -2,7 +2,7 @@
 // Si no la hay, redirige inmediatamente a la página principal.
 
 (async function protegerPagina() {
-    const API_URL = "http://127.0.0.1:5000"; // Ajusta al servidor real
+    const API_URL = "https://guillermodev.pythonanywhere.com/login"; // Ajusta al servidor real
 
     try {
         const response = await fetch(`${API_URL}/check_auth`);
