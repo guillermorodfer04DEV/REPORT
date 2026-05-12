@@ -17,7 +17,7 @@ app.config.update(
     SESSION_COOKIE_SECURE=True
 )
 
-GOOGLE_SHEETS_WEBHOOK = "https://script.google.com/macros/s/AKfycbxIy5MkktHy7xHajr2SH2aFagGLUTtpQG6NHSbqspE7pSnRINcPED9v1q4LaYLf3diq/exec"
+GOOGLE_SHEETS_WEBHOOK = "https://script.google.com/macros/s/AKfycbzBx_H-p-oFiJ9AkSU1HPLI_mWYX34O1k0fXt4o3ArM9Jigo6svkXUzB1wGK3DE-Pvu/exec"
 
 users_db = {
     "admin": {
