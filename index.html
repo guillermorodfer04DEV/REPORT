@@ -137,6 +137,25 @@
         </div>
     </div>
 
+    <div id="createUserModal" class="modal-overlay">
+        <div class="modal-content">
+            <h2>Nuevo Usuario</h2>
+            <input type="text" id="newUsername" placeholder="Nombre de usuario">
+            <input type="text" id="newPassword" placeholder="Contraseña temporal">
+            <input type="text" id="newState" placeholder="Estado (ej. Lara, Carabobo)">
+            
+            <div style="display: flex; align-items: center; justify-content: center; margin: 15px 0;">
+                <input type="checkbox" id="isAdminCheckbox" style="width: auto; margin-right: 10px;">
+                <label for="isAdminCheckbox" style="font-size: 14px; color: var(--tecno-dark);">Administrador (Dev)</label>
+            </div>
+
+            <div style="display: flex; gap: 10px;">
+                <button class="btn-primary" style="background: #cbd5e1; color: var(--tecno-dark);" onclick="document.getElementById('createUserModal').style.display='none'">Cancelar</button>
+                <button class="btn-primary" onclick="crearUsuario()">Crear Usuario</button>
+            </div>
+        </div>
+    </div>
+
     <div class="main-card">
         <div class="logo-container">
             <img src="TECNO-TOOL-icon.png" alt="Logo" class="logo-img">
@@ -156,7 +175,7 @@
             { nombre: "Reporte Diario", link: "reporte.html", icono: "reporte.png", emoji: "📝" },
             { nombre: "Equipos", link: "equiposDisponibles.html", icono: "phone.png", emoji: "📱" },
             { nombre: "Material POP", link: "gestionPOP.html", icono: "box.png", emoji: "🎁" },
-            { nombre: "Binance ID", link: "generadorDelListado-binance.html", icono: "binance.png", emoji: "🔶" }
+            { nombre: "Binance ID", link: "generadorDeListado-binance.html", icono: "binance.png", emoji: "🔶" }
         ];
 
         function cargarMenu() {
@@ -175,6 +194,16 @@
                 `;
                 container.appendChild(item);
             });
+
+            // Botón de Crear Usuario (Oculto por defecto, se activa por JS)
+            const devBtn = document.createElement('div');
+            devBtn.id = 'devPanelBtn';
+            devBtn.className = 'btn-nav accent';
+            devBtn.style.display = 'none'; // Se mantiene oculto inicialmente
+            devBtn.style.cursor = 'pointer';
+            devBtn.innerHTML = `<i>⚙️</i><span>Crear Usuario</span>`;
+            devBtn.onclick = () => document.getElementById('createUserModal').style.display = 'flex';
+            container.appendChild(devBtn);
 
             // Siempre al final
             const work = document.createElement('div');
@@ -197,13 +226,49 @@
                 const data = await resp.json();
                 if(data.success) {
                     document.getElementById('loginModal').style.display = 'none';
-                    localStorage.setItem('tecno_session', 'active');
                     cargarMenu();
+                    // Revelar el botón si la categoría es dev
+                    if(data.role === 'dev') {
+                        document.getElementById('devPanelBtn').style.display = 'flex';
+                    }
                 } else {
                     alert("Error: " + data.message);
                 }
             } catch(e) {
                 alert("Asegúrate de que el servidor de Python esté corriendo.");
+            }
+        }
+
+        // Nueva función para el botón del modal
+        async function crearUsuario() {
+            const u = document.getElementById('newUsername').value;
+            const p = document.getElementById('newPassword').value;
+            const e = document.getElementById('newState').value;
+            const a = document.getElementById('isAdminCheckbox').checked;
+
+            if(!u || !p || !e) return alert("Por favor llena todos los campos de texto.");
+
+            try {
+                const resp = await fetch('https://guillermodev.pythonanywhere.com/register', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({username: u, password: p, estado: e, is_admin: a}),
+                    credentials: 'include'
+                });
+                const data = await resp.json();
+                if(data.success) {
+                    alert("Usuario registrado y enviado a Google Sheets.");
+                    document.getElementById('createUserModal').style.display = 'none';
+                    // Limpiar los campos
+                    document.getElementById('newUsername').value = '';
+                    document.getElementById('newPassword').value = '';
+                    document.getElementById('newState').value = '';
+                    document.getElementById('isAdminCheckbox').checked = false;
+                } else {
+                    alert("Error: " + data.message);
+                }
+            } catch(err) {
+                alert("Error de conexión al intentar crear el usuario.");
             }
         }
 

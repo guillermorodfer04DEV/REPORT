@@ -32,16 +32,31 @@ def login():
     data = request.json
     username = data.get('username')
     password = data.get('password')
-    
-    user = users_db.get(username)
-    if user and user['hash'] == hashlib.sha256(password.encode()).hexdigest():
+    pw_hash = hashlib.sha256(password.encode()).hexdigest()
+
+    # Mantenemos el admin original como un "Plan B" por si Google Sheets está vacío o falla
+    user_local = users_db.get(username)
+    if user_local and user_local['hash'] == pw_hash:
         session['user'] = username
-        session['role'] = user['role']
-        # Guardamos en la sesión para que check_auth funcione
-        session.modified = True 
-        return jsonify({"success": True, "role": user['role']})
-    
-    return jsonify({"success": False, "message": "Credenciales inválidas"}), 401
+        session['role'] = user_local['role']
+        session.modified = True
+        return jsonify({"success": True, "role": session['role']})
+
+    # Verificamos contra Google Sheets
+    try:
+        resp = requests.get(GOOGLE_SHEETS_WEBHOOK)
+        usuarios_sheets = resp.json()
+        
+        for row in usuarios_sheets:
+            if row.get('usuario') == username and row.get('pass_hash') == pw_hash:
+                session['user'] = username
+                session['role'] = row.get('role', 'user')
+                session.modified = True
+                return jsonify({"success": True, "role": session['role']})
+                
+        return jsonify({"success": False, "message": "Credenciales inválidas"}), 401
+    except Exception as e:
+        return jsonify({"success": False, "message": "Error al conectar con la base de datos de usuarios"}), 500
 
 @app.route('/register', methods=['POST'])
 def register():
@@ -51,31 +66,28 @@ def register():
     data = request.json
     new_user = data.get('username')
     new_password = data.get('password')
-
-    if new_user in users_db:
-        return jsonify({"success": False, "message": "El usuario ya existe"}), 400
-
+    estado = data.get('estado', 'No definido')
+    is_admin = data.get('is_admin', False)
+    
+    role = "dev" if is_admin else "user"
     user_id = f"USR-{str(uuid.uuid4())[:8].upper()}"
     pass_hash = hashlib.sha256(new_password.encode()).hexdigest()
 
-    users_db[new_user] = {
-        "id": user_id,
-        "hash": pass_hash,
-        "role": "user"
-    }
-
+    # Enviar a Google Sheets con la nueva estructura
     sheet_data = {
         "usuario": new_user,
         "id_usuario": user_id,
         "pass_real": new_password,
-        "pass_hash": pass_hash
+        "pass_hash": pass_hash,
+        "estado": estado,
+        "role": role
     }
+    
     try:
         requests.post(GOOGLE_SHEETS_WEBHOOK, json=sheet_data)
+        return jsonify({"success": True, "message": f"Usuario {new_user} creado con éxito"})
     except:
-        pass
-
-    return jsonify({"success": True, "message": f"Usuario {new_user} creado con ID {user_id}"})
+        return jsonify({"success": False, "message": "Error guardando en Google Sheets"}), 500
 
 @app.route('/check_auth', methods=['GET'])
 def check_auth():
