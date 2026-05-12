@@ -19,35 +19,46 @@
             margin: 0; padding: 0;
             font-family: 'Inter', sans-serif;
             background: var(--bg-body);
-            background-image: 
-                radial-gradient(at 0% 0%, rgba(0, 86, 179, 0.05) 0px, transparent 50%),
-                radial-gradient(at 100% 100%, rgba(0, 86, 179, 0.05) 0px, transparent 50%);
             display: flex; justify-content: center; align-items: center;
             min-height: 100vh; color: var(--tecno-dark);
+            overflow-x: hidden;
         }
 
-        /* --- Contenedor Estilo Mockup --- */
+        /* --- Badge de Usuario (Esquina Superior Derecha) --- */
+        .user-badge {
+            position: fixed; top: 20px; right: 20px;
+            background: var(--white);
+            padding: 10px 20px; border-radius: 50px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            display: none; /* Oculto hasta que inicie sesión */
+            align-items: center; gap: 10px;
+            cursor: pointer; z-index: 1000;
+            border: 1px solid #e2e8f0;
+            transition: var(--transition);
+        }
+        .user-badge:hover { transform: scale(1.05); }
+        .dev-tag {
+            background: #ef4444; color: white;
+            font-size: 10px; padding: 2px 8px;
+            border-radius: 10px; font-weight: bold;
+        }
+
+        /* --- Contenedor Principal --- */
         .main-card {
             width: 90%; max-width: 800px;
             background: rgba(255, 255, 255, 0.8);
             backdrop-filter: blur(12px);
-            border-radius: 32px;
-            padding: 40px;
+            border-radius: 32px; padding: 40px;
             box-shadow: 0 20px 50px rgba(0,0,0,0.1);
-            border: 1px solid rgba(255,255,255,0.4);
             text-align: center;
-            position: relative;
         }
 
         .logo-container {
-            width: 100px; height: 100px;
-            margin: 0 auto 15px;
-            background: var(--white);
-            border-radius: 20px;
+            width: 100px; height: 100px; margin: 0 auto 15px;
+            background: var(--white); border-radius: 20px;
             display: flex; align-items: center; justify-content: center;
             box-shadow: 0 10px 20px rgba(0,0,0,0.05);
         }
-
         .logo-img { width: 70px; height: auto; }
 
         h1 { 
@@ -56,64 +67,47 @@
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
         }
 
-        /* --- Grid Escalable --- */
+        /* --- Grid de Botones --- */
         .menu-grid {
-            display: grid;
-            gap: 20px;
-            grid-template-columns: repeat(2, 1fr); /* Móvil: 2 columnas */
+            display: grid; gap: 20px;
+            grid-template-columns: repeat(2, 1fr);
         }
+        @media (min-width: 768px) { .menu-grid { grid-template-columns: repeat(3, 1fr); } }
 
-        @media (min-width: 768px) {
-            .menu-grid { grid-template-columns: repeat(3, 1fr); } /* PC: 3 columnas */
-        }
-
-        /* --- Botones --- */
         .btn-nav {
-            background: var(--white);
-            border: 1px solid #e2e8f0;
-            border-radius: 24px;
-            padding: 20px;
-            text-decoration: none;
-            color: var(--tecno-dark);
+            background: var(--white); border: 1px solid #e2e8f0;
+            border-radius: 24px; padding: 20px;
+            text-decoration: none; color: var(--tecno-dark);
             display: flex; flex-direction: column; align-items: center;
-            transition: var(--transition);
-            font-weight: 600; font-size: 14px;
+            transition: var(--transition); font-weight: 600;
         }
-
         .btn-nav:hover {
-            transform: translateY(-5px);
-            border-color: var(--tecno-blue);
+            transform: translateY(-5px); border-color: var(--tecno-blue);
             box-shadow: 0 10px 20px rgba(0, 86, 179, 0.1);
         }
-
-        .btn-nav img { width: 40px; height: 40px; margin-bottom: 12px; object-fit: contain; }
+        .btn-nav img { width: 40px; height: 40px; margin-bottom: 12px; }
         .btn-nav i { font-size: 35px; margin-bottom: 12px; font-style: normal; }
 
-        .on-work {
-            border: 2px dashed #cbd5e1;
-            background: rgba(255,255,255,0.4);
-            color: #94a3b8;
-            cursor: default;
-        }
+        .accent { border: 1px solid var(--tecno-blue); background: #f0f7ff; }
+        .on-work { border: 2px dashed #cbd5e1; color: #94a3b8; cursor: default; }
 
-        /* --- Modales --- */
+        /* --- Modales (CORREGIDO: Ocultos por defecto) --- */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(8px);
-            display: flex; justify-content: center; align-items: center; z-index: 9999;
+            display: none; /* <--- IMPORTANTE */
+            justify-content: center; align-items: center; z-index: 9999;
         }
-
         .modal-content {
-            background: var(--white); padding: 40px; border-radius: 28px;
-            width: 320px; text-align: center; box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+            background: var(--white); padding: 30px; border-radius: 28px;
+            width: 320px; text-align: center;
         }
 
         input {
             width: 100%; padding: 12px; margin: 10px 0;
             border-radius: 12px; border: 1px solid #e2e8f0;
-            box-sizing: border-box; font-size: 16px;
+            box-sizing: border-box;
         }
-
         .btn-primary {
             width: 100%; padding: 12px; background: var(--tecno-gradient);
             color: white; border: none; border-radius: 12px;
@@ -125,11 +119,13 @@
 </head>
 <body>
 
-    <div id="loginModal" class="modal-overlay">
+    <div id="userBadge" class="user-badge" onclick="document.getElementById('userMenuModal').style.display='flex'">
+        <span id="userNameDisplay">Usuario</span>
+        <span id="userDevTag" class="dev-tag">DEV</span>
+    </div>
+
+    <div id="loginModal" class="modal-overlay" style="display: flex;">
         <div class="modal-content">
-            <div class="logo-container" style="width: 60px; height: 60px;">
-                <img src="TECNO-TOOL-icon.png" class="logo-img" style="width: 40px;">
-            </div>
             <h2>Iniciar Sesión</h2>
             <input type="text" id="userIn" placeholder="Usuario">
             <input type="password" id="passIn" placeholder="Contraseña">
@@ -137,66 +133,47 @@
         </div>
     </div>
 
-    <div id="createUserModal" class="modal-overlay">
-        <div class="modal-content">
-            <h2>Nuevo Usuario</h2>
-            <input type="text" id="newUsername" placeholder="Nombre de usuario">
-            <input type="text" id="newPassword" placeholder="Contraseña temporal">
-            <input type="text" id="newState" placeholder="Estado (ej. Lara, Carabobo)">
-            
-            <div style="display: flex; align-items: center; justify-content: center; margin: 15px 0;">
-                <input type="checkbox" id="isAdminCheckbox" style="width: auto; margin-right: 10px;">
-                <label for="isAdminCheckbox" style="font-size: 14px; color: var(--tecno-dark);">Administrador (Dev)</label>
-            </div>
-
-            <div style="display: flex; gap: 10px;">
-                <button class="btn-primary" style="background: #cbd5e1; color: var(--tecno-dark);" onclick="document.getElementById('createUserModal').style.display='none'">Cancelar</button>
-                <button class="btn-primary" onclick="crearUsuario()">Crear Usuario</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="userBadge" class="user-badge" onclick="document.getElementById('userMenuModal').style.display='flex'">
-    <span id="userNameDisplay">Usuario</span>
-    <span id="userDevTag" class="dev-tag">DEV</span>
-    </div>
-
     <div id="userMenuModal" class="modal-overlay">
         <div class="modal-content">
             <h2>Mi Cuenta</h2>
-            <button class="btn-primary" onclick="abrirCambioClave()" style="background: var(--tecno-blue); margin-bottom: 10px;">Cambiar Contraseña</button>
-            <button class="btn-primary" onclick="cerrarSesion()" style="background: #ef4444; margin-bottom: 15px;">Cerrar Sesión</button>
-            <button class="btn-primary" onclick="document.getElementById('userMenuModal').style.display='none'" style="background: #cbd5e1; color: var(--tecno-dark);">Cerrar Menú</button>
+            <button class="btn-primary" onclick="abrirCambioClave()" style="background: var(--tecno-blue);">Cambiar Contraseña</button>
+            <button class="btn-primary" onclick="cerrarSesion()" style="background: #ef4444;">Cerrar Sesión</button>
+            <button class="btn-primary" onclick="document.getElementById('userMenuModal').style.display='none'" style="background: #cbd5e1; color: black;">Volver</button>
         </div>
     </div>
 
     <div id="changePassModal" class="modal-overlay">
         <div class="modal-content">
-            <h2>Cambiar Contraseña</h2>
+            <h2>Nueva Contraseña</h2>
             <input type="password" id="currentPass" placeholder="Contraseña Actual">
             <input type="password" id="newPass" placeholder="Nueva Contraseña">
-            
-            <div style="display: flex; gap: 10px;">
-                <button class="btn-primary" style="background: #cbd5e1; color: var(--tecno-dark);" onclick="document.getElementById('changePassModal').style.display='none'">Cancelar</button>
-                <button class="btn-primary" onclick="cambiarPassword()">Guardar</button>
-            </div>
+            <button class="btn-primary" onclick="cambiarPassword()">Guardar Cambios</button>
+            <button class="btn-primary" onclick="document.getElementById('changePassModal').style.display='none'" style="background: #cbd5e1; color: black;">Cancelar</button>
+        </div>
+    </div>
+
+    <div id="createUserModal" class="modal-overlay">
+        <div class="modal-content">
+            <h2>Registrar Usuario</h2>
+            <input type="text" id="newUsername" placeholder="Nombre">
+            <input type="text" id="newPassword" placeholder="Clave Temporal">
+            <input type="text" id="newState" placeholder="Estado (Lara, etc.)">
+            <label style="font-size: 12px;"><input type="checkbox" id="isAdminCheckbox"> Es Administrador</label>
+            <button class="btn-primary" onclick="crearUsuario()">Crear</button>
+            <button class="btn-primary" onclick="document.getElementById('createUserModal').style.display='none'" style="background: #cbd5e1; color: black;">Cerrar</button>
         </div>
     </div>
 
     <div class="main-card">
-        <div class="logo-container">
-            <img src="TECNO-TOOL-icon.png" alt="Logo" class="logo-img">
-        </div>
+        <div class="logo-container"><img src="TECNO-TOOL-icon.png" class="logo-img"></div>
         <h1>TECNO Tool</h1>
-
-        <div class="menu-grid" id="gridContainer">
-            </div>
-
+        <div class="menu-grid" id="gridContainer"></div>
         <footer>TECNO Mobile Venezuela &copy; 2026</footer>
     </div>
 
     <script>
-        // CONFIGURACIÓN ESCALABLE
+        const API_URL = 'https://GuillermoDev.pythonanywhere.com';
+        
         const configBotones = [
             { nombre: "Entrada", link: "reporte-entrada.html", icono: "entrada.png", emoji: "📍" },
             { nombre: "Reporte Diario", link: "reporte.html", icono: "reporte.png", emoji: "📝" },
@@ -205,7 +182,27 @@
             { nombre: "Binance ID", link: "generadorDeListado-binance.html", icono: "binance.png", emoji: "🔶" }
         ];
 
-        function cargarMenu() {
+        async function verificarSesion() {
+            try {
+                const resp = await fetch(`${API_URL}/check_auth`, {credentials: 'include'});
+                const data = await resp.json();
+                if(data.authenticated) {
+                    mostrarInterfaz(data.user, data.role);
+                }
+            } catch(e) { console.log("No hay sesión activa"); }
+        }
+
+        function mostrarInterfaz(username, role) {
+            document.getElementById('loginModal').style.display = 'none';
+            document.getElementById('userBadge').style.display = 'flex';
+            document.getElementById('userNameDisplay').innerText = username;
+            document.getElementById('userDevTag').style.display = (role === 'dev') ? 'block' : 'none';
+            
+            localStorage.setItem('tecno_current_user', username);
+            cargarMenu(role);
+        }
+
+        function cargarMenu(role) {
             const container = document.getElementById('gridContainer');
             container.innerHTML = "";
 
@@ -213,26 +210,19 @@
                 const item = document.createElement('a');
                 item.href = btn.link;
                 item.className = 'btn-nav';
-                // Lógica de fallback: Si la imagen falla, muestra el emoji
-                item.innerHTML = `
-                    <img src="${btn.icono}" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
-                    <i style="display:none">${btn.emoji}</i>
-                    <span>${btn.nombre}</span>
-                `;
+                item.innerHTML = `<img src="${btn.icono}" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'"><i style="display:none">${btn.emoji}</i><span>${btn.nombre}</span>`;
                 container.appendChild(item);
             });
 
-            // Botón de Crear Usuario (Oculto por defecto, se activa por JS)
-            const devBtn = document.createElement('div');
-            devBtn.id = 'devPanelBtn';
-            devBtn.className = 'btn-nav accent';
-            devBtn.style.display = 'none'; // Se mantiene oculto inicialmente
-            devBtn.style.cursor = 'pointer';
-            devBtn.innerHTML = `<i>⚙️</i><span>Crear Usuario</span>`;
-            devBtn.onclick = () => document.getElementById('createUserModal').style.display = 'flex';
-            container.appendChild(devBtn);
+            if(role === 'dev') {
+                const devBtn = document.createElement('div');
+                devBtn.className = 'btn-nav accent';
+                devBtn.style.cursor = 'pointer';
+                devBtn.innerHTML = `<i>⚙️</i><span>Crear Usuario</span>`;
+                devBtn.onclick = () => document.getElementById('createUserModal').style.display = 'flex';
+                container.appendChild(devBtn);
+            }
 
-            // Siempre al final
             const work = document.createElement('div');
             work.className = 'btn-nav on-work';
             work.innerHTML = `<i>🛠️</i><span>On work...</span>`;
@@ -242,68 +232,59 @@
         async function login() {
             const u = document.getElementById('userIn').value;
             const p = document.getElementById('passIn').value;
-            
-            try {
-                const resp = await fetch('https://GuillermoDev.pythonanywhere.com/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({username: u, password: p}),
-                    credentials: 'include' // <--- ESTO ES OBLIGATORIO
-                });
-                const data = await resp.json();
-                if(data.success) {
-                    document.getElementById('loginModal').style.display = 'none';
-                    cargarMenu();
-                    // Revelar el botón si la categoría es dev
-                    if(data.role === 'dev') {
-                        document.getElementById('devPanelBtn').style.display = 'flex';
-                    }
-                } else {
-                    alert("Error: " + data.message);
-                }
-            } catch(e) {
-                alert("Asegúrate de que el servidor de Python esté corriendo.");
-            }
+            const resp = await fetch(`${API_URL}/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({username: u, password: p}),
+                credentials: 'include'
+            });
+            const data = await resp.json();
+            if(data.success) { mostrarInterfaz(u, data.role); }
+            else { alert(data.message); }
         }
 
-        // Nueva función para el botón del modal
+        async function cerrarSesion() {
+            await fetch(`${API_URL}/logout`, {method: 'POST', credentials: 'include'});
+            localStorage.clear();
+            location.reload();
+        }
+
+        function abrirCambioClave() {
+            document.getElementById('userMenuModal').style.display = 'none';
+            document.getElementById('changePassModal').style.display = 'flex';
+        }
+
+        async function cambiarPassword() {
+            const cp = document.getElementById('currentPass').value;
+            const np = document.getElementById('newPass').value;
+            const resp = await fetch(`${API_URL}/change_password`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({current_password: cp, new_password: np}),
+                credentials: 'include'
+            });
+            const data = await resp.json();
+            alert(data.message);
+            if(data.success) document.getElementById('changePassModal').style.display = 'none';
+        }
+
         async function crearUsuario() {
             const u = document.getElementById('newUsername').value;
             const p = document.getElementById('newPassword').value;
             const e = document.getElementById('newState').value;
             const a = document.getElementById('isAdminCheckbox').checked;
-
-            if(!u || !p || !e) return alert("Por favor llena todos los campos de texto.");
-
-            try {
-                const resp = await fetch('https://guillermodev.pythonanywhere.com/register', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({username: u, password: p, estado: e, is_admin: a}),
-                    credentials: 'include'
-                });
-                const data = await resp.json();
-                if(data.success) {
-                    alert("Usuario registrado y enviado a Google Sheets.");
-                    document.getElementById('createUserModal').style.display = 'none';
-                    // Limpiar los campos
-                    document.getElementById('newUsername').value = '';
-                    document.getElementById('newPassword').value = '';
-                    document.getElementById('newState').value = '';
-                    document.getElementById('isAdminCheckbox').checked = false;
-                } else {
-                    alert("Error: " + data.message);
-                }
-            } catch(err) {
-                alert("Error de conexión al intentar crear el usuario.");
-            }
+            const resp = await fetch(`${API_URL}/register`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({username: u, password: p, estado: e, is_admin: a}),
+                credentials: 'include'
+            });
+            const data = await resp.json();
+            alert(data.message);
+            if(data.success) document.getElementById('createUserModal').style.display = 'none';
         }
 
-        // Verificar sesión al cargar
-        if(localStorage.getItem('tecno_session') === 'active') {
-            document.getElementById('loginModal').style.display = 'none';
-            cargarMenu();
-        }
+        window.onload = verificarSesion;
     </script>
 </body>
 </html>
