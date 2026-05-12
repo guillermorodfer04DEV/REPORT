@@ -1,16 +1,18 @@
-// Este script verifica contra el backend de Python si hay una sesión activa.
-// Si no la hay, redirige inmediatamente a la página principal.
-
 (async function protegerPagina() {
-    const API_URL = "https://guillermodev.pythonanywhere.com/login"; // Ajusta al servidor real
+    // 1. Corregimos la URL base (sin el /login al final)
+    const API_URL = "https://guillermodev.pythonanywhere.com"; 
 
     try {
-        const response = await fetch(`${API_URL}/check_auth`);
+        // 2. Agregamos credentials: 'include' para que el navegador envíe la cookie de sesión
+        const response = await fetch(`${API_URL}/check_auth`, {
+            method: 'GET',
+            credentials: 'include' 
+        });
+
         if (!response.ok) {
-            // Si el status es 401 (No autorizado), expulsar al index
+            // Si el servidor responde 401, volvemos al inicio
             window.location.href = "index.html"; 
         }
-        // Si todo está bien, la página se carga normalmente
     } catch (error) {
         console.error("Error validando sesión:", error);
         window.location.href = "index.html";
