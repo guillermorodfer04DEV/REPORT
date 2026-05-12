@@ -17,7 +17,7 @@ app.config.update(
     SESSION_COOKIE_SECURE=True
 )
 
-GOOGLE_SHEETS_WEBHOOK = "https://script.google.com/macros/s/AKfycbzBx_H-p-oFiJ9AkSU1HPLI_mWYX34O1k0fXt4o3ArM9Jigo6svkXUzB1wGK3DE-Pvu/exec"
+GOOGLE_SHEETS_WEBHOOK = "https://script.google.com/macros/s/AKfycbxvo1OQ0gjQ6W6S7hNxmYCrwVxnPHQVIxA07w2Pf8tdHxYDUCsZHbe87FElxYGRzmc6/exec"
 
 users_db = {
     "admin": {
@@ -75,6 +75,7 @@ def register():
 
     # Enviar a Google Sheets con la nueva estructura
     sheet_data = {
+        "action": "register",
         "usuario": new_user,
         "id_usuario": user_id,
         "pass_real": new_password,
@@ -99,6 +100,46 @@ def check_auth():
 def logout():
     session.clear()
     return jsonify({"success": True})
+
+@app.route('/change_password', methods=['POST'])
+def change_password():
+    if 'user' not in session:
+        return jsonify({"success": False, "message": "No autorizado"}), 401
+    
+    data = request.json
+    current_pass = data.get('current_password')
+    new_pass = data.get('new_password')
+    username = session['user']
+    
+    current_hash = hashlib.sha256(current_pass.encode()).hexdigest()
+    new_hash = hashlib.sha256(new_pass.encode()).hexdigest()
+    
+    try:
+        # Verificar que la contraseña actual sea correcta
+        resp = requests.get(GOOGLE_SHEETS_WEBHOOK)
+        usuarios_sheets = resp.json()
+        valid = False
+        
+        for row in usuarios_sheets:
+            if row.get('usuario') == username and row.get('pass_hash') == current_hash:
+                valid = True
+                break
+                
+        if not valid:
+            return jsonify({"success": False, "message": "Contraseña actual incorrecta"}), 400
+            
+        # Actualizar en Sheets
+        update_payload = {
+            "action": "update_password",
+            "usuario": username,
+            "new_pass_real": new_pass,
+            "new_pass_hash": new_hash
+        }
+        requests.post(GOOGLE_SHEETS_WEBHOOK, json=update_payload)
+        
+        return jsonify({"success": True, "message": "Contraseña actualizada exitosamente"})
+    except:
+        return jsonify({"success": False, "message": "Error de conexión"}), 500
 
 # En PythonAnywhere esto no se usa, pero lo dejamos para tu local
 if __name__ == '__main__':

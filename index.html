@@ -156,6 +156,33 @@
         </div>
     </div>
 
+    <div id="userBadge" class="user-badge" onclick="document.getElementById('userMenuModal').style.display='flex'">
+    <span id="userNameDisplay">Usuario</span>
+    <span id="userDevTag" class="dev-tag">DEV</span>
+    </div>
+
+    <div id="userMenuModal" class="modal-overlay">
+        <div class="modal-content">
+            <h2>Mi Cuenta</h2>
+            <button class="btn-primary" onclick="abrirCambioClave()" style="background: var(--tecno-blue); margin-bottom: 10px;">Cambiar Contraseña</button>
+            <button class="btn-primary" onclick="cerrarSesion()" style="background: #ef4444; margin-bottom: 15px;">Cerrar Sesión</button>
+            <button class="btn-primary" onclick="document.getElementById('userMenuModal').style.display='none'" style="background: #cbd5e1; color: var(--tecno-dark);">Cerrar Menú</button>
+        </div>
+    </div>
+
+    <div id="changePassModal" class="modal-overlay">
+        <div class="modal-content">
+            <h2>Cambiar Contraseña</h2>
+            <input type="password" id="currentPass" placeholder="Contraseña Actual">
+            <input type="password" id="newPass" placeholder="Nueva Contraseña">
+            
+            <div style="display: flex; gap: 10px;">
+                <button class="btn-primary" style="background: #cbd5e1; color: var(--tecno-dark);" onclick="document.getElementById('changePassModal').style.display='none'">Cancelar</button>
+                <button class="btn-primary" onclick="cambiarPassword()">Guardar</button>
+            </div>
+        </div>
+    </div>
+
     <div class="main-card">
         <div class="logo-container">
             <img src="TECNO-TOOL-icon.png" alt="Logo" class="logo-img">
