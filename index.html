@@ -190,8 +190,9 @@
             try {
                 const resp = await fetch('https://GuillermoDev.pythonanywhere.com/login', {
                     method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({username: u, password: p})
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({username: u, password: p}),
+                    credentials: 'include' // <--- ESTO ES OBLIGATORIO
                 });
                 const data = await resp.json();
                 if(data.success) {

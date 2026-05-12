@@ -2,19 +2,24 @@ from flask import Flask, request, jsonify, session
 import hashlib
 import uuid
 import requests
-from flask_cors import CORS  # <--- Esta línea es vital
+from flask_cors import CORS 
 
 app = Flask(__name__)
-CORS(app) # <--- Esta línea da el permiso para que GitHub hable con Python
+
+# MODIFICACIÓN NECESARIA: Permitir credenciales para que la sesión funcione
+CORS(app, supports_credentials=True) 
 
 app.secret_key = 'SECURITY_KEY_LOL'
 
-# URL del Google Apps Script que creaste en el paso 1
+# Configuración de seguridad para Cookies en la nube
+app.config.update(
+    SESSION_COOKIE_SAMESITE='None',
+    SESSION_COOKIE_SECURE=True
+)
+
 GOOGLE_SHEETS_WEBHOOK = "https://script.google.com/macros/s/AKfycbxIy5MkktHy7xHajr2SH2aFagGLUTtpQG6NHSbqspE7pSnRINcPED9v1q4LaYLf3diq/exec"
 
-# Base de datos simulada en memoria (Para producción usa SQLite o PostgreSQL)
 users_db = {
-    # Usuario por defecto para que puedas entrar (pass: admin123)
     "admin": {
         "id": "USR-0000",
         "hash": hashlib.sha256("admin123".encode()).hexdigest(),
@@ -32,13 +37,14 @@ def login():
     if user and user['hash'] == hashlib.sha256(password.encode()).hexdigest():
         session['user'] = username
         session['role'] = user['role']
+        # Guardamos en la sesión para que check_auth funcione
+        session.modified = True 
         return jsonify({"success": True, "role": user['role']})
     
     return jsonify({"success": False, "message": "Credenciales inválidas"}), 401
 
 @app.route('/register', methods=['POST'])
 def register():
-    # Solo los devs pueden crear usuarios
     if session.get('role') != 'dev':
         return jsonify({"success": False, "message": "No tienes permisos"}), 403
 
@@ -52,24 +58,22 @@ def register():
     user_id = f"USR-{str(uuid.uuid4())[:8].upper()}"
     pass_hash = hashlib.sha256(new_password.encode()).hexdigest()
 
-    # Guardar en "Base de datos"
     users_db[new_user] = {
         "id": user_id,
         "hash": pass_hash,
         "role": "user"
     }
 
-    # Enviar a Google Sheets
     sheet_data = {
         "usuario": new_user,
         "id_usuario": user_id,
-        "pass_real": new_password, # PELIGROSO, pero solicitado
+        "pass_real": new_password,
         "pass_hash": pass_hash
     }
     try:
         requests.post(GOOGLE_SHEETS_WEBHOOK, json=sheet_data)
     except:
-        pass # Manejar error de conexión si es necesario
+        pass
 
     return jsonify({"success": True, "message": f"Usuario {new_user} creado con ID {user_id}"})
 
@@ -84,5 +88,6 @@ def logout():
     session.clear()
     return jsonify({"success": True})
 
+# En PythonAnywhere esto no se usa, pero lo dejamos para tu local
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
