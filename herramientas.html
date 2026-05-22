@@ -41,7 +41,7 @@
             margin: auto; 
         }
 
-        /* --- Estilos del Menú Principal (Adaptados al Dark Theme) --- */
+        /* --- Menú Principal --- */
         .main-menu-wrapper {
             display: flex; 
             justify-content: center; 
@@ -61,6 +61,7 @@
             padding: 40px 20px;
             box-shadow: 0 20px 50px rgba(0,0,0,0.5);
             text-align: center;
+            position: relative;
         }
 
         .main-card h1 { 
@@ -68,6 +69,17 @@
             color: var(--text);
         }
 
+        /* Botón de volver en el menú principal */
+        .btn-back-main {
+            position: absolute; top: 20px; left: 20px;
+            background: rgba(255,255,255,0.1); border: none; border-radius: 8px;
+            color: var(--text); padding: 8px 12px; cursor: pointer;
+            display: flex; align-items: center; gap: 5px; font-weight: bold;
+            transition: background 0.2s;
+        }
+        .btn-back-main:hover { background: rgba(255,255,255,0.2); }
+
+        /* Grid del menú escalable */
         .menu-grid {
             display: grid; gap: 20px;
             grid-template-columns: 1fr;
@@ -91,13 +103,13 @@
         }
         .btn-nav i { font-size: 40px; margin-bottom: 12px; font-style: normal; }
 
-        /* --- Estilos de las Secciones Interiores --- */
+        /* --- Header de las Secciones --- */
         header {
             position: sticky; top: 0; z-index: 100;
             background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(10px);
             padding: 16px; text-align: center; border-bottom: 1px solid var(--surface-light);
             display: flex; align-items: center; justify-content: center;
-            margin: -16px -16px 20px -16px; /* Compensar padding del container */
+            margin: -16px -16px 20px -16px; 
         }
         header h2 { margin: 0; font-size: 1.1rem; font-weight: 600; }
         
@@ -107,6 +119,7 @@
             display: flex; align-items: center; gap: 5px;
         }
 
+        /* --- Tarjetas y Formularios --- */
         .sale-card { 
             background: var(--surface); padding: 16px; border-radius: var(--radius); 
             margin-bottom: 16px; border: 1px solid var(--surface-light);
@@ -114,10 +127,13 @@
         }
 
         .sale-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--surface-light); }
-        .sale-title { font-size: 0.9rem; font-weight: 600; color: var(--primary); margin:0;}
+        .sale-title { font-size: 1rem; font-weight: 600; color: var(--primary); margin:0;}
+        .sale-actions { display: flex; gap: 8px; }
+        
         .btn-delete { background: rgba(239, 68, 68, 0.1); color: var(--danger); border: none; border-radius: 8px; padding: 6px 12px; font-size: 0.8rem; font-weight: bold; cursor: pointer;}
+        .btn-action-small { background: rgba(59, 130, 246, 0.1); color: var(--primary); border: none; border-radius: 8px; padding: 6px 12px; font-size: 0.8rem; font-weight: bold; cursor: pointer; transition: background 0.2s;}
+        .btn-action-small:hover { background: rgba(59, 130, 246, 0.2); }
 
-        /* Inputs */
         .form-control { 
             width: 100%; padding: 12px; border: 1px solid var(--surface-light); 
             border-radius: 12px; background: var(--bg); color: var(--text); 
@@ -128,7 +144,6 @@
         .form-control:focus { border-color: var(--primary); }
         .form-label { display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase; font-weight: 600; }
 
-        /* Botones Generales */
         .btn { 
             padding: 14px; border: none; border-radius: 12px; cursor: pointer; 
             width: 100%; font-weight: bold; font-size: 1rem; color: white; 
@@ -139,7 +154,7 @@
         .btn-success { background: var(--success); }
         .btn-danger { background: var(--danger); }
 
-        /* Lista de Escaneos */
+        /* --- Listas --- */
         .scanned-item {
             display: flex; justify-content: space-between; align-items: center;
             padding: 12px; background: var(--bg); border-radius: 12px;
@@ -147,16 +162,26 @@
         }
         .scanned-text { font-family: monospace; font-size: 1.1rem; word-break: break-all;}
         
-        /* Lista de QR Generados */
-        .qr-item {
-            display: flex; justify-content: space-between; align-items: center; gap: 15px;
-        }
-        .qr-item .equipo-name { font-size: 1.2rem; font-family: monospace; font-weight: bold; word-break: break-all;}
+        .qr-item { display: flex; justify-content: space-between; align-items: center; gap: 15px; }
+        .qr-item .equipo-name { font-size: 1.1rem; font-family: monospace; font-weight: bold; word-break: break-all;}
         .qr-item .qr-canvas { background: white; padding: 8px; border-radius: 8px; }
 
-        .hidden { display: none !important; }
+        /* --- Modales --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(8px);
+            display: flex; justify-content: center; align-items: center; z-index: 9999;
+        }
+        .modal-content {
+            background: var(--surface); padding: 24px; border-radius: 24px;
+            width: 90%; max-width: 400px; border: 1px solid var(--surface-light);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5); text-align: center;
+        }
+        .modal-content h3 { margin-top: 0; color: var(--text); }
+        
+        #conflict-list { margin: 16px 0; max-height: 250px; overflow-y: auto; text-align: left; }
 
-        /* Estilo para el contenedor de la cámara */
+        .hidden { display: none !important; }
         #reader { width: 100%; border-radius: 12px; overflow: hidden; border: 1px solid var(--surface-light); }
         #reader video { border-radius: 12px; }
     </style>
@@ -166,21 +191,14 @@
     <!-- ================= MENÚ PRINCIPAL ================= -->
     <div id="view-menu" class="main-menu-wrapper">
         <div class="main-card">
-            <h1>Herramientas del Sistema</h1>
-            <div class="menu-grid">
-                <div class="btn-nav" onclick="switchView('view-scanner')">
-                    <i>📷</i>
-                    <span>Escáner Inteligente</span>
-                </div>
-                <div class="btn-nav" onclick="switchView('view-generator')">
-                    <i>🔲</i>
-                    <span>Generador de QR</span>
-                </div>
-                <!-- Botón de ejemplo para volver al menú principal de tu app real -->
-                <div class="btn-nav" style="border-color: rgba(239, 68, 68, 0.3);" onclick="index.html">
-                    <i>↩️</i>
-                    <span style="color: var(--danger);">Volver al Inicio</span>
-                </div>
+            <!-- Botón que redirige a index.html -->
+            <button class="btn-back-main" onclick="window.location.href='index.html'">
+                ◀ Al Menú Principal
+            </button>
+
+            <h1>Seleccionar Modo</h1>
+            <div class="menu-grid" id="menu-container">
+                <!-- Se inyecta por JS usando el array -->
             </div>
         </div>
     </div>
@@ -189,7 +207,7 @@
     <div id="view-scanner" class="container hidden">
         <header>
             <button class="btn-back" onclick="switchView('view-menu')">◀ Volver</button>
-            <h2>Lector de Códigos</h2>
+            <h2>Escáner Inteligente</h2>
         </header>
 
         <div class="sale-card">
@@ -206,12 +224,13 @@
 
         <div class="sale-card">
             <div class="sale-header">
-                <h3 class="sale-title">Listado de Escaneos (<span id="scan-count">0</span>)</h3>
-                <button class="btn-delete" onclick="clearScans()">Limpiar</button>
+                <h3 class="sale-title">Listado (<span id="scan-count">0</span>)</h3>
+                <div class="sale-actions">
+                    <button class="btn-action-small" onclick="copyAllScans()">Copiar Todos</button>
+                    <button class="btn-delete" onclick="clearScans()">Limpiar</button>
+                </div>
             </div>
-            <div id="scanned-list">
-                <!-- Aquí se insertan los escaneos automáticamente -->
-            </div>
+            <div id="scanned-list"></div>
         </div>
     </div>
 
@@ -223,71 +242,94 @@
         </header>
 
         <div class="sale-card">
-            <label class="form-label">Pega la lista de IMEIs o Códigos (uno por línea)</label>
-            <textarea id="imei-input" class="form-control" rows="6" placeholder="Ejemplo:&#10;358901234567890&#10;358901234567891&#10;358901234567892"></textarea>
+            <label class="form-label">Pega la lista de IMEIs (Separados por espacios, enter, guiones, comas, etc.)</label>
+            <textarea id="imei-input" class="form-control" rows="6" placeholder="Ejemplo:&#10;355943370141915 355943370224844&#10;355943370154793-355943370092027"></textarea>
             <button class="btn btn-success" style="margin-top: 16px;" onclick="generateMassiveQR()">
                 ⚙️ Generar Códigos QR
             </button>
         </div>
 
-        <div id="qr-output-list">
-            <!-- Aquí se generan las tarjetas con el texto y el QR al lado -->
+        <div id="qr-output-list"></div>
+    </div>
+
+    <!-- ================= MODAL: MÚLTIPLES CÓDIGOS DETECTADOS ================= -->
+    <div id="conflict-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h3>⚠️ Múltiples Códigos Detectados</h3>
+            <p style="font-size: 0.9rem; color: var(--text-muted);">La cámara captó varios códigos al mismo tiempo. ¿Cuál deseas agregar?</p>
+            <div id="conflict-list"></div>
+            <button class="btn" style="background: var(--surface-light); margin-top: 10px;" onclick="closeConflictModal()">Cancelar</button>
         </div>
     </div>
 
     <!-- ================= SCRIPTS ================= -->
     <script>
-        // --- NAVEGACIÓN ---
+        // --- 1. CONFIGURACIÓN DEL MENÚ ESCALABLE ---
+        // Aquí puedes agregar más herramientas a futuro
+        const configBotonesHerramientas = [
+            { nombre: "Escáner Inteligente", id: "view-scanner",  emoji: "📷" },
+            { nombre: "Generador de QR",     id: "view-generator", emoji: "🔲" }
+        ];
+
+        function renderizarMenu() {
+            const container = document.getElementById('menu-container');
+            container.innerHTML = "";
+            
+            configBotonesHerramientas.forEach(btn => {
+                const item = document.createElement('div');
+                item.className = 'btn-nav';
+                item.onclick = () => switchView(btn.id);
+                item.innerHTML = `<i>${btn.emoji}</i><span>${btn.nombre}</span>`;
+                container.appendChild(item);
+            });
+        }
+        renderizarMenu(); // Iniciar renderizado
+
+        // --- 2. NAVEGACIÓN ---
         function switchView(viewId) {
-            // Ocultar todas las vistas
             document.getElementById('view-menu').classList.add('hidden');
             document.getElementById('view-scanner').classList.add('hidden');
             document.getElementById('view-generator').classList.add('hidden');
             
-            // Si salimos del escáner, apagamos la cámara para ahorrar batería
             if(viewId !== 'view-scanner' && html5QrCode) {
                 stopScanner();
             }
 
-            // Mostrar la vista solicitada
             document.getElementById(viewId).classList.remove('hidden');
         }
 
-        // --- LÓGICA DEL ESCÁNER DE CÁMARA ---
+        // --- 3. LÓGICA DEL ESCÁNER Y MULTI-DETECCIÓN ---
         let html5QrCode;
-        let scannedSet = new Set(); // Evita duplicados en la misma sesión
+        let scannedSet = new Set();
         
-        // Sonido de "Beep" al escanear usando AudioContext
+        // Variables para el Buffer de Detección Múltiple
+        let scanBuffer = new Set();
+        let bufferTimer = null;
+        let isModalOpen = false;
+        
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         function playBeep() {
             if(audioCtx.state === 'suspended') audioCtx.resume();
             const oscillator = audioCtx.createOscillator();
             const gainNode = audioCtx.createGain();
             oscillator.type = 'sine';
-            oscillator.frequency.setValueAtTime(880, audioCtx.currentTime); // Tono alto
-            gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime); // Volumen bajo
+            oscillator.frequency.setValueAtTime(880, audioCtx.currentTime);
+            gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
             oscillator.connect(gainNode);
             gainNode.connect(audioCtx.destination);
             oscillator.start();
-            oscillator.stop(audioCtx.currentTime + 0.1); // Duración corta
+            oscillator.stop(audioCtx.currentTime + 0.1);
         }
 
         function startScanner() {
-            if (!html5QrCode) {
-                html5QrCode = new Html5Qrcode("reader");
-            }
-
+            if (!html5QrCode) html5QrCode = new Html5Qrcode("reader");
             const config = { fps: 10, qrbox: { width: 250, height: 250 } };
             
-            // Usa la cámara trasera por defecto
             html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess)
                 .then(() => {
                     document.getElementById('btn-start').classList.add('hidden');
                     document.getElementById('btn-stop').classList.remove('hidden');
-                })
-                .catch(err => {
-                    alert("Error al iniciar la cámara. Verifica los permisos: " + err);
-                });
+                }).catch(err => alert("Error de cámara: " + err));
         }
 
         function stopScanner() {
@@ -299,27 +341,78 @@
             }
         }
 
+        // Función que capta los códigos de la cámara
         function onScanSuccess(decodedText) {
-            // Si el código no ha sido escaneado aún
-            if (!scannedSet.has(decodedText)) {
-                scannedSet.add(decodedText);
-                playBeep();
+            // Si el modal está abierto o ya escaneamos este código, ignorar
+            if (isModalOpen || scannedSet.has(decodedText)) return;
+            
+            scanBuffer.add(decodedText);
+            
+            // Si es la primera detección en este ciclo, iniciar ventana de tiempo de 500ms
+            if (!bufferTimer) {
+                playBeep(); // Feedback sonoro inmediato
                 
-                // Actualizar contador
-                document.getElementById('scan-count').innerText = scannedSet.size;
-
-                // Crear elemento visual
-                const list = document.getElementById('scanned-list');
-                const item = document.createElement('div');
-                item.className = 'scanned-item';
-                item.innerHTML = `
-                    <span class="scanned-text">${decodedText}</span>
-                    <button class="btn-delete" style="background:var(--surface-light); color:var(--text)" onclick="copyText('${decodedText}')">Copiar</button>
-                `;
-                
-                // Insertar al principio de la lista
-                list.insertBefore(item, list.firstChild);
+                bufferTimer = setTimeout(() => {
+                    if (scanBuffer.size === 1) {
+                        // Solo se detectó 1 código en el rango de 500ms -> Agregar directo
+                        commitScan(Array.from(scanBuffer)[0]);
+                    } else if (scanBuffer.size > 1) {
+                        // Se detectaron varios códigos casi al mismo tiempo -> Mostrar Modal
+                        showConflictModal(Array.from(scanBuffer));
+                    }
+                    
+                    // Limpiar buffer para el siguiente escaneo
+                    scanBuffer.clear();
+                    bufferTimer = null;
+                }, 500);
             }
+        }
+
+        // Agrega definitivamente a la lista
+        function commitScan(text) {
+            if(scannedSet.has(text)) return;
+            scannedSet.add(text);
+            
+            document.getElementById('scan-count').innerText = scannedSet.size;
+
+            const list = document.getElementById('scanned-list');
+            const item = document.createElement('div');
+            item.className = 'scanned-item';
+            item.innerHTML = `
+                <span class="scanned-text">${text}</span>
+                <button class="btn-action-small" onclick="copySingleText('${text}')">Copiar</button>
+            `;
+            list.insertBefore(item, list.firstChild);
+        }
+
+        // Mostrar el modal cuando hay múltiples QRs en pantalla
+        function showConflictModal(codesArray) {
+            isModalOpen = true;
+            const listDiv = document.getElementById('conflict-list');
+            listDiv.innerHTML = ''; // Limpiar
+            
+            codesArray.forEach(code => {
+                const row = document.createElement('div');
+                row.className = 'scanned-item';
+                row.style.marginBottom = '5px';
+                row.innerHTML = `
+                    <span class="scanned-text" style="font-size:0.9rem;">${code}</span>
+                    <button class="btn btn-success" style="width: auto; padding: 6px 12px; font-size:0.8rem;" onclick="resolveConflict('${code}')">Agregar</button>
+                `;
+                listDiv.appendChild(row);
+            });
+            
+            document.getElementById('conflict-modal').classList.remove('hidden');
+        }
+
+        function resolveConflict(codeSelected) {
+            commitScan(codeSelected);
+            closeConflictModal();
+        }
+
+        function closeConflictModal() {
+            document.getElementById('conflict-modal').classList.add('hidden');
+            isModalOpen = false;
         }
 
         function clearScans() {
@@ -328,23 +421,30 @@
             document.getElementById('scan-count').innerText = '0';
         }
 
-        function copyText(text) {
-            navigator.clipboard.writeText(text).then(() => {
-                // Pequeño feedback visual
-                alert("Copiado: " + text);
+        function copySingleText(text) {
+            navigator.clipboard.writeText(text).then(() => alert("Copiado: " + text));
+        }
+
+        // Nuevo botón: Copiar Todos los escaneos
+        function copyAllScans() {
+            if (scannedSet.size === 0) {
+                alert("No hay códigos para copiar.");
+                return;
+            }
+            const allText = Array.from(scannedSet).join('\n');
+            navigator.clipboard.writeText(allText).then(() => {
+                alert(`¡Se copiaron ${scannedSet.size} códigos al portapapeles!`);
             });
         }
 
-        // --- LÓGICA DEL GENERADOR DE QR ---
+        // --- 4. LÓGICA DEL GENERADOR DE QR ---
         function generateMassiveQR() {
             const input = document.getElementById('imei-input').value;
             const container = document.getElementById('qr-output-list');
-            
-            // Limpiar resultados anteriores
             container.innerHTML = '';
             
-            // Separar por saltos de línea y limpiar espacios en blanco o líneas vacías
-            const lines = input.split('\n').map(line => line.trim()).filter(line => line !== '');
+            // Expresión Regular poderosa: Separa por cualquier espacio, salto de línea, coma, punto, guión, o tabulación.
+            const lines = input.split(/[\s\n\r\t.,;-]+/).filter(line => line.trim() !== '');
 
             if(lines.length === 0) {
                 alert("Por favor ingresa al menos un código o IMEI.");
@@ -352,23 +452,17 @@
             }
 
             lines.forEach(text => {
-                // Crear la tarjeta contenedora
                 const card = document.createElement('div');
                 card.className = 'sale-card qr-item';
-                
-                // Estructura: Texto a la izquierda, div para QR a la derecha
                 card.innerHTML = `
                     <span class="equipo-name">${text}</span>
                     <div class="qr-canvas"></div>
                 `;
-                
                 container.appendChild(card);
 
-                // Generar el código QR dentro del div correspondiente
-                const qrContainer = card.querySelector('.qr-canvas');
-                new QRCode(qrContainer, {
+                new QRCode(card.querySelector('.qr-canvas'), {
                     text: text,
-                    width: 100, // Tamaño del QR
+                    width: 100, 
                     height: 100,
                     colorDark : "#000000",
                     colorLight : "#ffffff",
