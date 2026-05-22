@@ -91,11 +91,11 @@
         .accent { border: 1px solid var(--tecno-blue); background: #f0f7ff; }
         .on-work { border: 2px dashed #cbd5e1; color: #94a3b8; cursor: default; }
 
-        /* --- Modales (CORREGIDO: Ocultos por defecto) --- */
+        /* --- Modales --- */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(8px);
-            display: none; /* <--- IMPORTANTE */
+            display: none; 
             justify-content: center; align-items: center; z-index: 9999;
         }
         .modal-content {
@@ -103,10 +103,12 @@
             width: 320px; text-align: center;
         }
 
-        input {
+        /* Se agregó 'select' a los estilos para que la lista desplegable coincida con los inputs */
+        input, select {
             width: 100%; padding: 12px; margin: 10px 0;
             border-radius: 12px; border: 1px solid #e2e8f0;
             box-sizing: border-box;
+            font-family: inherit;
         }
         .btn-primary {
             width: 100%; padding: 12px; background: var(--tecno-gradient);
@@ -124,6 +126,7 @@
         <span id="userDevTag" class="dev-tag">DEV</span>
     </div>
 
+    <!-- Modal de Login -->
     <div id="loginModal" class="modal-overlay" style="display: flex;">
         <div class="modal-content">
             <h2>Iniciar Sesión</h2>
@@ -152,13 +155,22 @@
         </div>
     </div>
 
+    <!-- Modal para Crear Usuario (Actualizado con Select) -->
     <div id="createUserModal" class="modal-overlay">
         <div class="modal-content">
             <h2>Registrar Usuario</h2>
             <input type="text" id="newUsername" placeholder="Nombre">
             <input type="text" id="newPassword" placeholder="Clave Temporal">
             <input type="text" id="newState" placeholder="Estado (Lara, etc.)">
-            <label style="font-size: 12px;"><input type="checkbox" id="isAdminCheckbox"> Es Administrador</label>
+            
+            <select id="newUserRole">
+                <option value="promotor">Promotor</option>
+                <option value="retailer">Retailer</option>
+                <option value="supervisor">Supervisor</option>
+                <option value="admin">Admin</option>
+                <option value="dev">Dev</option>
+            </select>
+
             <button class="btn-primary" onclick="crearUsuario()">Crear</button>
             <button class="btn-primary" onclick="document.getElementById('createUserModal').style.display='none'" style="background: #cbd5e1; color: black;">Cerrar</button>
         </div>
@@ -174,26 +186,42 @@
     <script>
         const API_URL = 'https://GuillermoDev.pythonanywhere.com';
         
+        // --- ARREGLO ADAPTATIVO POR ROLES ---
         const configBotones = [
-            { nombre: "Reporte entrada",            link: "reporte-entrada.html",               icono: "entrada.png",   emoji: "📍" },
-            { nombre: "Reporte salida",             link: "reporte.html",                       icono: "reporte.png",   emoji: "📝" },
-            { nombre: "Registro de equipos",        link: "equiposDisponibles.html",            icono: "phone.png",     emoji: "📱" },
-            { nombre: "Gestion de material POP",    link: "gestionPOP.html",                    icono: "box.png",       emoji: "🎁" },
-            { nombre: "Gestion de binance ID",      link: "generadorDeListado-binance.html",    icono: "binance.png",   emoji: "🔶" },
-            { nombre: "IMEI QR GENERATOR",          link: "https://docs.google.com/spreadsheets/d/1rWnxzCo7ttoErCXVy1yk6HIyHTtlDMWFr25gm71aqa0/edit?gid=646746000#gid=646746000",    icono: "place.png",   emoji: "📱" },
-            { nombre: "IMEI Tools",                 link: "herramientas.html",            icono: "place.png",     emoji: "📱🔶" },
-            { nombre: "Reporte salida SUPERVISOR",  link: "reporte-SUPERVISOR.html",            icono: "place.png",     emoji: "📱📝" },
+            { nombre: "Reporte entrada",            link: "reporte-entrada.html",             icono: "entrada.png",   emoji: "📍", visibleToRol: ["retailer", "admin", "dev"] },
+            { nombre: "Reporte salida",             link: "reporte.html",                     icono: "reporte.png",   emoji: "📝", visibleToRol: ["retailer", "admin", "dev"] },
+            { nombre: "Registro de equipos",        link: "equiposDisponibles.html",          icono: "phone.png",     emoji: "📱", visibleToRol: ["promotor", "retailer", "supervisor", "admin", "dev"] },
+            { nombre: "Gestion de material POP",    link: "gestionPOP.html",                  icono: "box.png",       emoji: "🎁", visibleToRol: ["promotor", "retailer", "supervisor", "admin", "dev"] },
+            { nombre: "Gestion de binance ID",      link: "generadorDeListado-binance.html",  icono: "binance.png",   emoji: "🔶", visibleToRol: ["retailer", "supervisor", "admin", "dev"] },
+            { nombre: "IMEI QR GENERATOR",          link: "https://docs.google.com/spreadsheets/d/1rWnxzCo7ttoErCXVy1yk6HIyHTtlDMWFr25gm71aqa0/edit?gid=646746000#gid=646746000", icono: "place.png", emoji: "📱", visibleToRol: ["retailer", "supervisor", "admin", "dev"] },
+            { nombre: "IMEI Tools",                 link: "herramientas.html",                icono: "place.png",     emoji: "📱🔶", visibleToRol: ["promotor", "retailer", "supervisor", "admin", "dev"] },
+            // Ejemplo: Este botón solo lo verán estos tres roles:
+            { nombre: "Reporte salida SUPERVISOR",  link: "reporte-SUPERVISOR.html",          icono: "place.png",     emoji: "📱📝", visibleToRol: ["supervisor", "admin", "dev"] }
         ];
 
-        
         async function verificarSesion() {
+            // 1. CARGA INMEDIATA (Optimización de velocidad)
+            const cachedUser = localStorage.getItem('tecno_current_user');
+            const cachedRole = localStorage.getItem('tecno_current_role');
+            
+            if(cachedUser && cachedRole) {
+                mostrarInterfaz(cachedUser, cachedRole);
+            }
+
+            // 2. VERIFICACIÓN SILENCIOSA CON EL SERVIDOR
             try {
                 const resp = await fetch(`${API_URL}/check_auth`, {credentials: 'include'});
                 const data = await resp.json();
+                
                 if(data.authenticated) {
-                    mostrarInterfaz(data.user, data.role);
+                    mostrarInterfaz(data.user, data.role); // Actualiza si hubo algún cambio
+                } else {
+                    mostrarLogin(); // Si expiró la sesión, lo manda al login
                 }
-            } catch(e) { console.log("No hay sesión activa"); }
+            } catch(e) { 
+                console.log("Error de conexión, manteniendo caché si existe.");
+                if(!cachedUser) mostrarLogin();
+            }
         }
         
         function mostrarInterfaz(username, role) {
@@ -203,7 +231,17 @@
             document.getElementById('userDevTag').style.display = (role === 'dev') ? 'block' : 'none';
             
             localStorage.setItem('tecno_current_user', username);
+            localStorage.setItem('tecno_current_role', role); // Se guarda el rol para la carga rápida
+            
             cargarMenu(role);
+        }
+
+        function mostrarLogin() {
+            document.getElementById('loginModal').style.display = 'flex';
+            document.getElementById('userBadge').style.display = 'none';
+            document.getElementById('gridContainer').innerHTML = '';
+            localStorage.removeItem('tecno_current_user');
+            localStorage.removeItem('tecno_current_role');
         }
 
         function cargarMenu(role) {
@@ -211,6 +249,9 @@
             container.innerHTML = "";
 
             configBotones.forEach(btn => {
+                // LÓGICA ADAPTATIVA: Si el rol del usuario no está en el array, no dibuja el botón
+                if (btn.visibleToRol && !btn.visibleToRol.includes(role)) return;
+
                 const item = document.createElement('a');
                 item.href = btn.link;
                 item.className = 'btn-nav';
@@ -218,6 +259,7 @@
                 container.appendChild(item);
             });
 
+            // Lógica Exclusiva para el DEV
             if(role === 'dev') {
                 const devBtn = document.createElement('div');
                 devBtn.className = 'btn-nav accent';
@@ -243,8 +285,11 @@
                 credentials: 'include'
             });
             const data = await resp.json();
-            if(data.success) { mostrarInterfaz(u, data.role); }
-            else { alert(data.message); }
+            if(data.success) { 
+                mostrarInterfaz(u, data.role); 
+            } else { 
+                alert(data.message); 
+            }
         }
 
         async function cerrarSesion() {
@@ -276,11 +321,13 @@
             const u = document.getElementById('newUsername').value;
             const p = document.getElementById('newPassword').value;
             const e = document.getElementById('newState').value;
-            const a = document.getElementById('isAdminCheckbox').checked;
+            const r = document.getElementById('newUserRole').value; // Ahora tomamos el valor del Select
+            
             const resp = await fetch(`${API_URL}/register`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({username: u, password: p, estado: e, is_admin: a}),
+                // Ahora se envía el atributo "role" en lugar de "is_admin"
+                body: JSON.stringify({username: u, password: p, estado: e, role: r}), 
                 credentials: 'include'
             });
             const data = await resp.json();
