@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Scanner & QR Tool</title>
+    <title>Scanner & QR</title>
+    <link rel="icon" type="image/png" href="TECNO-TOOL-icon.png">
     
     <!-- Librerías para Escanear y Generar QR -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
@@ -69,7 +70,6 @@
             color: var(--text);
         }
 
-        /* Botón de volver en el menú principal */
         .btn-back-main {
             position: absolute; top: 20px; left: 20px;
             background: rgba(255,255,255,0.1); border: none; border-radius: 8px;
@@ -79,7 +79,6 @@
         }
         .btn-back-main:hover { background: rgba(255,255,255,0.2); }
 
-        /* Grid del menú escalable */
         .menu-grid {
             display: grid; gap: 20px;
             grid-template-columns: 1fr;
@@ -126,12 +125,12 @@
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
         }
 
-        .sale-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--surface-light); }
+        .sale-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--surface-light); flex-wrap: wrap; gap: 10px; }
         .sale-title { font-size: 1rem; font-weight: 600; color: var(--primary); margin:0;}
-        .sale-actions { display: flex; gap: 8px; }
+        .sale-actions { display: flex; gap: 8px; flex-wrap: wrap; }
         
         .btn-delete { background: rgba(239, 68, 68, 0.1); color: var(--danger); border: none; border-radius: 8px; padding: 6px 12px; font-size: 0.8rem; font-weight: bold; cursor: pointer;}
-        .btn-action-small { background: rgba(59, 130, 246, 0.1); color: var(--primary); border: none; border-radius: 8px; padding: 6px 12px; font-size: 0.8rem; font-weight: bold; cursor: pointer; transition: background 0.2s;}
+        .btn-action-small { background: rgba(59, 130, 246, 0.1); color: var(--text); border: none; border-radius: 8px; padding: 6px 12px; font-size: 0.8rem; font-weight: bold; cursor: pointer; transition: background 0.2s;}
         .btn-action-small:hover { background: rgba(59, 130, 246, 0.2); }
 
         .form-control { 
@@ -159,27 +158,32 @@
             display: flex; justify-content: space-between; align-items: center;
             padding: 12px; background: var(--bg); border-radius: 12px;
             margin-bottom: 8px; border: 1px solid var(--surface-light);
+            word-break: break-all;
         }
-        .scanned-text { font-family: monospace; font-size: 1.1rem; word-break: break-all;}
+        .scanned-text { font-family: monospace; font-size: 1.05rem; flex: 1; margin-right: 10px; }
         
         .qr-item { display: flex; justify-content: space-between; align-items: center; gap: 15px; }
         .qr-item .equipo-name { font-size: 1.1rem; font-family: monospace; font-weight: bold; word-break: break-all;}
         .qr-item .qr-canvas { background: white; padding: 8px; border-radius: 8px; }
 
-        /* --- Modales --- */
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(8px);
-            display: flex; justify-content: center; align-items: center; z-index: 9999;
+        /* --- Globo del Buffer Multi-Escaneo --- */
+        #conflict-bubble {
+            background: var(--surface-light);
+            border: 1px solid var(--primary);
+            border-radius: 12px;
+            padding: 12px;
+            margin-top: 12px;
+            position: relative;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
         }
-        .modal-content {
-            background: var(--surface); padding: 24px; border-radius: 24px;
-            width: 90%; max-width: 400px; border: 1px solid var(--surface-light);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5); text-align: center;
+        /* Flechita apuntando a la cámara */
+        #conflict-bubble::before {
+            content: ''; position: absolute; top: -6px; left: 20px;
+            width: 10px; height: 10px; background: var(--surface-light);
+            border-top: 1px solid var(--primary); border-left: 1px solid var(--primary);
+            transform: rotate(45deg);
         }
-        .modal-content h3 { margin-top: 0; color: var(--text); }
-        
-        #conflict-list { margin: 16px 0; max-height: 250px; overflow-y: auto; text-align: left; }
+        #conflict-list { max-height: 200px; overflow-y: auto; margin-top: 8px; }
 
         .hidden { display: none !important; }
         #reader { width: 100%; border-radius: 12px; overflow: hidden; border: 1px solid var(--surface-light); }
@@ -191,14 +195,13 @@
     <!-- ================= MENÚ PRINCIPAL ================= -->
     <div id="view-menu" class="main-menu-wrapper">
         <div class="main-card">
-            <!-- Botón que redirige a index.html -->
             <button class="btn-back-main" onclick="window.location.href='index.html'">
                 ◀ Al Menú Principal
             </button>
 
             <h1>Seleccionar Modo</h1>
             <div class="menu-grid" id="menu-container">
-                <!-- Se inyecta por JS usando el array -->
+                <!-- Se inyecta por JS -->
             </div>
         </div>
     </div>
@@ -212,6 +215,16 @@
 
         <div class="sale-card">
             <div id="reader"></div>
+            
+            <!-- Globo de conflicto (No intrusivo) -->
+            <div id="conflict-bubble" class="hidden">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 0.85rem; font-weight: bold; color: var(--danger);">⚠️ Varios detectados. Elige uno:</span>
+                    <button class="btn-delete" style="padding: 2px 8px; background: transparent; color: var(--text-muted);" onclick="closeConflictMenu()">✖</button>
+                </div>
+                <div id="conflict-list"></div>
+            </div>
+
             <div style="margin-top: 16px;">
                 <button class="btn btn-primary" id="btn-start" onclick="startScanner()">
                     📷 Iniciar Cámara
@@ -226,8 +239,9 @@
             <div class="sale-header">
                 <h3 class="sale-title">Listado (<span id="scan-count">0</span>)</h3>
                 <div class="sale-actions">
-                    <button class="btn-action-small" onclick="copyAllScans()">Copiar Todos</button>
-                    <button class="btn-delete" onclick="clearScans()">Limpiar</button>
+                    <button class="btn-action-small" onclick="sendToQRGenerator()">🔲 Enviar a QR</button>
+                    <button class="btn-action-small" onclick="copyAllScans()">📋 Copiar</button>
+                    <button class="btn-delete" onclick="clearScans()">🗑️ Limpiar</button>
                 </div>
             </div>
             <div id="scanned-list"></div>
@@ -242,30 +256,26 @@
         </header>
 
         <div class="sale-card">
-            <label class="form-label">Pega la lista de IMEIs (Separados por espacios, enter, guiones, comas, etc.)</label>
-            <textarea id="imei-input" class="form-control" rows="6" placeholder="Ejemplo:&#10;355943370141915 355943370224844&#10;355943370154793-355943370092027"></textarea>
+            <label class="form-label">Pega la lista de IMEIs (Separados por espacios, enter, guiones, etc.)</label>
+            <textarea id="imei-input" class="form-control" rows="6" placeholder="Ejemplo:&#10;355943370141915 355943370224844"></textarea>
             <button class="btn btn-success" style="margin-top: 16px;" onclick="generateMassiveQR()">
                 ⚙️ Generar Códigos QR
             </button>
         </div>
 
+        <div class="sale-card">
+            <div class="sale-header" style="border:none; margin:0; padding:0;">
+                <h3 class="sale-title">Resultados (<span id="qr-count">0</span> extraídos)</h3>
+            </div>
+        </div>
+
         <div id="qr-output-list"></div>
     </div>
 
-    <!-- ================= MODAL: MÚLTIPLES CÓDIGOS DETECTADOS ================= -->
-    <div id="conflict-modal" class="modal-overlay hidden">
-        <div class="modal-content">
-            <h3>⚠️ Múltiples Códigos Detectados</h3>
-            <p style="font-size: 0.9rem; color: var(--text-muted);">La cámara captó varios códigos al mismo tiempo. ¿Cuál deseas agregar?</p>
-            <div id="conflict-list"></div>
-            <button class="btn" style="background: var(--surface-light); margin-top: 10px;" onclick="closeConflictModal()">Cancelar</button>
-        </div>
-    </div>
 
     <!-- ================= SCRIPTS ================= -->
     <script>
         // --- 1. CONFIGURACIÓN DEL MENÚ ESCALABLE ---
-        // Aquí puedes agregar más herramientas a futuro
         const configBotonesHerramientas = [
             { nombre: "Escáner Inteligente", id: "view-scanner",  emoji: "📷" },
             { nombre: "Generador de QR",     id: "view-generator", emoji: "🔲" }
@@ -274,7 +284,6 @@
         function renderizarMenu() {
             const container = document.getElementById('menu-container');
             container.innerHTML = "";
-            
             configBotonesHerramientas.forEach(btn => {
                 const item = document.createElement('div');
                 item.className = 'btn-nav';
@@ -283,7 +292,7 @@
                 container.appendChild(item);
             });
         }
-        renderizarMenu(); // Iniciar renderizado
+        renderizarMenu();
 
         // --- 2. NAVEGACIÓN ---
         function switchView(viewId) {
@@ -293,6 +302,7 @@
             
             if(viewId !== 'view-scanner' && html5QrCode) {
                 stopScanner();
+                closeConflictMenu(); // Cerrar el globo si estaba abierto
             }
 
             document.getElementById(viewId).classList.remove('hidden');
@@ -302,10 +312,9 @@
         let html5QrCode;
         let scannedSet = new Set();
         
-        // Variables para el Buffer de Detección Múltiple
         let scanBuffer = new Set();
         let bufferTimer = null;
-        let isModalOpen = false;
+        let isConflictOpen = false;
         
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         function playBeep() {
@@ -341,100 +350,124 @@
             }
         }
 
-        // Función que capta los códigos de la cámara
         function onScanSuccess(decodedText) {
-            // Si el modal está abierto o ya escaneamos este código, ignorar
-            if (isModalOpen || scannedSet.has(decodedText)) return;
+            // Si el globo está abierto o el código ya está en la lista final, lo ignora
+            if (isConflictOpen || scannedSet.has(decodedText)) return;
             
             scanBuffer.add(decodedText);
             
-            // Si es la primera detección en este ciclo, iniciar ventana de tiempo de 500ms
+            // Buffer ajustado a 200 ms
             if (!bufferTimer) {
-                playBeep(); // Feedback sonoro inmediato
+                playBeep();
                 
                 bufferTimer = setTimeout(() => {
                     if (scanBuffer.size === 1) {
-                        // Solo se detectó 1 código en el rango de 500ms -> Agregar directo
                         commitScan(Array.from(scanBuffer)[0]);
                     } else if (scanBuffer.size > 1) {
-                        // Se detectaron varios códigos casi al mismo tiempo -> Mostrar Modal
-                        showConflictModal(Array.from(scanBuffer));
+                        showConflictMenu(Array.from(scanBuffer));
                     }
-                    
-                    // Limpiar buffer para el siguiente escaneo
                     scanBuffer.clear();
                     bufferTimer = null;
-                }, 500);
+                }, 200); // <-- 200ms
             }
         }
 
-        // Agrega definitivamente a la lista
+        // --- MANEJO DE LA LISTA VISUAL ---
+        function renderScannedList() {
+            const list = document.getElementById('scanned-list');
+            list.innerHTML = '';
+            
+            // Convertimos a array y lo invertimos para mostrar el último escaneado arriba
+            const arr = Array.from(scannedSet).reverse();
+            
+            arr.forEach(text => {
+                const item = document.createElement('div');
+                item.className = 'scanned-item';
+                item.innerHTML = `
+                    <span class="scanned-text">${text}</span>
+                    <div class="sale-actions" style="gap: 4px;">
+                        <button class="btn-action-small" onclick="copySingleText('${text}')" title="Copiar">📋</button>
+                        <button class="btn-action-small" style="background: rgba(239, 68, 68, 0.1);" onclick="deleteSingleScan('${text}')" title="Eliminar">🗑️</button>
+                    </div>
+                `;
+                list.appendChild(item);
+            });
+            document.getElementById('scan-count').innerText = scannedSet.size;
+        }
+
         function commitScan(text) {
             if(scannedSet.has(text)) return;
             scannedSet.add(text);
-            
-            document.getElementById('scan-count').innerText = scannedSet.size;
-
-            const list = document.getElementById('scanned-list');
-            const item = document.createElement('div');
-            item.className = 'scanned-item';
-            item.innerHTML = `
-                <span class="scanned-text">${text}</span>
-                <button class="btn-action-small" onclick="copySingleText('${text}')">Copiar</button>
-            `;
-            list.insertBefore(item, list.firstChild);
+            renderScannedList();
         }
 
-        // Mostrar el modal cuando hay múltiples QRs en pantalla
-        function showConflictModal(codesArray) {
-            isModalOpen = true;
-            const listDiv = document.getElementById('conflict-list');
-            listDiv.innerHTML = ''; // Limpiar
-            
-            codesArray.forEach(code => {
-                const row = document.createElement('div');
-                row.className = 'scanned-item';
-                row.style.marginBottom = '5px';
-                row.innerHTML = `
-                    <span class="scanned-text" style="font-size:0.9rem;">${code}</span>
-                    <button class="btn btn-success" style="width: auto; padding: 6px 12px; font-size:0.8rem;" onclick="resolveConflict('${code}')">Agregar</button>
-                `;
-                listDiv.appendChild(row);
-            });
-            
-            document.getElementById('conflict-modal').classList.remove('hidden');
-        }
-
-        function resolveConflict(codeSelected) {
-            commitScan(codeSelected);
-            closeConflictModal();
-        }
-
-        function closeConflictModal() {
-            document.getElementById('conflict-modal').classList.add('hidden');
-            isModalOpen = false;
+        function deleteSingleScan(text) {
+            scannedSet.delete(text);
+            renderScannedList();
         }
 
         function clearScans() {
             scannedSet.clear();
-            document.getElementById('scanned-list').innerHTML = '';
-            document.getElementById('scan-count').innerText = '0';
+            renderScannedList();
         }
 
         function copySingleText(text) {
             navigator.clipboard.writeText(text).then(() => alert("Copiado: " + text));
         }
 
-        // Nuevo botón: Copiar Todos los escaneos
         function copyAllScans() {
             if (scannedSet.size === 0) {
                 alert("No hay códigos para copiar.");
                 return;
             }
-            const allText = Array.from(scannedSet).join('\n');
+            // Mantiene el orden visual (los últimos escaneos arriba)
+            const allText = Array.from(scannedSet).reverse().join('\n');
             navigator.clipboard.writeText(allText).then(() => {
                 alert(`¡Se copiaron ${scannedSet.size} códigos al portapapeles!`);
             });
+        }
+
+        // Enviar al QR Generator directamente
+        function sendToQRGenerator() {
+            if (scannedSet.size === 0) {
+                alert("No hay códigos en la lista para enviar.");
+                return;
+            }
+            const allText = Array.from(scannedSet).reverse().join('\n');
+            document.getElementById('imei-input').value = allText;
+            switchView('view-generator');
+            generateMassiveQR();
+        }
+
+        // --- GLOBO DE CONFLICTO (No intrusivo) ---
+        function showConflictMenu(codesArray) {
+            isConflictOpen = true;
+            const bubble = document.getElementById('conflict-bubble');
+            const listDiv = document.getElementById('conflict-list');
+            listDiv.innerHTML = ''; 
+            
+            codesArray.forEach(code => {
+                const row = document.createElement('div');
+                row.className = 'scanned-item';
+                row.style.marginBottom = '5px';
+                row.style.padding = '8px';
+                row.innerHTML = `
+                    <span class="scanned-text" style="font-size:0.9rem;">${code}</span>
+                    <button class="btn btn-success" style="width: auto; padding: 4px 8px; font-size:0.8rem;" onclick="resolveConflict('${code}')">Agregar</button>
+                `;
+                listDiv.appendChild(row);
+            });
+            bubble.classList.remove('hidden');
+        }
+
+        function resolveConflict(codeSelected) {
+            commitScan(codeSelected);
+            closeConflictMenu();
+        }
+
+        function closeConflictMenu() {
+            document.getElementById('conflict-bubble').classList.add('hidden');
+            isConflictOpen = false;
         }
 
         // --- 4. LÓGICA DEL GENERADOR DE QR ---
@@ -443,19 +476,22 @@
             const container = document.getElementById('qr-output-list');
             container.innerHTML = '';
             
-            // Expresión Regular poderosa: Separa por cualquier espacio, salto de línea, coma, punto, guión, o tabulación.
             const lines = input.split(/[\s\n\r\t.,;-]+/).filter(line => line.trim() !== '');
+
+            // Actualizar el contador de extracciones
+            document.getElementById('qr-count').innerText = lines.length;
 
             if(lines.length === 0) {
                 alert("Por favor ingresa al menos un código o IMEI.");
                 return;
             }
 
-            lines.forEach(text => {
+            // Agregando el índice (número) antes del texto extraído
+            lines.forEach((text, index) => {
                 const card = document.createElement('div');
                 card.className = 'sale-card qr-item';
                 card.innerHTML = `
-                    <span class="equipo-name">${text}</span>
+                    <span class="equipo-name" style="color: var(--primary);">${index + 1}. <span style="color: var(--text);">${text}</span></span>
                     <div class="qr-canvas"></div>
                 `;
                 container.appendChild(card);
