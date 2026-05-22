@@ -181,9 +181,11 @@
             { nombre: "Gestion de material POP",    link: "gestionPOP.html",                    icono: "box.png",       emoji: "🎁" },
             { nombre: "Gestion de binance ID",      link: "generadorDeListado-binance.html",    icono: "binance.png",   emoji: "🔶" },
             { nombre: "IMEI QR GENERATOR",          link: "https://docs.google.com/spreadsheets/d/1rWnxzCo7ttoErCXVy1yk6HIyHTtlDMWFr25gm71aqa0/edit?gid=646746000#gid=646746000",    icono: "place.png",   emoji: "📱" },
+            { nombre: "IMEI Tools",                 link: "herramientas.html",            icono: "place.png",     emoji: "📱🔶" },
             { nombre: "Reporte salida SUPERVISOR",  link: "reporte-SUPERVISOR.html",            icono: "place.png",     emoji: "📱📝" },
         ];
 
+        /*
         async function verificarSesion() {
             try {
                 const resp = await fetch(`${API_URL}/check_auth`, {credentials: 'include'});
@@ -192,7 +194,7 @@
                     mostrarInterfaz(data.user, data.role);
                 }
             } catch(e) { console.log("No hay sesión activa"); }
-        }
+        }*/
 
         function mostrarInterfaz(username, role) {
             document.getElementById('loginModal').style.display = 'none';

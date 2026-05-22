@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Scanner & QR Tool</title>
+    
+    <!-- Librerías para Escanear y Generar QR -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+    <style>
+        :root { 
+            --bg: #0f172a; 
+            --surface: #1e293b; 
+            --surface-light: #334155; 
+            --text: #f8fafc; 
+            --text-muted: #94a3b8;
+            --primary: #3b82f6; 
+            --primary-active: #2563eb;
+            --success: #10b981; 
+            --success-active: #059669;
+            --danger: #ef4444; 
+            --accent: #475569;
+            --radius: 16px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+            margin: 0; padding: 0; 
+            background-color: var(--bg); 
+            color: var(--text); 
+            -webkit-font-smoothing: antialiased;
+            min-height: 100vh;
+        }
+
+        .container { 
+            padding: 16px; 
+            max-width: 800px; 
+            margin: auto; 
+        }
+
+        /* --- Estilos del Menú Principal (Adaptados al Dark Theme) --- */
+        .main-menu-wrapper {
+            display: flex; 
+            justify-content: center; 
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .main-card {
+            width: 100%; 
+            max-width: 600px;
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--surface-light);
+            border-radius: 32px; 
+            padding: 40px 20px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            text-align: center;
+        }
+
+        .main-card h1 { 
+            font-size: 26px; font-weight: 800; margin-bottom: 35px;
+            color: var(--text);
+        }
+
+        .menu-grid {
+            display: grid; gap: 20px;
+            grid-template-columns: 1fr;
+        }
+        @media (min-width: 480px) { .menu-grid { grid-template-columns: repeat(2, 1fr); } }
+
+        .btn-nav {
+            background: var(--surface); 
+            border: 1px solid var(--surface-light);
+            border-radius: 24px; padding: 24px 16px;
+            text-decoration: none; color: var(--text);
+            display: flex; flex-direction: column; align-items: center;
+            transition: var(--transition); font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .btn-nav:hover, .btn-nav:active {
+            transform: translateY(-5px); 
+            border-color: var(--primary);
+            box-shadow: 0 10px 20px rgba(59, 130, 246, 0.2);
+        }
+        .btn-nav i { font-size: 40px; margin-bottom: 12px; font-style: normal; }
+
+        /* --- Estilos de las Secciones Interiores --- */
+        header {
+            position: sticky; top: 0; z-index: 100;
+            background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(10px);
+            padding: 16px; text-align: center; border-bottom: 1px solid var(--surface-light);
+            display: flex; align-items: center; justify-content: center;
+            margin: -16px -16px 20px -16px; /* Compensar padding del container */
+        }
+        header h2 { margin: 0; font-size: 1.1rem; font-weight: 600; }
+        
+        .btn-back { 
+            position: absolute; left: 16px; background: transparent; border: none; 
+            color: var(--primary); font-size: 1rem; padding: 8px; font-weight: bold; cursor: pointer;
+            display: flex; align-items: center; gap: 5px;
+        }
+
+        .sale-card { 
+            background: var(--surface); padding: 16px; border-radius: var(--radius); 
+            margin-bottom: 16px; border: 1px solid var(--surface-light);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+        }
+
+        .sale-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--surface-light); }
+        .sale-title { font-size: 0.9rem; font-weight: 600; color: var(--primary); margin:0;}
+        .btn-delete { background: rgba(239, 68, 68, 0.1); color: var(--danger); border: none; border-radius: 8px; padding: 6px 12px; font-size: 0.8rem; font-weight: bold; cursor: pointer;}
+
+        /* Inputs */
+        .form-control { 
+            width: 100%; padding: 12px; border: 1px solid var(--surface-light); 
+            border-radius: 12px; background: var(--bg); color: var(--text); 
+            font-size: 1rem; box-sizing: border-box; outline: none;
+            transition: border-color 0.2s; font-family: monospace;
+            resize: vertical;
+        }
+        .form-control:focus { border-color: var(--primary); }
+        .form-label { display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase; font-weight: 600; }
+
+        /* Botones Generales */
+        .btn { 
+            padding: 14px; border: none; border-radius: 12px; cursor: pointer; 
+            width: 100%; font-weight: bold; font-size: 1rem; color: white; 
+            transition: transform 0.1s, background 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .btn:active { transform: scale(0.98); }
+        .btn-primary { background: var(--primary); }
+        .btn-success { background: var(--success); }
+        .btn-danger { background: var(--danger); }
+
+        /* Lista de Escaneos */
+        .scanned-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 12px; background: var(--bg); border-radius: 12px;
+            margin-bottom: 8px; border: 1px solid var(--surface-light);
+        }
+        .scanned-text { font-family: monospace; font-size: 1.1rem; word-break: break-all;}
+        
+        /* Lista de QR Generados */
+        .qr-item {
+            display: flex; justify-content: space-between; align-items: center; gap: 15px;
+        }
+        .qr-item .equipo-name { font-size: 1.2rem; font-family: monospace; font-weight: bold; word-break: break-all;}
+        .qr-item .qr-canvas { background: white; padding: 8px; border-radius: 8px; }
+
+        .hidden { display: none !important; }
+
+        /* Estilo para el contenedor de la cámara */
+        #reader { width: 100%; border-radius: 12px; overflow: hidden; border: 1px solid var(--surface-light); }
+        #reader video { border-radius: 12px; }
+    </style>
+</head>
+<body>
+
+    <!-- ================= MENÚ PRINCIPAL ================= -->
+    <div id="view-menu" class="main-menu-wrapper">
+        <div class="main-card">
+            <h1>Herramientas del Sistema</h1>
+            <div class="menu-grid">
+                <div class="btn-nav" onclick="switchView('view-scanner')">
+                    <i>📷</i>
+                    <span>Escáner Inteligente</span>
+                </div>
+                <div class="btn-nav" onclick="switchView('view-generator')">
+                    <i>🔲</i>
+                    <span>Generador de QR</span>
+                </div>
+                <!-- Botón de ejemplo para volver al menú principal de tu app real -->
+                <div class="btn-nav" style="border-color: rgba(239, 68, 68, 0.3);" onclick="index.html">
+                    <i>↩️</i>
+                    <span style="color: var(--danger);">Volver al Inicio</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= SECCIÓN DE ESCÁNER ================= -->
+    <div id="view-scanner" class="container hidden">
+        <header>
+            <button class="btn-back" onclick="switchView('view-menu')">◀ Volver</button>
+            <h2>Lector de Códigos</h2>
+        </header>
+
+        <div class="sale-card">
+            <div id="reader"></div>
+            <div style="margin-top: 16px;">
+                <button class="btn btn-primary" id="btn-start" onclick="startScanner()">
+                    📷 Iniciar Cámara
+                </button>
+                <button class="btn btn-danger hidden" id="btn-stop" onclick="stopScanner()">
+                    🛑 Detener Cámara
+                </button>
+            </div>
+        </div>
+
+        <div class="sale-card">
+            <div class="sale-header">
+                <h3 class="sale-title">Listado de Escaneos (<span id="scan-count">0</span>)</h3>
+                <button class="btn-delete" onclick="clearScans()">Limpiar</button>
+            </div>
+            <div id="scanned-list">
+                <!-- Aquí se insertan los escaneos automáticamente -->
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= SECCIÓN DE GENERADOR QR ================= -->
+    <div id="view-generator" class="container hidden">
+        <header>
+            <button class="btn-back" onclick="switchView('view-menu')">◀ Volver</button>
+            <h2>Generador Masivo QR</h2>
+        </header>
+
+        <div class="sale-card">
+            <label class="form-label">Pega la lista de IMEIs o Códigos (uno por línea)</label>
+            <textarea id="imei-input" class="form-control" rows="6" placeholder="Ejemplo:&#10;358901234567890&#10;358901234567891&#10;358901234567892"></textarea>
+            <button class="btn btn-success" style="margin-top: 16px;" onclick="generateMassiveQR()">
+                ⚙️ Generar Códigos QR
+            </button>
+        </div>
+
+        <div id="qr-output-list">
+            <!-- Aquí se generan las tarjetas con el texto y el QR al lado -->
+        </div>
+    </div>
+
+    <!-- ================= SCRIPTS ================= -->
+    <script>
+        // --- NAVEGACIÓN ---
+        function switchView(viewId) {
+            // Ocultar todas las vistas
+            document.getElementById('view-menu').classList.add('hidden');
+            document.getElementById('view-scanner').classList.add('hidden');
+            document.getElementById('view-generator').classList.add('hidden');
+            
+            // Si salimos del escáner, apagamos la cámara para ahorrar batería
+            if(viewId !== 'view-scanner' && html5QrCode) {
+                stopScanner();
+            }
+
+            // Mostrar la vista solicitada
+            document.getElementById(viewId).classList.remove('hidden');
+        }
+
+        // --- LÓGICA DEL ESCÁNER DE CÁMARA ---
+        let html5QrCode;
+        let scannedSet = new Set(); // Evita duplicados en la misma sesión
+        
+        // Sonido de "Beep" al escanear usando AudioContext
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playBeep() {
+            if(audioCtx.state === 'suspended') audioCtx.resume();
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(880, audioCtx.currentTime); // Tono alto
+            gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime); // Volumen bajo
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            oscillator.start();
+            oscillator.stop(audioCtx.currentTime + 0.1); // Duración corta
+        }
+
+        function startScanner() {
+            if (!html5QrCode) {
+                html5QrCode = new Html5Qrcode("reader");
+            }
+
+            const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+            
+            // Usa la cámara trasera por defecto
+            html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess)
+                .then(() => {
+                    document.getElementById('btn-start').classList.add('hidden');
+                    document.getElementById('btn-stop').classList.remove('hidden');
+                })
+                .catch(err => {
+                    alert("Error al iniciar la cámara. Verifica los permisos: " + err);
+                });
+        }
+
+        function stopScanner() {
+            if (html5QrCode && html5QrCode.isScanning) {
+                html5QrCode.stop().then(() => {
+                    document.getElementById('btn-start').classList.remove('hidden');
+                    document.getElementById('btn-stop').classList.add('hidden');
+                });
+            }
+        }
+
+        function onScanSuccess(decodedText) {
+            // Si el código no ha sido escaneado aún
+            if (!scannedSet.has(decodedText)) {
+                scannedSet.add(decodedText);
+                playBeep();
+                
+                // Actualizar contador
+                document.getElementById('scan-count').innerText = scannedSet.size;
+
+                // Crear elemento visual
+                const list = document.getElementById('scanned-list');
+                const item = document.createElement('div');
+                item.className = 'scanned-item';
+                item.innerHTML = `
+                    <span class="scanned-text">${decodedText}</span>
+                    <button class="btn-delete" style="background:var(--surface-light); color:var(--text)" onclick="copyText('${decodedText}')">Copiar</button>
+                `;
+                
+                // Insertar al principio de la lista
+                list.insertBefore(item, list.firstChild);
+            }
+        }
+
+        function clearScans() {
+            scannedSet.clear();
+            document.getElementById('scanned-list').innerHTML = '';
+            document.getElementById('scan-count').innerText = '0';
+        }
+
+        function copyText(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                // Pequeño feedback visual
+                alert("Copiado: " + text);
+            });
+        }
+
+        // --- LÓGICA DEL GENERADOR DE QR ---
+        function generateMassiveQR() {
+            const input = document.getElementById('imei-input').value;
+            const container = document.getElementById('qr-output-list');
+            
+            // Limpiar resultados anteriores
+            container.innerHTML = '';
+            
+            // Separar por saltos de línea y limpiar espacios en blanco o líneas vacías
+            const lines = input.split('\n').map(line => line.trim()).filter(line => line !== '');
+
+            if(lines.length === 0) {
+                alert("Por favor ingresa al menos un código o IMEI.");
+                return;
+            }
+
+            lines.forEach(text => {
+                // Crear la tarjeta contenedora
+                const card = document.createElement('div');
+                card.className = 'sale-card qr-item';
+                
+                // Estructura: Texto a la izquierda, div para QR a la derecha
+                card.innerHTML = `
+                    <span class="equipo-name">${text}</span>
+                    <div class="qr-canvas"></div>
+                `;
+                
+                container.appendChild(card);
+
+                // Generar el código QR dentro del div correspondiente
+                const qrContainer = card.querySelector('.qr-canvas');
+                new QRCode(qrContainer, {
+                    text: text,
+                    width: 100, // Tamaño del QR
+                    height: 100,
+                    colorDark : "#000000",
+                    colorLight : "#ffffff",
+                    correctLevel : QRCode.CorrectLevel.H
+                });
+            });
+        }
+    </script>
+</body>
+</html>
