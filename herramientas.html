@@ -9,6 +9,9 @@
     <!-- Librerías para Escanear y Generar QR -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    
+    <!-- Librería Tesseract.js para extraer texto de imágenes -->
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
 
     <style>
         :root { 
@@ -161,6 +164,7 @@
             word-break: break-all;
         }
         .scanned-text { font-family: monospace; font-size: 1.05rem; flex: 1; margin-right: 10px; }
+        .index-badge { color: var(--primary); font-weight: bold; margin-right: 8px; font-size: 0.9rem;}
         
         .qr-item { display: flex; justify-content: space-between; align-items: center; gap: 15px; }
         .qr-item .equipo-name { font-size: 1.1rem; font-family: monospace; font-weight: bold; word-break: break-all;}
@@ -176,7 +180,6 @@
             position: relative;
             box-shadow: 0 8px 20px rgba(0,0,0,0.3);
         }
-        /* Flechita apuntando a la cámara */
         #conflict-bubble::before {
             content: ''; position: absolute; top: -6px; left: 20px;
             width: 10px; height: 10px; background: var(--surface-light);
@@ -188,6 +191,21 @@
         .hidden { display: none !important; }
         #reader { width: 100%; border-radius: 12px; overflow: hidden; border: 1px solid var(--surface-light); }
         #reader video { border-radius: 12px; }
+        
+        /* Contenedores de canvas generados dinámicamente */
+        .image-preview-container {
+            position: relative;
+            width: 100%;
+            margin-bottom: 16px;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--surface-light);
+        }
+        .image-preview-container canvas {
+            display: block;
+            width: 100%;
+            height: auto;
+        }
     </style>
 </head>
 <body>
@@ -206,7 +224,7 @@
         </div>
     </div>
 
-    <!-- ================= SECCIÓN DE ESCÁNER ================= -->
+    <!-- ================= SECCIÓN DE ESCÁNER DE CÁMARA ================= -->
     <div id="view-scanner" class="container hidden">
         <header>
             <button class="btn-back" onclick="switchView('view-menu')">◀ Volver</button>
@@ -216,7 +234,6 @@
         <div class="sale-card">
             <div id="reader"></div>
             
-            <!-- Globo de conflicto (No intrusivo) -->
             <div id="conflict-bubble" class="hidden">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <span style="font-size: 0.85rem; font-weight: bold; color: var(--danger);">⚠️ Varios detectados. Elige uno:</span>
@@ -245,6 +262,38 @@
                 </div>
             </div>
             <div id="scanned-list"></div>
+        </div>
+    </div>
+
+    <!-- ================= SECCIÓN DE ESCÁNER DE IMÁGENES ================= -->
+    <div id="view-image-scanner" class="container hidden">
+        <header>
+            <button class="btn-back" onclick="switchView('view-menu')">◀ Volver</button>
+            <h2>Extraer de Imágenes</h2>
+        </header>
+
+        <div class="sale-card">
+            <input type="file" id="image-upload" multiple accept="image/*" class="hidden" onchange="processImages(event)">
+            <button class="btn btn-primary" onclick="document.getElementById('image-upload').click()">
+                📁 Seleccionar Imagen(es)
+            </button>
+            <div id="processing-status" style="margin-top: 12px; font-size: 0.9rem; font-weight: bold; color: var(--success); text-align: center;"></div>
+            
+            <div id="canvas-container" style="margin-top: 16px;">
+                <!-- Las imágenes con los cuadros dibujados irán aquí -->
+            </div>
+        </div>
+
+        <div class="sale-card">
+            <div class="sale-header">
+                <h3 class="sale-title">Extraídos (<span id="img-scan-count">0</span>)</h3>
+                <div class="sale-actions">
+                    <button class="btn-action-small" onclick="sendImgScansToQR()">🔲 Enviar a QR</button>
+                    <button class="btn-action-small" onclick="copyAllImgScans()">📋 Copiar</button>
+                    <button class="btn-delete" onclick="clearImgScans()">🗑️ Limpiar</button>
+                </div>
+            </div>
+            <div id="img-scanned-list"></div>
         </div>
     </div>
 
@@ -277,8 +326,9 @@
     <script>
         // --- 1. CONFIGURACIÓN DEL MENÚ ESCALABLE ---
         const configBotonesHerramientas = [
-            { nombre: "Escáner Inteligente", id: "view-scanner",  emoji: "📷" },
-            { nombre: "Generador de QR",     id: "view-generator", emoji: "🔲" }
+            { nombre: "Escáner Inteligente", id: "view-scanner",       emoji: "📷" },
+            { nombre: "Extraer de Imágenes", id: "view-image-scanner", emoji: "🖼️" },
+            { nombre: "Generador de QR",     id: "view-generator",     emoji: "🔲" }
         ];
 
         function renderizarMenu() {
@@ -298,20 +348,22 @@
         function switchView(viewId) {
             document.getElementById('view-menu').classList.add('hidden');
             document.getElementById('view-scanner').classList.add('hidden');
+            document.getElementById('view-image-scanner').classList.add('hidden');
             document.getElementById('view-generator').classList.add('hidden');
             
             if(viewId !== 'view-scanner' && html5QrCode) {
                 stopScanner();
-                closeConflictMenu(); // Cerrar el globo si estaba abierto
+                closeConflictMenu();
             }
 
             document.getElementById(viewId).classList.remove('hidden');
         }
 
-        // --- 3. LÓGICA DEL ESCÁNER Y MULTI-DETECCIÓN ---
+        // =========================================================
+        // =           LÓGICA DEL ESCÁNER DE CÁMARA                =
+        // =========================================================
         let html5QrCode;
         let scannedSet = new Set();
-        
         let scanBuffer = new Set();
         let bufferTimer = null;
         let isConflictOpen = false;
@@ -351,15 +403,11 @@
         }
 
         function onScanSuccess(decodedText) {
-            // Si el globo está abierto o el código ya está en la lista final, lo ignora
             if (isConflictOpen || scannedSet.has(decodedText)) return;
-            
             scanBuffer.add(decodedText);
             
-            // Buffer ajustado a 200 ms
             if (!bufferTimer) {
                 playBeep();
-                
                 bufferTimer = setTimeout(() => {
                     if (scanBuffer.size === 1) {
                         commitScan(Array.from(scanBuffer)[0]);
@@ -368,16 +416,13 @@
                     }
                     scanBuffer.clear();
                     bufferTimer = null;
-                }, 200); // <-- 200ms
+                }, 200);
             }
         }
 
-        // --- MANEJO DE LA LISTA VISUAL ---
         function renderScannedList() {
             const list = document.getElementById('scanned-list');
             list.innerHTML = '';
-            
-            // Convertimos a array y lo invertimos para mostrar el último escaneado arriba
             const arr = Array.from(scannedSet).reverse();
             
             arr.forEach(text => {
@@ -416,30 +461,21 @@
         }
 
         function copyAllScans() {
-            if (scannedSet.size === 0) {
-                alert("No hay códigos para copiar.");
-                return;
-            }
-            // Mantiene el orden visual (los últimos escaneos arriba)
+            if (scannedSet.size === 0) return alert("No hay códigos para copiar.");
             const allText = Array.from(scannedSet).reverse().join('\n');
             navigator.clipboard.writeText(allText).then(() => {
                 alert(`¡Se copiaron ${scannedSet.size} códigos al portapapeles!`);
             });
         }
 
-        // Enviar al QR Generator directamente
         function sendToQRGenerator() {
-            if (scannedSet.size === 0) {
-                alert("No hay códigos en la lista para enviar.");
-                return;
-            }
+            if (scannedSet.size === 0) return alert("No hay códigos en la lista para enviar.");
             const allText = Array.from(scannedSet).reverse().join('\n');
             document.getElementById('imei-input').value = allText;
             switchView('view-generator');
             generateMassiveQR();
         }
 
-        // --- GLOBO DE CONFLICTO (No intrusivo) ---
         function showConflictMenu(codesArray) {
             isConflictOpen = true;
             const bubble = document.getElementById('conflict-bubble');
@@ -470,7 +506,163 @@
             isConflictOpen = false;
         }
 
-        // --- 4. LÓGICA DEL GENERADOR DE QR ---
+
+        // =========================================================
+        // =         LÓGICA DEL ESCÁNER DE IMÁGENES (NUEVO)        =
+        // =========================================================
+        let imageScannedData = [];
+        let globalImeiCounter = 0;
+        let globalImageCounter = 0;
+
+        async function processImages(event) {
+            const files = event.target.files;
+            if (!files.length) return;
+            
+            const statusDiv = document.getElementById('processing-status');
+            const canvasContainer = document.getElementById('canvas-container');
+            
+            for (let i = 0; i < files.length; i++) {
+                globalImageCounter++;
+                let currentImgIndex = globalImageCounter;
+                statusDiv.innerText = `Procesando imagen ${i + 1} de ${files.length} (Por favor, espera)...`;
+                
+                const file = files[i];
+                const img = new Image();
+                img.src = URL.createObjectURL(file);
+                
+                await new Promise(resolve => img.onload = resolve);
+                
+                // Creamos el contenedor y el canvas para la previsualización
+                const previewWrapper = document.createElement('div');
+                previewWrapper.className = 'image-preview-container';
+                
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                ctx.drawImage(img, 0, 0);
+                previewWrapper.appendChild(canvas);
+
+                // Ejecutamos Tesseract
+                const result = await Tesseract.recognize(img, 'eng');
+                const words = result.data.words;
+                
+                let foundAny = false;
+
+                // Analizamos cada palabra detectada en la imagen
+                words.forEach(word => {
+                    // Limpiamos la palabra de símbolos raros, dejamos solo números
+                    let textClean = word.text.replace(/\D/g, ''); 
+                    
+                    // Comprobamos si tiene longitud típica de un IMEI (14 a 17 dígitos)
+                    if (textClean.length >= 14 && textClean.length <= 17) {
+                        globalImeiCounter++;
+                        foundAny = true;
+                        
+                        // Guardamos los datos
+                        const id = Date.now() + Math.random().toString(36).substr(2, 9);
+                        imageScannedData.push({
+                            id: id,
+                            text: textClean,
+                            imgIndex: currentImgIndex,
+                            imeiIndex: globalImeiCounter
+                        });
+
+                        // Dibujar recuadro rojo en el punto exacto
+                        const bbox = word.bbox;
+                        const lineWidth = Math.max(2, img.width / 200);
+                        const fontSize = Math.max(16, img.width / 40);
+
+                        ctx.beginPath();
+                        ctx.rect(bbox.x0, bbox.y0, bbox.x1 - bbox.x0, bbox.y1 - bbox.y0);
+                        ctx.lineWidth = lineWidth;
+                        ctx.strokeStyle = '#ef4444'; // Rojo (var(--danger))
+                        ctx.stroke();
+                        
+                        // Dibujar el número encima del recuadro
+                        ctx.font = `bold ${fontSize}px monospace`;
+                        ctx.fillStyle = '#ef4444';
+                        ctx.fillText(`IMEI ${globalImeiCounter}`, bbox.x0, bbox.y0 - (fontSize/2));
+                    }
+                });
+
+                if (foundAny) {
+                    canvasContainer.appendChild(previewWrapper);
+                } else {
+                    const noRes = document.createElement('div');
+                    noRes.style.padding = "8px";
+                    noRes.style.color = "var(--danger)";
+                    noRes.style.fontSize = "0.9rem";
+                    noRes.innerText = `Imagen ${currentImgIndex}: No se encontraron IMEIs legibles.`;
+                    canvasContainer.appendChild(noRes);
+                }
+                
+                // Actualizamos la lista a medida que terminamos una imagen
+                renderImgScannedList();
+            }
+            
+            statusDiv.innerText = `✅ ¡Procesamiento completado!`;
+            setTimeout(() => { statusDiv.innerText = ''; }, 3000);
+            
+            // Limpiamos el input para que permita subir las mismas fotos si se desea
+            event.target.value = ""; 
+        }
+
+        function renderImgScannedList() {
+            const list = document.getElementById('img-scanned-list');
+            list.innerHTML = '';
+            
+            imageScannedData.forEach(item => {
+                const row = document.createElement('div');
+                row.className = 'scanned-item';
+                row.innerHTML = `
+                    <span class="scanned-text">
+                        <span class="index-badge">(${item.imgIndex}. ${item.imeiIndex}.)</span> ${item.text}
+                    </span>
+                    <div class="sale-actions" style="gap: 4px;">
+                        <button class="btn-action-small" onclick="copySingleText('${item.text}')" title="Copiar">📋</button>
+                        <button class="btn-action-small" style="background: rgba(239, 68, 68, 0.1);" onclick="deleteImgScan('${item.id}')" title="Eliminar">🗑️</button>
+                    </div>
+                `;
+                list.appendChild(row);
+            });
+            document.getElementById('img-scan-count').innerText = imageScannedData.length;
+        }
+
+        function deleteImgScan(id) {
+            imageScannedData = imageScannedData.filter(item => item.id !== id);
+            renderImgScannedList();
+        }
+
+        function copyAllImgScans() {
+            if (imageScannedData.length === 0) return alert("No hay IMEIs extraídos para copiar.");
+            // Copia solo los números de IMEI
+            const allText = imageScannedData.map(item => item.text).join('\n');
+            navigator.clipboard.writeText(allText).then(() => {
+                alert(`¡Se copiaron ${imageScannedData.length} códigos al portapapeles!`);
+            });
+        }
+
+        function clearImgScans() {
+            imageScannedData = [];
+            globalImeiCounter = 0;
+            globalImageCounter = 0;
+            document.getElementById('canvas-container').innerHTML = '';
+            renderImgScannedList();
+        }
+
+        function sendImgScansToQR() {
+            if (imageScannedData.length === 0) return alert("No hay códigos extraídos para enviar.");
+            const allText = imageScannedData.map(item => item.text).join('\n');
+            document.getElementById('imei-input').value = allText;
+            switchView('view-generator');
+            generateMassiveQR();
+        }
+
+
+        // =========================================================
+        // =               LÓGICA DEL GENERADOR QR                 =
+        // =========================================================
         function generateMassiveQR() {
             const input = document.getElementById('imei-input').value;
             const container = document.getElementById('qr-output-list');
@@ -478,7 +670,6 @@
             
             const lines = input.split(/[\s\n\r\t.,;-]+/).filter(line => line.trim() !== '');
 
-            // Actualizar el contador de extracciones
             document.getElementById('qr-count').innerText = lines.length;
 
             if(lines.length === 0) {
@@ -486,7 +677,6 @@
                 return;
             }
 
-            // Agregando el índice (número) antes del texto extraído
             lines.forEach((text, index) => {
                 const card = document.createElement('div');
                 card.className = 'sale-card qr-item';
