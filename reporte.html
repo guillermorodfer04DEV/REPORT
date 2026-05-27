@@ -250,12 +250,35 @@
     function renderVisitedStores() {
         const list = document.getElementById('visitedStoresList');
         list.innerHTML = '';
-        visitedStores.forEach(store => {
+        
+        // Usamos el índice (index) para saber exactamente qué tienda estamos editando o eliminando
+        visitedStores.forEach((store, index) => {
             const li = document.createElement('li');
             li.className = 'visited-item';
-            li.innerHTML = `<span>${store}</span> <button type="button" class="btn-remove-item" onclick="removeVisitedStore('${store}')">-</button>`;
+            
+            // Reemplazamos el span por un input editable sin bordes
+            li.innerHTML = `
+                <input type="text" value="${store}" 
+                       onchange="updateVisitedStore(${index}, this.value)" 
+                       style="border: none; background: transparent; font-weight: 600; font-size: 14px; width: 100%; outline: none; color: #333;">
+                       
+                <button type="button" class="btn-remove-item" onclick="removeVisitedStoreByIndex(${index})">-</button>
+            `;
             list.appendChild(li);
         });
+    }
+
+    // 1. Función para actualizar el nombre en la lista al terminar de escribir
+    function updateVisitedStore(index, newValue) {
+        if (newValue.trim() !== "") {
+            visitedStores[index] = newValue.trim();
+        }
+    }
+
+    // 2. Función mejorada para eliminar tiendas (por su posición en lugar de por su nombre)
+    function removeVisitedStoreByIndex(index) {
+        visitedStores.splice(index, 1);
+        renderVisitedStores();
     }
 
     function processOCR(event) {
@@ -290,13 +313,33 @@
                     { logger: m => console.log(m.status + " " + Math.round(m.progress * 100) + "%") }
                 ).then(({ data: { text } }) => {
                     const lines = text.split('\n');
+                    
                     lines.forEach(line => {
-                        if (line.toUpperCase().includes('BARQUISIMETO') || line.includes('+')) {
-                            let storeName = line.split(/Barquisimeto/i)[0];
-                            storeName = storeName.replace(/\s*\+\s*$/, '').trim(); 
+                        let storeName = "";
+                        const upperLine = line.toUpperCase();
+
+                        // REGLA 1: Cortar estrictamente antes del "+"
+                        if (line.includes('+')) {
+                            storeName = line.split('+')[0];
+                        } 
+                        // REGLA 2: Si el OCR no vio el "+", cortamos antes de "Barquisimeto" como respaldo
+                        else if (upperLine.includes('BARQUISIMETO')) {
+                            storeName = line.split(/Barquisimeto/i)[0];
+                        }
+
+                        if (storeName) {
+                            // Limpiamos espacios extras y eliminamos caracteres extraños al final del texto
+                            storeName = storeName.trim().replace(/[^a-zA-Z0-9\s]+$/, '');
                             
-                            if(storeName.length > 2 && storeName.toUpperCase() !== "TOTAL") {
-                                addVisitedStore(storeName);
+                            // REGLA 3: Filtrar palabras del sistema para dejar solo los nombres reales
+                            if (storeName.length > 2 && 
+                                !upperLine.includes("TOTAL") && 
+                                !upperLine.includes("VISITANTE") && 
+                                !upperLine.includes("APROBADOR") &&
+                                !upperLine.includes("QUALIFY")) {
+                                
+                                // Llamamos a la función de agregar bloque pasando el nombre detectado
+                                addStore(storeName);
                             }
                         }
                     });
@@ -305,9 +348,8 @@
                     alert("Error al analizar la imagen. Intenta añadir las tiendas manualmente.");
                 }).finally(() => {
                     loader.style.display = 'none';
-                    event.target.value = ''; // Resetea el input
+                    event.target.value = ''; 
                 });
-            };
             img.src = e.target.result;
         };
         reader.readAsDataURL(file);
