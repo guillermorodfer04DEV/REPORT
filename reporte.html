@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Reporte Diario | TECNO TOOL</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <style>
         :root {
             --tecno-blue: #0056b3;
@@ -25,7 +26,7 @@
         .form-group { display: flex; flex-direction: column; }
         label { font-size: 12px; font-weight: 700; margin-bottom: 5px; color: #555; }
         input, textarea, select { padding: 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 16px; background: #fff; width: 100%; }
-        .btn-add { background: var(--tecno-blue); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 14px; }
+        .btn-add { background: var(--tecno-blue); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: bold;}
         .btn-remove { background: #dc3545; color: white; border: none; padding: 10px; border-radius: 6px; font-size: 12px; margin-top: 10px; width: 100%; cursor: pointer; }
         .store-block { border: 1px solid #e0e0e0; padding: 15px; margin-top: 10px; border-radius: 10px; background: #fdfdfd; }
         .image-preview-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-top: 15px; }
@@ -35,8 +36,14 @@
         @media (min-width: 768px) { .btn-group { flex-direction: row; flex-wrap: wrap; } }
         .btn-final { flex: 1; min-width: 200px; padding: 18px; border: none; border-radius: 10px; color: white; font-weight: bold; font-size: 16px; cursor: pointer; text-align: center; text-decoration: none; }
         .hidden { display: none !important; }
-
         .btn-back-menu { position: fixed; top: 15px; left: 15px; z-index: 9999; text-decoration: none; background-color: #f0f4f8; color: #0056b3; padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; border: 2px solid #0056b3; box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
+        
+        /* Estilos para la nueva lista de tiendas */
+        .visited-list { list-style: none; padding: 0; margin-top: 10px; }
+        .visited-item { display: flex; justify-content: space-between; align-items: center; background: #fff; padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 8px; }
+        .visited-item span { font-weight: 600; font-size: 14px; }
+        .btn-remove-item { background: #dc3545; color: white; border: none; border-radius: 50%; width: 28px; height: 28px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 16px;}
+        .ocr-loader { font-size: 13px; color: #e67e22; display: none; margin-top: 8px; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -134,8 +141,6 @@
             </div>
         </div>
 
-        
-
         <div class="section-title">3. Análisis de Mercado</div>
         <div class="grid">
             <div class="form-group">
@@ -147,10 +152,33 @@
             <div class="form-group"><label>Dinámica o Flujo de Mercado</label><textarea id="marketDynamics" rows="2"></textarea></div>
         </div>
 
-        <div class="section-title">4. Resumen en tiendas <button type="button" class="btn-add" onclick="addStore()">+ Añadir</button></div>
+        <div class="section-title">4. Resumen de actividades diarias</div>
+        <div class="grid">
+            <div class="form-group"><label>Carga de stock (Unidades)</label><input type="number" id="cargaStockTotal" placeholder="Ej: 50"></div>
+            <div class="form-group"><label>Venta Serie CAMON 50 (Total semana)</label><input type="number" id="ventasCamonSemana" placeholder="Ej: 15"></div>
+            <div class="form-group"><label>Venta equipos Tecno (General semana)</label><input type="number" id="ventasTecnoSemana" placeholder="Ej: 45"></div>
+        </div>
+
+        <div class="form-group" style="margin-top: 20px; background: #eef2f5; padding: 15px; border-radius: 8px; border: 1px dashed #ccc;">
+            <label style="color: var(--tecno-blue); font-size: 14px;"><strong>Automatizar "Lista de Tiendas Visitadas"</strong></label>
+            <p style="font-size: 12px; margin: 5px 0 10px 0; color: #666;">Sube la captura de la app para extraer los nombres automáticamente.</p>
+            <input type="file" id="ocrImageInput" accept="image/*" onchange="processOCR(event)">
+            <div id="ocrLoader" class="ocr-loader">🔄 Escaneando imagen... por favor espera.</div>
+        </div>
+
+        <div class="form-group" style="margin-top: 15px;">
+            <label>Añadir Tienda Visitada (Manual)</label>
+            <div style="display: flex; gap: 10px;">
+                <input type="text" id="manualStoreName" placeholder="Escribe el nombre de la tienda...">
+                <button type="button" class="btn-add" onclick="addManualStore()">+</button>
+            </div>
+            <ul id="visitedStoresList" class="visited-list"></ul>
+        </div>
+
+        <div class="section-title">5. Detalle por tienda <button type="button" class="btn-add" onclick="addStore()">+ Añadir Bloque</button></div>
         <div id="stores-container"></div>
 
-        <div class="section-title">5. Evidencia Fotográfica (Tiendas)</div>
+        <div class="section-title">6. Evidencia Fotográfica (Tiendas)</div>
         <div class="form-group" style="margin-top:10px;"><input type="file" id="imageInput" accept="image/*" multiple onchange="handleImages(event)"></div>
         <div class="image-preview-container" id="imagePreview"></div>
 
@@ -171,6 +199,7 @@
 <script>
     document.getElementById('date').valueAsDate = new Date();
     let photos = [];
+    let visitedStores = []; // Array para la nueva lista de tiendas
 
     // --- LÓGICA RETAILER 2 ---
     function toggleSecondRetailer() {
@@ -193,7 +222,75 @@
         return !document.getElementById('sections-retailer-2').classList.contains('hidden');
     }
 
-    // --- TIENDAS ---
+    // --- LÓGICA LISTA DE TIENDAS VISITADAS (MANUAL Y OCR) ---
+    function addManualStore() {
+        const input = document.getElementById('manualStoreName');
+        const name = input.value.trim();
+        if(name) {
+            addVisitedStore(name);
+            input.value = '';
+        }
+    }
+
+    function addVisitedStore(name) {
+        if(!visitedStores.includes(name)) {
+            visitedStores.push(name);
+            renderVisitedStores();
+        }
+    }
+
+    function removeVisitedStore(name) {
+        visitedStores = visitedStores.filter(s => s !== name);
+        renderVisitedStores();
+    }
+
+    function renderVisitedStores() {
+        const list = document.getElementById('visitedStoresList');
+        list.innerHTML = '';
+        visitedStores.forEach(store => {
+            const li = document.createElement('li');
+            li.className = 'visited-item';
+            li.innerHTML = `<span>${store}</span> <button type="button" class="btn-remove-item" onclick="removeVisitedStore('${store}')">-</button>`;
+            list.appendChild(li);
+        });
+    }
+
+    function processOCR(event) {
+        const file = event.target.files[0];
+        if(!file) return;
+
+        const loader = document.getElementById('ocrLoader');
+        loader.style.display = 'block';
+
+        Tesseract.recognize(
+            file,
+            'spa',
+            { logger: m => console.log(m.status + " " + Math.round(m.progress * 100) + "%") }
+        ).then(({ data: { text } }) => {
+            const lines = text.split('\n');
+            lines.forEach(line => {
+                // Filtramos heurísticamente las líneas que tienen la estructura de la App
+                if (line.toUpperCase().includes('BARQUISIMETO') || line.includes('+')) {
+                    // Cortamos antes de la palabra Barquisimeto
+                    let storeName = line.split(/Barquisimeto/i)[0];
+                    // Quitamos el ' + ' sobrante final, pero cuidamos mantener si es parte del nombre
+                    storeName = storeName.replace(/\s*\+\s*$/, '').trim(); 
+                    
+                    if(storeName.length > 2 && storeName.toUpperCase() !== "TOTAL") {
+                        addVisitedStore(storeName);
+                    }
+                }
+            });
+        }).catch(err => {
+            console.error(err);
+            alert("Error al analizar la imagen. Intenta añadir las tiendas manualmente.");
+        }).finally(() => {
+            loader.style.display = 'none';
+            event.target.value = ''; // Resetea el input
+        });
+    }
+
+    // --- BLOQUES DE DETALLE POR TIENDA ---
     function addStore() {
         const id = Date.now();
         const div = document.createElement('div');
@@ -240,30 +337,27 @@
     }
 
     function toggleStoreFields(select, id) {
-    const status = select.value;
-    const rotContainer = document.getElementById(`rotative-container-${id}`);
-    const qtyContainer = document.getElementById(`qty-container-${id}`);
-
-    // 1. Lógica para Cantidad (Ventas/Stock)
-    const mostrarQty = (status === "Vitrina arreglada" || status === "Problema con vitrina");
-    qtyContainer.classList.toggle('hidden', !mostrarQty);
-
-    // 2. Lógica para Vitrina Rotativa (SÓLO estas dos opciones)
-    const esOpcionVitrina = (status === "Vitrina arreglada" || status === "Problemas de Vitrina");
-
-    if (esOpcionVitrina) {
-        rotContainer.classList.remove('hidden');
-        rotContainer.style.display = 'flex'; // Lo mostramos
-    } else {
-        rotContainer.classList.add('hidden');
-        rotContainer.style.display = 'none'; // Lo ocultamos
-        rotContainer.querySelector('.store-rotative').checked = false; // Lo reseteamos
-    }
-}
-
-    function toggleStoreFields(select, id) {
+        const status = select.value;
+        const rotContainer = document.getElementById(`rotative-container-${id}`);
         const qtyContainer = document.getElementById(`qty-container-${id}`);
-        qtyContainer.classList.toggle('hidden', !["Carga de ventas", "Carga de stock"].includes(select.value));
+
+        // Lógica para Cantidad 
+        const mostrarQty = ["Vitrina arreglada", "Problema con vitrina", "Carga de ventas", "Carga de stock"].includes(status);
+        qtyContainer.classList.toggle('hidden', !mostrarQty);
+
+        // Lógica para Vitrina Rotativa 
+        const esOpcionVitrina = (status === "Vitrina arreglada" || status === "Problemas de Vitrina" || status === "Problema con vitrina");
+
+        if (rotContainer) {
+            if (esOpcionVitrina) {
+                rotContainer.classList.remove('hidden');
+                rotContainer.style.display = 'flex'; 
+            } else {
+                rotContainer.classList.add('hidden');
+                rotContainer.style.display = 'none'; 
+                rotContainer.querySelector('.store-rotative').checked = false; 
+            }
+        }
     }
 
     function checkOtherShop(select, id) {
@@ -289,8 +383,8 @@
                     base64: base64Data,
                     mimeType: file.type,
                     name: file.name,
-                    categoria: defaultCat, // Lo que va en el Select
-                    nombreTienda: ""       // Lo que va en el Input de texto
+                    categoria: defaultCat, 
+                    nombreTienda: ""       
                 });
                 renderPhotos();
             };
@@ -307,7 +401,6 @@
             item.innerHTML = `
                 <img src="${p.src}">
                 <div style="display:flex; flex-direction:column; gap:5px;">
-
                     <input type="text" placeholder="Nombre de la tienda/ref" value="${p.nombreTienda}" onchange="photos[${i}].nombreTienda = this.value" style="padding:5px; font-size:12px;">
                     <select onchange="photos[${i}].categoria = this.value" style="padding:5px; font-size:12px;">
                         <option value="${p.categoria}">${p.categoria || "Seleccione Categoría..."}</option>
@@ -318,8 +411,6 @@
                         <option value="Vitrina Despues">Vitrina Despues</option>
                         <option value="Vitrina Antes">Vitrina Antes</option>
                     </select>
-                    
-                    
                     <button type="button" style="color:white; background:#dc3545; border:none; padding:5px; border-radius:4px; cursor:pointer;" onclick="photos.splice(${i},1); renderPhotos();">Eliminar</button>
                 </div>
             `;
@@ -327,114 +418,105 @@
         });
     }
 
-    // --- 1. EXPORTACIÓN A GOOGLE SHEETS (SIN DUPLICAR TIENDAS EN R2) ---
+    // --- 1. EXPORTACIÓN A GOOGLE SHEETS ---
     async function enviarAGoogleSheets() {
-    if (!document.getElementById('staffName').value) { alert("Selecciona un especialista"); return; }
+        if (!document.getElementById('staffName').value) { alert("Selecciona un especialista"); return; }
 
-    const btn = document.getElementById('btnSincronizar');
-    const originalText = btn.innerText;
-    btn.innerText = "Sincronizando a la Nube..."; 
-    btn.disabled = true;
+        const btn = document.getElementById('btnSincronizar');
+        const originalText = btn.innerText;
+        btn.innerText = "Sincronizando a la Nube..."; 
+        btn.disabled = true;
 
-    // 1. Capturamos los datos de las tiendas creadas en los bloques
-    const tiendasData = Array.from(document.querySelectorAll('.store-block')).map(b => ({
-        nombre: getStoreName(b),
-        estatus: b.querySelector('.store-status').value,
-        cantidad: b.querySelector('.store-qty').value || "N/A",
-        acciones: b.querySelector('.store-actions').value
-    }));
+        const tiendasData = Array.from(document.querySelectorAll('.store-block')).map(b => ({
+            nombre: getStoreName(b),
+            estatus: b.querySelector('.store-status').value,
+            cantidad: b.querySelector('.store-qty').value || "N/A",
+            acciones: b.querySelector('.store-actions').value
+        }));
 
-    let tiendasProcesadas = [];
+        let tiendasProcesadas = [];
 
-    // 2. GENERACIÓN DE FILAS: Una fila por cada foto
-    // Si hay 3 fotos de "GLOBAL CELL", se crearán 3 filas para esa tienda
-    if (photos.length > 0) {
-        photos.forEach((p) => {
-            // Buscamos si hay una tienda en el formulario que coincida con el nombre de la foto
-            const baseTienda = tiendasData.find(t => t.nombre === p.nombreTienda) || {
-                nombre: p.nombreTienda || "General/Adjunto",
-                estatus: "Evidencia",
-                cantidad: "N/A",
-                acciones: "Foto adjunta sin bloque de tienda"
-            };
-
-            tiendasProcesadas.push({
-                ...baseTienda,
-                // Aquí es donde inyectamos el link de la foto para que llegue a la fila
-                foto: `${p.categoria}: ${p.src}` 
-            });
-        });
-    }
-
-    // 3. Añadir las tiendas que NO tienen fotos (para no perder su gestión)
-    tiendasData.forEach(t => {
-        const yaTieneFoto = photos.some(p => p.nombreTienda === t.nombre);
-        if (!yaTieneFoto) {
-            tiendasProcesadas.push({
-                ...t,
-                foto: "" // Fila de datos pura, sin imagen
+        if (photos.length > 0) {
+            photos.forEach((p) => {
+                const baseTienda = tiendasData.find(t => t.nombre === p.nombreTienda) || {
+                    nombre: p.nombreTienda || "General/Adjunto",
+                    estatus: "Evidencia",
+                    cantidad: "N/A",
+                    acciones: "Foto adjunta sin bloque de tienda"
+                };
+                tiendasProcesadas.push({ ...baseTienda, foto: `${p.categoria}: ${p.src}` });
             });
         }
-    });
 
-    const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycby4WW9rYDPB6G0NLntjvYyfRIZEgBHvoxnCPg2OkJ13WnVaZNrGv0miEamvnwm9aHCWgQ/exec";
-
-    const baseData = {
-        fecha: document.getElementById('date').value,
-        especialista: document.getElementById('staffName').value,
-        cargo: document.getElementById('role').value,
-        region: document.getElementById('region').value,
-        competencia: document.getElementById('competitorActions').value,
-        dinamica: document.getElementById('marketDynamics').value,
-        // Dejamos este array vacío para que el Script use los links de 'tiendas'
-        fotos: [] 
-    };
-
-    const payloadR1 = {
-        ...baseData,
-        tiendas: tiendasProcesadas, 
-        retailer: document.getElementById('retailerName').value,
-        tiendasObjetivo: document.getElementById('shopsQty').value,
-        metaCamon: document.getElementById('salesTarget').value,
-        ventaHoy: document.getElementById('todaySales').value,
-        acumulado: document.getElementById('accumulatedSales').value,
-        dcr: document.getElementById('dcrRate').value,
-        covPro: document.getElementById('coverage50Pro').value,
-        covUltra: document.getElementById('coverage50Ultra').value,
-        probStock: document.getElementById('stockIssues').value,
-    };
-
-    try {
-        // Ejecución del envío
-        await fetch(WEBHOOK_URL, { 
-            method: 'POST', 
-            mode: 'no-cors', 
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payloadR1) 
+        tiendasData.forEach(t => {
+            const yaTieneFoto = photos.some(p => p.nombreTienda === t.nombre);
+            if (!yaTieneFoto) { tiendasProcesadas.push({ ...t, foto: "" }); }
         });
 
-        // Caso Retailer 2
-        if (isR2Active() && document.getElementById('retailerName2').value !== "") {
-            const payloadR2 = {
-                ...baseData,
-                tiendas: [], 
-                retailer: document.getElementById('retailerName2').value,
-                // ... (resto de campos del R2)
-            };
-            await fetch(WEBHOOK_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payloadR2) });
+        const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycby4WW9rYDPB6G0NLntjvYyfRIZEgBHvoxnCPg2OkJ13WnVaZNrGv0miEamvnwm9aHCWgQ/exec";
+
+        const baseData = {
+            fecha: document.getElementById('date').value,
+            especialista: document.getElementById('staffName').value,
+            cargo: document.getElementById('role').value,
+            region: document.getElementById('region').value,
+            competencia: document.getElementById('competitorActions').value,
+            dinamica: document.getElementById('marketDynamics').value,
+            
+            // Nuevos datos integrados a la Base Data
+            cargaStock: document.getElementById('cargaStockTotal').value || "0",
+            ventaCamonSemana: document.getElementById('ventasCamonSemana').value || "0",
+            ventaTecnoSemana: document.getElementById('ventasTecnoSemana').value || "0",
+            listaTiendasVisitadas: visitedStores.join(', '),
+
+            fotos: [] 
+        };
+
+        const payloadR1 = {
+            ...baseData,
+            tiendas: tiendasProcesadas, 
+            retailer: document.getElementById('retailerName').value,
+            tiendasObjetivo: document.getElementById('shopsQty').value,
+            metaCamon: document.getElementById('salesTarget').value,
+            ventaHoy: document.getElementById('todaySales').value,
+            acumulado: document.getElementById('accumulatedSales').value,
+            dcr: document.getElementById('dcrRate').value,
+            covPro: document.getElementById('coverage50Pro').value,
+            covUltra: document.getElementById('coverage50Ultra').value,
+            probStock: document.getElementById('stockIssues').value,
+        };
+
+        try {
+            await fetch(WEBHOOK_URL, { 
+                method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payloadR1) 
+            });
+
+            if (isR2Active() && document.getElementById('retailerName2').value !== "") {
+                const payloadR2 = {
+                    ...baseData, tiendas: [], retailer: document.getElementById('retailerName2').value,
+                    tiendasObjetivo: document.getElementById('shopsQty2').value,
+                    metaCamon: document.getElementById('salesTarget2').value,
+                    ventaHoy: document.getElementById('todaySales2').value,
+                    acumulado: document.getElementById('accumulatedSales2').value,
+                    dcr: document.getElementById('dcrRate2').value,
+                    covPro: document.getElementById('coverage50Pro2').value,
+                    covUltra: document.getElementById('coverage50Ultra2').value,
+                    probStock: document.getElementById('stockIssues2').value,
+                };
+                await fetch(WEBHOOK_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payloadR2) });
+            }
+            alert("¡Reporte enviado! Los links deberían aparecer en cada fila correspondiente.");
+        } catch (e) {
+            console.error(e);
+            alert("Error al conectar con la nube.");
+        } finally {
+            btn.innerText = originalText;
+            btn.disabled = false;
         }
-
-        alert("¡Reporte enviado! Los links deberían aparecer en cada fila correspondiente.");
-    } catch (e) {
-        console.error(e);
-        alert("Error al conectar con la nube.");
-    } finally {
-        btn.innerText = originalText;
-        btn.disabled = false;
     }
-}
 
-    // --- 2. EXPORTAR WORD (CON IMÁGENES A 200x200) ---
+    // --- 2. EXPORTAR WORD ---
     function exportWord() {
         const name = document.getElementById('staffName').value || 'Reporte';
         const date = document.getElementById('date').value;
@@ -445,39 +527,54 @@
         </head><body>`;
         
         content += `<h2>REPORTE DIARIO TECNO</h2>`;
-        content += `<ul><li><b>Fecha:</b> ${date}</li><li><b>Especialista:</b> ${name}</li><li><b>Ruta/C.C:</b> ${document.getElementById('region').value}</li></ul>`;
+        content += `<ul><li><b>Fecha:</b> ${date}</li><li><b>Especialista:</b> ${name}</li><li><b>Cargo:</b> ${document.getElementById('role').value}</li><li><b>Ruta/C.C:</b> ${document.getElementById('region').value}</li></ul>`;
 
-        // Datos Retailer 1
-        content += `<h3>1. Desempeño y Cobertura: ${document.getElementById('retailerName').value}</h3>`;
+        content += `<h3>1. Ventas: ${document.getElementById('retailerName').value}</h3>`;
         content += `<ul>
+            <li><b>Tiendas objetivo:</b> ${document.getElementById('shopsQty').value}</li>
             <li><b>Meta CAMON:</b> ${document.getElementById('salesTarget').value}</li>
             <li><b>Venta Hoy:</b> ${document.getElementById('todaySales').value}</li>
             <li><b>Acumulado Mes:</b> ${document.getElementById('accumulatedSales').value}</li>
             <li><b>Cargado al DCR:</b> ${document.getElementById('dcrRate').value}%</li>
+        </ul>`;
+        content += `<h4>Cobertura e Inventario:</h4><ul>
             <li><b>Cobertura C50 Pro:</b> ${document.getElementById('coverage50Pro').value}</li>
             <li><b>Cobertura C50 Ultra:</b> ${document.getElementById('coverage50Ultra').value}</li>
             <li><b>Problemas de Stock:</b> ${document.getElementById('stockIssues').value}</li>
         </ul>`;
 
-        // Datos Retailer 2
         if (isR2Active()) {
-            content += `<h3>1. Desempeño y Cobertura: ${document.getElementById('retailerName2').value}</h3>`;
+            content += `<h3>1.1 Ventas: ${document.getElementById('retailerName2').value}</h3>`;
             content += `<ul>
+                <li><b>Tiendas objetivo:</b> ${document.getElementById('shopsQty2').value}</li>
                 <li><b>Meta CAMON:</b> ${document.getElementById('salesTarget2').value}</li>
                 <li><b>Venta Hoy:</b> ${document.getElementById('todaySales2').value}</li>
                 <li><b>Acumulado Mes:</b> ${document.getElementById('accumulatedSales2').value}</li>
                 <li><b>Cargado al DCR:</b> ${document.getElementById('dcrRate2').value}%</li>
+            </ul>`;
+            content += `<h4>Cobertura e Inventario:</h4><ul>
                 <li><b>Cobertura C50 Pro:</b> ${document.getElementById('coverage50Pro2').value}</li>
                 <li><b>Cobertura C50 Ultra:</b> ${document.getElementById('coverage50Ultra2').value}</li>
                 <li><b>Problemas de Stock:</b> ${document.getElementById('stockIssues2').value}</li>
             </ul>`;
         }
 
-        content += `<h3>2. Mercado y Competencia</h3>`;
+        content += `<h3>3. Análisis de Mercado</h3>`;
         content += `<p><b>Acciones Competencia:</b> ${document.getElementById('competitorActions').value}</p>`;
         content += `<p><b>Dinámica del Mercado:</b> ${document.getElementById('marketDynamics').value}</p>`;
 
-        content += `<h3>3. Resumen en Tiendas</h3><table><tr><th>Tienda</th><th>Estatus</th><th>Cant</th><th>Acciones</th></tr>`;
+        content += `<h3>4. Resumen de actividades diarias</h3>`;
+        content += `<ul>
+            <li><b>Carga de stock:</b> ${document.getElementById('cargaStockTotal').value || 0} unidades</li>
+            <li><b>Venta Serie CAMON 50 (semana):</b> ${document.getElementById('ventasCamonSemana').value || 0}</li>
+            <li><b>Venta equipos Tecno (semana):</b> ${document.getElementById('ventasTecnoSemana').value || 0}</li>
+        </ul>`;
+
+        content += `<h4>Lista de Tiendas Visitadas Hoy:</h4><ol>`;
+        visitedStores.forEach(store => { content += `<li>${store}</li>`; });
+        content += `</ol>`;
+
+        content += `<h3>5. Detalle por tienda</h3><table><tr><th>Tienda</th><th>Estatus</th><th>Cant</th><th>Acciones</th></tr>`;
         document.querySelectorAll('.store-block').forEach(b => {
             content += `<tr>
                 <td>${getStoreName(b)}</td>
@@ -488,9 +585,8 @@
         });
         content += `</table>`;
 
-        // Añadir imágenes (200x200)
         if (photos.length > 0) {
-            content += `<h3>4. Evidencia Fotográfica</h3>`;
+            content += `<h3>6. Evidencia Fotográfica</h3>`;
             photos.forEach(p => {
                 content += `
                 <div style="margin-bottom: 15px;">
@@ -509,7 +605,7 @@
         link.click();
     }
 
-    // --- 3. EXPORTAR WHATSAPP (NUEVA PLANTILLA EXACTA) ---
+    // --- 3. EXPORTAR WHATSAPP (PLANTILLA EXACTA) ---
     function copiarWhatsApp() {
         let text = `_*Reporte de Gestión Diario TECNO*_\n\n`;
         text += `Información General\n\n`;
@@ -533,16 +629,13 @@
         text += `Cobertura CN7c: ${document.getElementById('coverage50Ultra').value}\n\n`;
         text += `Problemas de stock: ${document.getElementById('stockIssues').value}\n\n`;
 
-        // Se inyecta R2 si está activo
         if (isR2Active() && document.getElementById('retailerName2').value !== "") {
             text += `_*Info sobre: ${document.getElementById('retailerName2').value}*_\n`;
             text += `* Tiendas objetivo: ${document.getElementById('shopsQty2').value}\n\n`;
-            
             text += `Meta CAMON 50: ${document.getElementById('salesTarget2').value}\n`;
             text += `Venta Hoy: ${document.getElementById('todaySales2').value}\n`;
             text += `Total acumulado: ${document.getElementById('accumulatedSales2').value}\n`;
             text += `Totalidad de stock cargado al DCR: ${document.getElementById('dcrRate2').value}%\n\n`;
-            
             text += `-- *Cobertura e Inventario:* --\n\n`;
             text += `Cobertura CN5c: ${document.getElementById('coverage50Pro2').value}\n`;
             text += `Cobertura CN7c: ${document.getElementById('coverage50Ultra2').value}\n\n`;
@@ -550,16 +643,26 @@
         }
 
         text += `3. *Analisis de Mercado:*\n\n`;
-        text += `_Competencia:_\n${document.getElementById('competitorActions').value}\n\n`;
-        text += `_Mercado:_\n${document.getElementById('marketDynamics').value}\n\n`;
+        text += `_Competencia:_\n${document.getElementById('competitorActions').value || 'Sin novedades'}\n\n`;
+        text += `_Mercado:_\n${document.getElementById('marketDynamics').value || 'Sin novedades'}\n\n`;
 
-        text += `4. *Detalle por Tienda:*\n\n`;
+        text += `4. *Resumen de actividades diarias:*\n\n`;
+        text += `- Carga de stock (${document.getElementById('cargaStockTotal').value || 0} unidades)\n\n`;
+        text += `- Venta Serie CAMON 50 _(ventas totales de la semana)_: ${document.getElementById('ventasCamonSemana').value || 0}\n\n`;
+        text += `- Venta equipos Tecno _(ventas generales de la semana)_: ${document.getElementById('ventasTecnoSemana').value || 0}\n\n`;
+        
+        text += ` • *Lista de Tiendas Visitadas Hoy:*\n\n`;
+        visitedStores.forEach((store, index) => {
+            text += `${index + 1}. ${store}\n`;
+        });
+        text += `\n`;
+
+        text += `5. *Detalle por tienda:*\n\n`;
         document.querySelectorAll('.store-block').forEach(b => {
             const qty = b.querySelector('.store-qty').value;
             const isRot = b.querySelector('.store-rotative').checked ? " [🔄 Rotativa]" : "";
             const act = b.querySelector('.store-actions').value;
             
-            // Estructura exigida: *BARQUI* - Carga de stock (2) \n ↳ _BARQUI_
             text += `*${getStoreName(b)}* - ${b.querySelector('.store-status').value}`;
             if(qty) text += ` (${qty} unidades)`;
             text += `\n`;
@@ -570,125 +673,23 @@
         navigator.clipboard.writeText(text).then(() => alert("¡Plantilla copiada con éxito para WhatsApp!"));
     }
 
-    // --- BLOQUE 1: AUTO-SELECCIÓN DE NOMBRE ---
-document.addEventListener("DOMContentLoaded", () => {
-    const savedName = localStorage.getItem("tecno_user_name");
-    const staffSelect = document.getElementById("staffName");
+    // --- AUTO-SELECCIÓN DE NOMBRE ---
+    document.addEventListener("DOMContentLoaded", () => {
+        const savedName = localStorage.getItem("tecno_user_name");
+        const staffSelect = document.getElementById("staffName");
 
-    if (savedName && staffSelect) {
-        // Función auxiliar para comparar nombres sin acentos ni mayúsculas
-        const normalize = (t) => t.toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-        const cleanSaved = normalize(savedName);
+        if (savedName && staffSelect) {
+            const normalize = (t) => t.toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            const cleanSaved = normalize(savedName);
+            Array.from(staffSelect.options).forEach(option => {
+                if (normalize(option.value) === cleanSaved) {
+                    staffSelect.value = option.value;
+                }
+            });
+        }
+    });
 
-        // Recorremos las opciones para ver si alguna coincide
-        Array.from(staffSelect.options).forEach(option => {
-            if (normalize(option.value) === cleanSaved) {
-                staffSelect.value = option.value;
-                console.log("Especialista auto-seleccionado: " + option.value);
-            }
-        });
-    }
-});
-
-// --- BLOQUE 2: DETECTOR DE DEV + BOTÓN DE TESTEO AUTOMÁTICO ---
-document.addEventListener("DOMContentLoaded", () => {
-    const developersList = [
-        "guillermo rodriguez",
-        "jose diaz",
-    ];
-
-    const savedName = localStorage.getItem("tecno_user_name");
-    const normalize = (t) => t ? t.toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "") : "";
-    const cleanUser = normalize(savedName);
-    const isDev = developersList.some(dev => normalize(dev) === cleanUser);
-
-    if (isDev) {
-        console.log("🛠️ Modo Desarrollador Activo");
-
-        // 1. Mostrar acceso a la nube
-        const cloudBtn = document.querySelector('.btn-group2');
-        if (cloudBtn) cloudBtn.style.display = "block";
-
-        // 2. Inyectar botón de Testeo
-        const testBtn = document.createElement('button');
-        testBtn.innerHTML = "🧪 Llenar Test";
-        testBtn.style = `
-            position: fixed; bottom: 20px; left: 20px; z-index: 10000;
-            background: #f08000; color: white; border: none; padding: 12px;
-            border-radius: 50px; cursor: pointer; font-weight: bold;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-        `;
-        document.body.appendChild(testBtn);
-
-        testBtn.onclick = (e) => {
-            e.preventDefault();
-            llenarFormularioPrueba();
-        };
-    }
-
-    function llenarFormularioPrueba() {
-        // Datos Generales
-        document.getElementById('region').value = "Barquisimeto - C.C. Las Trinitarias";
-        
-        // Retailer 1
-        const r1 = document.getElementById('retailerName');
-        r1.value = "GLOBAL CELL";
-        document.getElementById('shopsQty').value = "5";
-        document.getElementById('salesTarget').value = "30 Unidades";
-        document.getElementById('todaySales').value = "4";
-        document.getElementById('accumulatedSales').value = "12";
-        document.getElementById('dcrRate').value = "85";
-        document.getElementById('coverage50Pro').value = "SI";
-        document.getElementById('coverage50Ultra').value = "NO";
-        document.getElementById('stockIssues').value = "Poca disponibilidad de color azul.";
-
-        // Activar y llenar Retailer 2
-        if (!isR2Active()) toggleSecondRetailer();
-        document.getElementById('retailerName2').value = "NC PHONE";
-        document.getElementById('shopsQty2').value = "3";
-        document.getElementById('salesTarget2').value = "20 Unidades";
-        document.getElementById('todaySales2').value = "2";
-        document.getElementById('accumulatedSales2').value = "5";
-        document.getElementById('dcrRate2').value = "100";
-        document.getElementById('coverage50Pro2').value = "SI";
-        document.getElementById('coverage50Ultra2').value = "SI";
-        document.getElementById('stockIssues2').value = "Sin problemas actuales.";
-
-        // Mercado
-        document.getElementById('competitorActions').value = "Samsung tiene promotores con nueva indumentaria.";
-        document.getElementById('marketDynamics').value = "Flujo alto de personas por quincena.";
-
-        // Actualizar títulos visuales
-        updateRetailerTitles();
-
-        // Agregar una tienda de ejemplo
-        addStore();
-        setTimeout(() => {
-            const lastStore = document.querySelector('.store-block:last-child');
-            if (lastStore) {
-                lastStore.querySelector('.store-select').value = "GLOBAL CELL";
-                lastStore.querySelector('.store-status').value = "Carga de ventas";
-                lastStore.querySelector('.store-qty').value = "3";
-                lastStore.querySelector('.store-actions').value = "Se verificó el inventario físico vs DCR.";
-            }
-        }, 100);
-
-        // Agregar Fotos de Prueba
-        const sampleImg = "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?q=80&w=300&auto=format&fit=crop";
-        
-        const testPhotos = [
-            { src: sampleImg, base64: "VGVzdERhdGE=", mimeType: "image/jpeg", name: "test1.jpg", categoria: "Vitrina Antes", nombreTienda: "GLOBAL CELL" },
-            { src: sampleImg, base64: "VGVzdERhdGE=", mimeType: "image/jpeg", name: "test2.jpg", categoria: "Competencia", nombreTienda: "Samsung Ref" }
-        ];
-
-        photos = [...photos, ...testPhotos];
-        renderPhotos();
-
-        console.log("✅ Formulario de prueba cargado correctamente.");
-    }
-});
-
-    addStore();
+    addStore(); // Inicializa con un bloque vacío
 </script>
 </body>
 </html>
