@@ -345,6 +345,7 @@
                             !upperLine.includes("11.") &&
                             !upperLine.includes("12.") &&
                             !upperLine.includes("Mi Preocupación") &&
+                            !upperLine.includes("mi preocupacion") &&
                             !upperLine.includes("QUALIFY")) {
                             
                             // Llamamos a la función de agregar bloque pasando el nombre detectado
@@ -408,6 +409,7 @@
                 <div class="form-group">
                     <label>Estatus</label>
                     <select class="store-status" onchange="toggleStoreFields(this, ${id})">
+                        <option value="Visita realizada">Visita realizada</option>
                         <option value="Informacion recopilada">Información recopilada</option>
                         <option value="Vitrina arreglada">Vitrina arreglada</option>
                         <option value="Problema con vitrina">Problema con vitrina</option>
@@ -421,20 +423,26 @@
             <div class="form-group hidden" id="qty-container-${id}" style="margin-top:12px;">
                 <label>Cantidad</label><input type="number" class="store-qty">
             </div>
-            <textarea class="store-actions" style="margin-top:10px;" placeholder="Acciones realizadas o justificación..."></textarea>
+            <textarea class="store-actions" id="actions-input-${id}" style="margin-top:10px;" placeholder="Acciones realizadas o justificación..."></textarea>
             <button type="button" class="btn-remove" onclick="document.getElementById('store-${id}').remove()">Eliminar Tienda</button>
         `;
         document.getElementById('stores-container').appendChild(div);
+
+        // Disparamos la validación inicial para que oculte el textarea si entra como "Visita realizada" por defecto
+        toggleStoreFields(div.querySelector('.store-status'), id);
     }
 
     function toggleStoreFields(select, id) {
         const status = select.value;
         const rotContainer = document.getElementById(`rotative-container-${id}`);
         const qtyContainer = document.getElementById(`qty-container-${id}`);
+        const actionsInput = document.getElementById(`actions-input-${id}`); // Capturamos el textarea
 
         // Lógica para Cantidad 
         const mostrarQty = ["Vitrina arreglada", "Problema con vitrina", "Carga de ventas", "Carga de stock"].includes(status);
-        qtyContainer.classList.toggle('hidden', !mostrarQty);
+        if (qtyContainer) {
+            qtyContainer.classList.toggle('hidden', !mostrarQty);
+        }
 
         // Lógica para Vitrina Rotativa 
         const esOpcionVitrina = (status === "Vitrina arreglada" || status === "Problemas de Vitrina" || status === "Problema con vitrina");
@@ -447,6 +455,16 @@
                 rotContainer.classList.add('hidden');
                 rotContainer.style.display = 'none'; 
                 rotContainer.querySelector('.store-rotative').checked = false; 
+            }
+        }
+
+        // Lógica para ocultar el cuadro de texto de "Acciones / Justificación"
+        if (actionsInput) {
+            if (status === "Visita realizada") {
+                actionsInput.style.display = 'none'; // Lo ocultamos
+                actionsInput.value = ''; // Opcional: limpiamos el texto si lo ocultó
+            } else {
+                actionsInput.style.display = 'block'; // Lo mostramos
             }
         }
     }
