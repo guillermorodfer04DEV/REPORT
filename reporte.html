@@ -236,6 +236,9 @@
         if(!visitedStores.includes(name)) {
             visitedStores.push(name);
             renderVisitedStores();
+            
+            // Llama a la función para crear el bloque de detalle automáticamente
+            addStore(name); 
         }
     }
 
@@ -262,54 +265,88 @@
         const loader = document.getElementById('ocrLoader');
         loader.style.display = 'block';
 
-        Tesseract.recognize(
-            file,
-            'spa',
-            { logger: m => console.log(m.status + " " + Math.round(m.progress * 100) + "%") }
-        ).then(({ data: { text } }) => {
-            const lines = text.split('\n');
-            lines.forEach(line => {
-                // Filtramos heurísticamente las líneas que tienen la estructura de la App
-                if (line.toUpperCase().includes('BARQUISIMETO') || line.includes('+')) {
-                    // Cortamos antes de la palabra Barquisimeto
-                    let storeName = line.split(/Barquisimeto/i)[0];
-                    // Quitamos el ' + ' sobrante final, pero cuidamos mantener si es parte del nombre
-                    storeName = storeName.replace(/\s*\+\s*$/, '').trim(); 
-                    
-                    if(storeName.length > 2 && storeName.toUpperCase() !== "TOTAL") {
-                        addVisitedStore(storeName);
-                    }
-                }
-            });
-        }).catch(err => {
-            console.error(err);
-            alert("Error al analizar la imagen. Intenta añadir las tiendas manualmente.");
-        }).finally(() => {
-            loader.style.display = 'none';
-            event.target.value = ''; // Resetea el input
-        });
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = new Image();
+            img.onload = function() {
+                // Creamos un canvas para escalar y estandarizar la imagen del teléfono
+                const canvas = document.createElement('canvas');
+                const targetWidth = 1200; // Ancho fijo para mejorar legibilidad
+                const scale = targetWidth / img.width;
+                canvas.width = targetWidth;
+                canvas.height = img.height * scale;
+                
+                const ctx = canvas.getContext('2d');
+                ctx.fillStyle = "#ffffff"; // Fondo blanco para evitar transparencias rotas
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+                // Exportamos la imagen mejorada en base64
+                const processedImage = canvas.toDataURL('image/jpeg', 1.0);
+
+                Tesseract.recognize(
+                    processedImage,
+                    'spa',
+                    { logger: m => console.log(m.status + " " + Math.round(m.progress * 100) + "%") }
+                ).then(({ data: { text } }) => {
+                    const lines = text.split('\n');
+                    lines.forEach(line => {
+                        if (line.toUpperCase().includes('BARQUISIMETO') || line.includes('+')) {
+                            let storeName = line.split(/Barquisimeto/i)[0];
+                            storeName = storeName.replace(/\s*\+\s*$/, '').trim(); 
+                            
+                            if(storeName.length > 2 && storeName.toUpperCase() !== "TOTAL") {
+                                addVisitedStore(storeName);
+                            }
+                        }
+                    });
+                }).catch(err => {
+                    console.error(err);
+                    alert("Error al analizar la imagen. Intenta añadir las tiendas manualmente.");
+                }).finally(() => {
+                    loader.style.display = 'none';
+                    event.target.value = ''; // Resetea el input
+                });
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
     }
 
     // --- BLOQUES DE DETALLE POR TIENDA ---
-    function addStore() {
+    function addStore(nombreTienda = null) {
         const id = Date.now();
         const div = document.createElement('div');
         div.className = 'store-block';
         div.id = `store-${id}`;
+        
+        // 1. Manejo dinámico del nombre de la tienda
+        const tiendasConocidas = ["GLOBAL CELL", "TECNO CORP", "NC PHONE", "DAMASCO", "CANGURO"];
+        let isKnown = false;
+        let nombreMayusculas = nombreTienda ? nombreTienda.toUpperCase() : "";
+
+        if (nombreTienda && tiendasConocidas.includes(nombreMayusculas)) {
+            isKnown = true;
+        }
+
+        // Construir las opciones del select
+        let selectHtml = `<select class="store-select" onchange="checkOtherShop(this, ${id})">`;
+        tiendasConocidas.forEach(opt => {
+            selectHtml += `<option value="${opt}" ${isKnown && opt === nombreMayusculas ? 'selected' : ''}>${opt}</option>`;
+        });
+        selectHtml += `<option value="OTHER SHOP" ${!isKnown && nombreTienda ? 'selected' : ''}>OTHER SHOP</option></select>`;
+
+        // Control del input personalizado
+        const customDisplay = (!isKnown && nombreTienda) ? "block" : "none";
+        const customValue = (!isKnown && nombreTienda) ? nombreTienda : "";
+
         div.innerHTML = `
             <div class="grid">
                 <div class="form-group">
                     <label>Tienda</label>
-                    <select class="store-select" onchange="checkOtherShop(this, ${id})">
-                        <option value="GLOBAL CELL">GLOBAL CELL</option>
-                        <option value="TECNO CORP">TECNO CORP</option>
-                        <option value="NC PHONE">NC PHONE</option>
-                        <option value="DAMASCO">DAMASCO</option>
-                        <option value="CANGURO">CANGURO</option>
-                        <option value="OTHER SHOP">OTHER SHOP</option>
-                    </select>
-                    <input type="text" class="store-name-custom" id="custom-name-${id}" style="display:none; margin-top:10px;" placeholder="Escriba el nombre...">
-                <div class="form-group hidden" id="rotative-container-${id}" style="margin-top: 10px; flex-direction: row; align-items: center; gap: 8px; display: none;">
+                    ${selectHtml}
+                    <input type="text" class="store-name-custom" id="custom-name-${id}" style="display:${customDisplay}; margin-top:10px;" placeholder="Escriba el nombre..." value="${customValue}">
+                    <div class="form-group hidden" id="rotative-container-${id}" style="margin-top: 10px; flex-direction: row; align-items: center; gap: 8px; display: none;">
                         <input type="checkbox" class="store-rotative" style="width: 20px; height: 20px; cursor: pointer;">
                         <label style="margin-bottom: 0;">Vitrina Rotativa</label>
                     </div>
@@ -453,7 +490,7 @@
             if (!yaTieneFoto) { tiendasProcesadas.push({ ...t, foto: "" }); }
         });
 
-        const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycby4WW9rYDPB6G0NLntjvYyfRIZEgBHvoxnCPg2OkJ13WnVaZNrGv0miEamvnwm9aHCWgQ/exec";
+        const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbzplj5TfAvr8VMtgqt1G1DRNUXGtJ8TQQtrn9bLtYjic46Q-4Eflc2C6iXSRq6LlJRoEQ/exec";
 
         const baseData = {
             fecha: document.getElementById('date').value,
@@ -689,7 +726,7 @@
         }
     });
 
-    addStore(); // Inicializa con un bloque vacío
+    //addStore(); // Inicializa con un bloque vacío
 </script>
 </body>
 </html>
