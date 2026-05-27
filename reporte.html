@@ -48,6 +48,24 @@
 </head>
 <body>
 
+<!-- Botón para abrir el menú de Autocompletado -->
+<button type="button" class="btn-back-menu" style="left: auto; right: 15px; background-color: var(--tecno-orange); color: white; border-color: #d35400;" onclick="openPasteModal()">
+    📋 Autocompletar
+</button>
+
+<!-- Ventana emergente (Modal) para pegar el texto -->
+<div id="pasteModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:10000; justify-content:center; align-items:center; backdrop-filter: blur(3px);">
+    <div style="background:white; padding:20px; border-radius:12px; width:90%; max-width:550px; box-shadow:0 5px 15px rgba(0,0,0,0.3);">
+        <h3 style="margin-top:0; color:var(--tecno-blue);">Pegar Reporte Anterior</h3>
+        <p style="font-size:13px; color:#555;">Pega aquí tu plantilla de WhatsApp para autocompletar la información base. <em>(Ventas Hoy y Venta Real no se llenarán para que las ingreses manualmente)</em>.</p>
+        <textarea id="pasteArea" rows="12" style="width:100%; padding:10px; border:1px solid #ccc; border-radius:8px; resize:vertical; font-family:monospace; font-size:12px;" placeholder="Pega el reporte aquí..."></textarea>
+        <div style="display:flex; gap:10px; margin-top:15px; justify-content:flex-end;">
+            <button type="button" onclick="closePasteModal()" style="padding:10px 15px; border:none; border-radius:6px; background:#e0e0e0; color:#333; font-weight:bold; cursor:pointer;">Cancelar</button>
+            <button type="button" onclick="processPastedReport()" style="padding:10px 15px; border:none; border-radius:6px; background:var(--tecno-blue); color:white; font-weight:bold; cursor:pointer;">Rellenar Formulario</button>
+        </div>
+    </div>
+</div>
+
 <a href="index.html" class="btn-back-menu">Volver al inicio</a>
 
 <div class="container">
@@ -781,6 +799,89 @@
         });
 
         navigator.clipboard.writeText(text).then(() => alert("¡Plantilla copiada con éxito para WhatsApp!"));
+    }
+
+    // --- LÓGICA DE AUTOCOMPLETADO (PEGAR REPORTE) ---
+    function openPasteModal() {
+        document.getElementById('pasteModal').style.display = 'flex';
+        document.getElementById('pasteArea').value = ''; // Limpiamos al abrir
+        document.getElementById('pasteArea').focus();
+    }
+
+    function closePasteModal() {
+        document.getElementById('pasteModal').style.display = 'none';
+    }
+
+    function processPastedReport() {
+        const text = document.getElementById('pasteArea').value;
+        if (!text.trim()) {
+            alert("Por favor, pega el texto de un reporte primero.");
+            return;
+        }
+
+        // Función auxiliar para extraer datos usando expresiones regulares
+        const extractMatch = (regex) => {
+            const match = text.match(regex);
+            return match ? match[1].trim() : "";
+        };
+
+        // 1. Información General
+        const especialista = extractMatch(/\*\s*Especialista:\s*(.+)/i);
+        if (especialista) document.getElementById('staffName').value = especialista;
+
+        const cargo = extractMatch(/\*\s*Cargo:\s*(.+)/i);
+        if (cargo) document.getElementById('role').value = cargo;
+
+        // 2. Ventas (Minorista 1)
+        const retailer = extractMatch(/_\*Info sobre:\s*(.+?)\*_/i);
+        if (retailer) {
+            // Buscamos si existe en las opciones, si no, lo dejamos vacío
+            const selectRetailer = document.getElementById('retailerName');
+            Array.from(selectRetailer.options).forEach(opt => {
+                if(opt.value.toUpperCase() === retailer.toUpperCase()) selectRetailer.value = opt.value;
+            });
+            updateRetailerTitles(); // Actualizamos los títulos en pantalla
+        }
+
+        const tiendasObj = extractMatch(/\*\s*Tiendas objetivo:\s*(\d+)/i);
+        if (tiendasObj) document.getElementById('shopsQty').value = tiendasObj;
+
+        const meta = extractMatch(/Meta CAMON 50:\s*(.+)/i);
+        if (meta) document.getElementById('salesTarget').value = meta;
+
+        const acumulado = extractMatch(/Total acumulado:\s*(\d+)/i);
+        if (acumulado) document.getElementById('accumulatedSales').value = acumulado;
+
+        const dcr = extractMatch(/Totalidad de stock cargado al DCR:\s*([\d\.]+)%?/i);
+        if (dcr) document.getElementById('dcrRate').value = dcr;
+
+        // 3. Cobertura e Inventario
+        const cov5c = extractMatch(/Cobertura CN5c:\s*(.+)/i);
+        if (cov5c) document.getElementById('coverage50Pro').value = cov5c;
+
+        const cov7c = extractMatch(/Cobertura CN7c:\s*(.+)/i);
+        if (cov7c) document.getElementById('coverage50Ultra').value = cov7c;
+
+        const probStock = extractMatch(/Problemas de stock:\s*(.+)/i);
+        if (probStock) document.getElementById('stockIssues').value = probStock;
+
+        // 4. Análisis de Mercado (Multilínea)
+        const compMatch = text.match(/_Competencia:_\s*\n([\s\S]*?)(?=\n_Mercado:_)/i);
+        if (compMatch) document.getElementById('competitorActions').value = compMatch[1].trim();
+
+        const mercadoMatch = text.match(/_Mercado:_\s*\n([\s\S]*?)(?=\n4\.\s*\*Resumen|\n\n4\.)/i);
+        if (mercadoMatch) document.getElementById('marketDynamics').value = mercadoMatch[1].trim();
+
+        // 5. Resumen de actividades diarias
+        const ventaCamon = extractMatch(/- Venta Serie CAMON 50[^:]*:\s*(\d+)/i);
+        if (ventaCamon) document.getElementById('ventasCamonSemana').value = ventaCamon;
+
+        const ventaTecno = extractMatch(/- Venta equipos Tecno[^:]*:\s*(\d+)/i);
+        if (ventaTecno) document.getElementById('ventasTecnoSemana').value = ventaTecno;
+
+        // Cierra la ventana emergente al finalizar
+        closePasteModal();
+        alert("¡Datos rellenados correctamente!");
     }
 
     // --- AUTO-SELECCIÓN DE NOMBRE ---
