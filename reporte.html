@@ -282,79 +282,80 @@
     }
 
     function processOCR(event) {
-        const file = event.target.files[0];
-        if(!file) return;
+    const file = event.target.files[0];
+    if(!file) return;
 
-        const loader = document.getElementById('ocrLoader');
-        loader.style.display = 'block';
+    const loader = document.getElementById('ocrLoader');
+    loader.style.display = 'block';
 
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const img = new Image();
-            img.onload = function() {
-                // Creamos un canvas para escalar y estandarizar la imagen del teléfono
-                const canvas = document.createElement('canvas');
-                const targetWidth = 1200; // Ancho fijo para mejorar legibilidad
-                const scale = targetWidth / img.width;
-                canvas.width = targetWidth;
-                canvas.height = img.height * scale;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+            // Creamos un canvas para escalar y estandarizar la imagen del teléfono
+            const canvas = document.createElement('canvas');
+            const targetWidth = 1200; // Ancho fijo para mejorar legibilidad
+            const scale = targetWidth / img.width;
+            canvas.width = targetWidth;
+            canvas.height = img.height * scale;
+            
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = "#ffffff"; // Fondo blanco para evitar transparencias rotas
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+            // Exportamos la imagen mejorada en base64
+            const processedImage = canvas.toDataURL('image/jpeg', 1.0);
+
+            Tesseract.recognize(
+                processedImage,
+                'spa',
+                { logger: m => console.log(m.status + " " + Math.round(m.progress * 100) + "%") }
+            ).then(({ data: { text } }) => {
+                const lines = text.split('\n');
                 
-                const ctx = canvas.getContext('2d');
-                ctx.fillStyle = "#ffffff"; // Fondo blanco para evitar transparencias rotas
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                lines.forEach(line => {
+                    let storeName = "";
+                    const upperLine = line.toUpperCase();
 
-                // Exportamos la imagen mejorada en base64
-                const processedImage = canvas.toDataURL('image/jpeg', 1.0);
+                    // REGLA 1: Cortar estrictamente antes del "+"
+                    if (line.includes('+')) {
+                        storeName = line.split('+')[0];
+                    } 
+                    // REGLA 2: Si el OCR no vio el "+", cortamos antes de "Barquisimeto" como respaldo
+                    else if (upperLine.includes('BARQUISIMETO')) {
+                        storeName = line.split(/Barquisimeto/i)[0];
+                    }
 
-                Tesseract.recognize(
-                    processedImage,
-                    'spa',
-                    { logger: m => console.log(m.status + " " + Math.round(m.progress * 100) + "%") }
-                ).then(({ data: { text } }) => {
-                    const lines = text.split('\n');
-                    
-                    lines.forEach(line => {
-                        let storeName = "";
-                        const upperLine = line.toUpperCase();
-
-                        // REGLA 1: Cortar estrictamente antes del "+"
-                        if (line.includes('+')) {
-                            storeName = line.split('+')[0];
-                        } 
-                        // REGLA 2: Si el OCR no vio el "+", cortamos antes de "Barquisimeto" como respaldo
-                        else if (upperLine.includes('BARQUISIMETO')) {
-                            storeName = line.split(/Barquisimeto/i)[0];
-                        }
-
-                        if (storeName) {
-                            // Limpiamos espacios extras y eliminamos caracteres extraños al final del texto
-                            storeName = storeName.trim().replace(/[^a-zA-Z0-9\s]+$/, '');
+                    if (storeName) {
+                        // Limpiamos espacios extras y eliminamos caracteres extraños al final del texto
+                        storeName = storeName.trim().replace(/[^a-zA-Z0-9\s]+$/, '');
+                        
+                        // REGLA 3: Filtrar palabras del sistema para dejar solo los nombres reales
+                        if (storeName.length > 2 && 
+                            !upperLine.includes("TOTAL") && 
+                            !upperLine.includes("VISITANTE") && 
+                            !upperLine.includes("APROBADOR") &&
+                            !upperLine.includes("QUALIFY")) {
                             
-                            // REGLA 3: Filtrar palabras del sistema para dejar solo los nombres reales
-                            if (storeName.length > 2 && 
-                                !upperLine.includes("TOTAL") && 
-                                !upperLine.includes("VISITANTE") && 
-                                !upperLine.includes("APROBADOR") &&
-                                !upperLine.includes("QUALIFY")) {
-                                
-                                // Llamamos a la función de agregar bloque pasando el nombre detectado
-                                addStore(storeName);
-                            }
+                            // Llamamos a la función de agregar bloque pasando el nombre detectado
+                            addStore(storeName);
                         }
-                    });
-                }).catch(err => {
-                    console.error(err);
-                    alert("Error al analizar la imagen. Intenta añadir las tiendas manualmente.");
-                }).finally(() => {
-                    loader.style.display = 'none';
-                    event.target.value = ''; 
+                    }
                 });
-            img.src = e.target.result;
-            };
-        };
-        reader.readAsDataURL(file);
-    }
+            }).catch(err => {
+                console.error(err);
+                alert("Error al analizar la imagen. Intenta añadir las tiendas manualmente.");
+            }).finally(() => {
+                loader.style.display = 'none';
+                event.target.value = ''; 
+            });
+        }; // <--- ¡AQUÍ ESTÁ LA LLAVE FALTANTE QUE SOLUCIONA EL BUCLE!
+        
+        img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+}
 
     // --- BLOQUES DE DETALLE POR TIENDA ---
     function addStore(nombreTienda = null) {
