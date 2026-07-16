@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <link rel="icon" type="image/png" href="https://guillermorodfer04dev.github.io/REPORT/TECNO-TOOL-icon.png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Reporte Diario | TECNO TOOL</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <style>
+        :root {
+            --tecno-blue: #0056b3;
+            --tecno-green: #217346;
+            --wsp-green: #25D366;
+            --bg: #f4f7f9;
+            --tecno-orange: #ff922b;
+        }
+        * { box-sizing: border-box; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+        body { background-color: var(--bg); margin: 0; padding: 10px; color: #333; line-height: 1.5; }
+        .container { background: white; max-width: 900px; margin: 0 auto; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
+        header { border-bottom: 3px solid var(--tecno-blue); margin-bottom: 25px; padding-bottom: 10px; text-align: center; }
+        h1 { font-size: 1.5rem; color: var(--tecno-blue); margin: 0; text-transform: uppercase; }
+        .section-title { background: #e9ecef; padding: 12px; font-weight: bold; margin-top: 25px; border-radius: 6px; border-left: 6px solid var(--tecno-blue); font-size: 1rem; display: flex; justify-content: space-between; align-items: center; }
+        .grid { display: grid; grid-template-columns: 1fr; gap: 15px; margin-top: 15px; }
+        @media (min-width: 768px) { .grid { grid-template-columns: 1fr 1fr; } }
+        .form-group { display: flex; flex-direction: column; }
+        label { font-size: 12px; font-weight: 700; margin-bottom: 5px; color: #555; }
+        input, textarea, select { padding: 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 16px; background: #fff; width: 100%; }
+        .btn-add { background: var(--tecno-blue); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: bold;}
+        .btn-remove { background: #dc3545; color: white; border: none; padding: 10px; border-radius: 6px; font-size: 12px; margin-top: 10px; width: 100%; cursor: pointer; }
+        .store-block { border: 1px solid #e0e0e0; padding: 15px; margin-top: 10px; border-radius: 10px; background: #fdfdfd; }
+        .image-preview-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-top: 15px; }
+        .image-item { border: 1px solid #ddd; padding: 10px; border-radius: 10px; background: #fff; text-align: center; }
+        .image-item img { width: 100%; height: 150px; object-fit: cover; border-radius: 6px; margin-bottom: 10px; }
+        .btn-group { display: flex; flex-direction: column; gap: 12px; margin-top: 35px; }
+        @media (min-width: 768px) { .btn-group { flex-direction: row; flex-wrap: wrap; } }
+        .btn-final { flex: 1; min-width: 200px; padding: 18px; border: none; border-radius: 10px; color: white; font-weight: bold; font-size: 16px; cursor: pointer; text-align: center; text-decoration: none; }
+        .hidden { display: none !important; }
+        .btn-back-menu { position: fixed; top: 15px; left: 15px; z-index: 9999; text-decoration: none; background-color: #f0f4f8; color: #0056b3; padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; border: 2px solid #0056b3; box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
+        
+        /* Estilos para la nueva lista de tiendas */
+        .visited-list { list-style: none; padding: 0; margin-top: 10px; }
+        .visited-item { display: flex; justify-content: space-between; align-items: center; background: #fff; padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 8px; }
+        .visited-item span { font-weight: 600; font-size: 14px; }
+        .btn-remove-item { background: #dc3545; color: white; border: none; border-radius: 50%; width: 28px; height: 28px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 16px;}
+        .ocr-loader { font-size: 13px; color: #e67e22; display: none; margin-top: 8px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<!-- Botón para abrir el menú de Autocompletado -->
+<button type="button" class="btn-back-menu" style="left: auto; right: 15px; background-color: var(--tecno-orange); color: white; border-color: #d35400;" onclick="openPasteModal()">
+    📋 Autocompletar
+</button>
+
+<!-- Ventana emergente (Modal) para pegar el texto -->
+<div id="pasteModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:10000; justify-content:center; align-items:center; backdrop-filter: blur(3px);">
+    <div style="background:white; padding:20px; border-radius:12px; width:90%; max-width:550px; box-shadow:0 5px 15px rgba(0,0,0,0.3);">
+        <h3 style="margin-top:0; color:var(--tecno-blue);">Pegar Reporte Anterior</h3>
+        <p style="font-size:13px; color:#555;">Pega aquí tu plantilla de WhatsApp para autocompletar la información base. <em>(Ventas Hoy y Venta Real no se llenarán para que las ingreses manualmente)</em>.</p>
+        <textarea id="pasteArea" rows="12" style="width:100%; padding:10px; border:1px solid #ccc; border-radius:8px; resize:vertical; font-family:monospace; font-size:12px;" placeholder="Pega el reporte aquí..."></textarea>
+        <div style="display:flex; gap:10px; margin-top:15px; justify-content:flex-end;">
+            <button type="button" onclick="closePasteModal()" style="padding:10px 15px; border:none; border-radius:6px; background:#e0e0e0; color:#333; font-weight:bold; cursor:pointer;">Cancelar</button>
+            <button type="button" onclick="processPastedReport()" style="padding:10px 15px; border:none; border-radius:6px; background:var(--tecno-blue); color:white; font-weight:bold; cursor:pointer;">Rellenar Formulario</button>
+        </div>
+    </div>
+</div>
+
+<a href="index.html" class="btn-back-menu">Volver al inicio</a>
+
+<div class="container">
+    <header><h1>Reporte Diario TECNO</h1></header>
+
+    <form id="reportForm">
+        <div class="grid">
+            <div class="form-group"><label>Fecha</label><input type="date" id="date"></div>
+            <div class="form-group">
+                <label>Nombre del Especialista</label>
+                <select id="staffName">
+                    <option value="">Seleccione...</option>
+                    <option value="José Reina">José Reina</option>
+                    <option value="Guillermo Rodríguez">Guillermo Rodríguez</option>
+                    <option value="Alexandra Guaimare">Alexandra Guaimare</option>
+                </select>
+            </div>
+            <div class="form-group"><label>Cargo</label><input type="text" id="role" value="Especialista"></div>
+            <div class="form-group"><label>Centro comercial / Ruta</label><input type="text" id="region"></div>
+        </div>
+
+        <div class="grid" style="margin-top:10px;">
+            <div class="form-group">
+                <label>Minorista Objetivo 1 <button type="button" class="btn-add" style="padding: 2px 8px; margin-left: 10px;" onclick="toggleSecondRetailer()">+ Añadir Retailer 2</button></label>
+                <select id="retailerName" onchange="updateRetailerTitles()">
+                    <option value="">Seleccione Retailer...</option>
+                    <option value="GLOBAL CELL">GLOBAL CELL</option>
+                    <option value="TECNO CORP">TECNO CORP</option>
+                    <option value="NC PHONE">NC PHONE</option>
+                    <option value="DAMASCO">DAMASCO</option>
+                    <option value="CANGURO">CANGURO</option>
+                </select>
+            </div>
+            <div class="form-group"><label>Cant. Tiendas Objetivo 1</label><input type="number" id="shopsQty"></div>
+        </div>
+
+        <div id="row-retailer-2" class="hidden" style="margin-top:10px; border-left: 4px solid var(--tecno-orange); padding-left: 10px;">
+            <div class="grid">
+                <div class="form-group">
+                    <label style="color: #e67e22;">Minorista Objetivo 2</label>
+                    <select id="retailerName2" onchange="updateRetailerTitles()">
+                        <option value="">Seleccione Retailer...</option>
+                        <option value="GLOBAL CELL">GLOBAL CELL</option>
+                        <option value="TECNO CORP">TECNO CORP</option>
+                        <option value="NC PHONE">NC PHONE</option>
+                        <option value="DAMASCO">DAMASCO</option>
+                        <option value="CANGURO">CANGURO</option>
+                    </select>
+                </div>
+                <div class="form-group"><label style="color: #e67e22;">Cant. Tiendas Objetivo 2</label><input type="number" id="shopsQty2"></div>
+            </div>
+        </div>
+
+        <div class="section-title">1. Desempeño de Ventas - <span id="display-name-r1">Retailer 1</span></div>
+        <div class="grid">
+            <div class="form-group"><label>Meta Serie CAMON 50</label><input type="text" id="salesTarget"></div>
+            <div class="form-group"><label>Venta Real Hoy</label><input type="number" id="todaySales"></div>
+            <div class="form-group"><label>Acumulado del mes</label><input type="number" id="accumulatedSales"></div>
+            <div class="form-group"><label>Cargado al DCR (%)</label><input type="text" id="dcrRate"></div>
+        </div>
+
+        <div class="section-title">2. Cobertura e Inventario - <span id="display-name-r1-cov">Retailer 1</span></div>
+        <div class="grid">
+            <div class="form-group"><label>Cobertura CN5c</label><input type="text" id="coverage50Pro"></div>
+            <div class="form-group"><label>Cobertura CN7c</label><input type="text" id="coverage50Ultra"></div>
+        </div>
+
+        <div class="form-group" style="margin-top:15px;">
+            <label>Problemas de Inventario de <span id="display-name-r1-cov">Retailer 1</span></label>
+            <textarea id="stockIssues" rows="2"></textarea>
+        </div>
+
+        <div id="sections-retailer-2" class="hidden">
+            <div class="section-title" style="border-left-color: var(--tecno-orange); background: #fff3e0;">1.1 Desempeño de Ventas - <span id="display-name-r2">Retailer 2</span></div>
+            <div class="grid">
+                <div class="form-group"><label>Meta Serie CAMON 50</label><input type="text" id="salesTarget2"></div>
+                <div class="form-group"><label>Venta Real Hoy</label><input type="number" id="todaySales2"></div>
+                <div class="form-group"><label>Acumulado del mes</label><input type="number" id="accumulatedSales2"></div>
+                <div class="form-group"><label>Cargado al DCR (%)</label><input type="text" id="dcrRate2"></div>
+            </div>
+
+            <div class="section-title" style="border-left-color: var(--tecno-orange); background: #fff3e0;">2.1 Cobertura e Inventario - <span id="display-name-r2-cov">Retailer 2</span></div>
+            <div class="grid">
+                <div class="form-group"><label>Cobertura CN5c (R2)</label><input type="text" id="coverage50Pro2"></div>
+                <div class="form-group"><label>Cobertura CN7c (R2)</label><input type="text" id="coverage50Ultra2"></div>
+            </div>
+
+            <div class="form-group" style="margin-top:15px;">
+                <label>Problemas de Inventario de <span id="display-name-r2">Retailer 2</span></label>
+                <textarea id="stockIssues2" rows="2"></textarea>
+            </div>
+        </div>
+
+        <div class="section-title">3. Análisis de Mercado</div>
+        <div class="grid">
+            <div class="form-group">
+                <label>Acciones Realizadas por la Competencia</label>
+                <textarea id="competitorActions" rows="2"></textarea>
+                <label style="margin-top: 10px; color: var(--tecno-blue);">Adjuntar Evidencia (Competencia)</label>
+                <input type="file" id="compImageInput" accept="image/*" multiple onchange="handleCompImages(event)">
+            </div>
+            <div class="form-group"><label>Dinámica o Flujo de Mercado</label><textarea id="marketDynamics" rows="2"></textarea></div>
+        </div>
+
+        <div class="section-title">4. Resumen de actividades diarias</div>
+        <div class="grid">
+            <div class="form-group"><label>Carga de stock (Unidades)</label><input type="number" id="cargaStockTotal" placeholder="Ej: 50"></div>
+            <div class="form-group"><label>Venta Serie CAMON 50 (Total semana)</label><input type="number" id="ventasCamonSemana" placeholder="Ej: 15"></div>
+            <div class="form-group"><label>Venta equipos Tecno (General semana)</label><input type="number" id="ventasTecnoSemana" placeholder="Ej: 45"></div>
+        </div>
+
+        <div class="form-group" style="margin-top: 20px; background: #eef2f5; padding: 15px; border-radius: 8px; border: 1px dashed #ccc;">
+            <label style="color: var(--tecno-blue); font-size: 14px;"><strong>Automatizar "Lista de Tiendas Visitadas"</strong></label>
+            <p style="font-size: 12px; margin: 5px 0 10px 0; color: #666;">Sube la captura de la app para extraer los nombres automáticamente.</p>
+            <input type="file" id="ocrImageInput" accept="image/*" onchange="processOCR(event)">
+            <div id="ocrLoader" class="ocr-loader">🔄 Escaneando imagen... por favor espera.</div>
+        </div>
+
+        <div class="form-group" style="margin-top: 15px;">
+            <label>Añadir Tienda Visitada (Manual)</label>
+            <div style="display: flex; gap: 10px;">
+                <input type="text" id="manualStoreName" placeholder="Escribe el nombre de la tienda...">
+                <button type="button" class="btn-add" onclick="addManualStore()">+</button>
+            </div>
+            <ul id="visitedStoresList" class="visited-list"></ul>
+        </div>
+
+        <div class="section-title">5. Detalle por tienda <button type="button" class="btn-add" onclick="addStore()">+ Añadir Bloque</button></div>
+        <div id="stores-container"></div>
+
+        <div class="section-title">6. Evidencia Fotográfica (Tiendas)</div>
+        <div class="form-group" style="margin-top:10px;"><input type="file" id="imageInput" accept="image/*" multiple onchange="handleImages(event)"></div>
+        <div class="image-preview-container" id="imagePreview"></div>
+
+        <div class="btn-group">
+            <button type="button" class="btn-final" id="btnSincronizar" style="background: var(--tecno-green);" onclick="enviarAGoogleSheets()">Exportar Excel A La Nube</button>
+            <button type="button" class="btn-final" style="background: #2b579a;" onclick="exportWord()">Descargar Word</button>
+            <button type="button" class="btn-final" style="background: var(--wsp-green);" onclick="copiarWhatsApp()">Copiar para WhatsApp</button>
+        </div>
+
+        <div class="btn-group2">
+            <a href="https://docs.google.com/spreadsheets/d/168u-0pUmNMGVExY8duQJksMGCAjfxyPd44q0P-ESoKk/edit?gid=0#gid=0" target="_blank" class="btn-final" style="background: #4dabf7; margin-top: 25px; display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                Ir a la Nube
+            </a>
+        </div>
+    </form>
+</div>
+
+<script>
+    document.getElementById('date').valueAsDate = new Date();
+    let photos = [];
+    let visitedStores = []; // Array para la nueva lista de tiendas
+
+    // --- LÓGICA RETAILER 2 ---
+    function toggleSecondRetailer() {
+        const rowName = document.getElementById('row-retailer-2');
+        const sections = document.getElementById('sections-retailer-2');
+        rowName.classList.toggle('hidden');
+        sections.classList.toggle('hidden');
+    }
+
+    function updateRetailerTitles() {
+        const r1 = document.getElementById('retailerName').value || "Retailer 1";
+        const r2 = document.getElementById('retailerName2').value || "Retailer 2";
+        document.getElementById('display-name-r1').innerText = r1;
+        document.getElementById('display-name-r1-cov').innerText = r1;
+        document.getElementById('display-name-r2').innerText = r2;
+        document.getElementById('display-name-r2-cov').innerText = r2;
+    }
+
+    function isR2Active() {
+        return !document.getElementById('sections-retailer-2').classList.contains('hidden');
+    }
+
+    // --- LÓGICA LISTA DE TIENDAS VISITADAS (MANUAL Y OCR) ---
+    function addManualStore() {
+        const input = document.getElementById('manualStoreName');
+        const name = input.value.trim();
+        if(name) {
+            addVisitedStore(name);
+            input.value = '';
+        }
+    }
+
+    function addVisitedStore(name) {
+        if(!visitedStores.includes(name)) {
+            visitedStores.push(name);
+            renderVisitedStores();
+            
+            // Llama a la función para crear el bloque de detalle automáticamente
+            addStore(name); 
+        }
+    }
+
+    function removeVisitedStore(name) {
+        visitedStores = visitedStores.filter(s => s !== name);
+        renderVisitedStores();
+    }
+
+    function renderVisitedStores() {
+        const list = document.getElementById('visitedStoresList');
+        list.innerHTML = '';
+        
+        // Usamos el índice (index) para saber exactamente qué tienda estamos editando o eliminando
+        visitedStores.forEach((store, index) => {
+            const li = document.createElement('li');
+            li.className = 'visited-item';
+            
+            // Reemplazamos el span por un input editable sin bordes
+            li.innerHTML = `
+                <input type="text" value="${store}" 
+                       onchange="updateVisitedStore(${index}, this.value)" 
+                       style="border: none; background: transparent; font-weight: 600; font-size: 14px; width: 100%; outline: none; color: #333;">
+                       
+                <button type="button" class="btn-remove-item" onclick="removeVisitedStoreByIndex(${index})">-</button>
+            `;
+            list.appendChild(li);
+        });
+    }
+
+    // 1. Función para actualizar el nombre en la lista al terminar de escribir
+    function updateVisitedStore(index, newValue) {
+        if (newValue.trim() !== "") {
+            visitedStores[index] = newValue.trim();
+        }
+    }
+
+    // 2. Función mejorada para eliminar tiendas (por su posición en lugar de por su nombre)
+    function removeVisitedStoreByIndex(index) {
+        visitedStores.splice(index, 1);
+        renderVisitedStores();
+    }
+
+    function processOCR(event) {
+    const file = event.target.files[0];
+    if(!file) return;
+
+    const loader = document.getElementById('ocrLoader');
+    loader.style.display = 'block';
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+            // Creamos un canvas para escalar y estandarizar la imagen del teléfono
+            const canvas = document.createElement('canvas');
+            const targetWidth = 1200; // Ancho fijo para mejorar legibilidad
+            const scale = targetWidth / img.width;
+            canvas.width = targetWidth;
+            canvas.height = img.height * scale;
+            
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = "#ffffff"; // Fondo blanco para evitar transparencias rotas
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+            // Exportamos la imagen mejorada en base64
+            const processedImage = canvas.toDataURL('image/jpeg', 1.0);
+
+            Tesseract.recognize(
+                processedImage,
+                'spa',
+                { logger: m => console.log(m.status + " " + Math.round(m.progress * 100) + "%") }
+            ).then(({ data: { text } }) => {
+                const lines = text.split('\n');
+                
+                lines.forEach(line => {
+                    let storeName = "";
+                    const upperLine = line.toUpperCase();
+
+                    // REGLA 1: Cortar estrictamente antes del "+"
+                    if (line.includes('+')) {
+                        storeName = line.split('+')[0];
+                    } 
+                    // REGLA 2: Si el OCR no vio el "+", cortamos antes de "Barquisimeto" como respaldo
+                    else if (upperLine.includes('BARQUISIMETO')) {
+                        storeName = line.split(/Barquisimeto/i)[0];
+                    }
+
+                    if (storeName) {
+                        // Limpiamos espacios extras y eliminamos caracteres extraños al final del texto
+                        storeName = storeName.trim().replace(/[^a-zA-Z0-9\s]+$/, '');
+                        
+                        // REGLA 3: Filtrar palabras del sistema para dejar solo los nombres reales
+                        if (storeName.length > 2 && 
+                            !upperLine.includes("TOTAL") && 
+                            !upperLine.includes("VISITANTE") && 
+                            !upperLine.includes("APROBADOR") &&
+                            !upperLine.includes("05.") &&
+                            !upperLine.includes("06.") &&
+                            !upperLine.includes("07.") &&
+                            !upperLine.includes("08.") &&
+                            !upperLine.includes("09.") &&
+                            !upperLine.includes("10.") &&
+                            !upperLine.includes("11.") &&
+                            !upperLine.includes("12.") &&
+                            !upperLine.includes("Mi Preocupación") &&
+                            !upperLine.includes("mi preocupacion") &&
+                            !upperLine.includes("QUALIFY")) {
+                            
+                            // Llamamos a la función de agregar bloque pasando el nombre detectado
+                            //addStore(storeName);
+                            addVisitedStore(storeName);
+                        }
+                    }
+                });
+            }).catch(err => {
+                console.error(err);
+                alert("Error al analizar la imagen. Intenta añadir las tiendas manualmente.");
+            }).finally(() => {
+                loader.style.display = 'none';
+                event.target.value = ''; 
+            });
+        }; // <--- ¡AQUÍ ESTÁ LA LLAVE FALTANTE QUE SOLUCIONA EL BUCLE!
+        
+        img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+}
+
+    // --- BLOQUES DE DETALLE POR TIENDA ---
+    function addStore(nombreTienda = null) {
+        const id = Date.now();
+        const div = document.createElement('div');
+        div.className = 'store-block';
+        div.id = `store-${id}`;
+        
+        // 1. Manejo dinámico del nombre de la tienda
+        const tiendasConocidas = ["GLOBAL CELL", "TECNO CORP", "NC PHONE", "DAMASCO", "CANGURO"];
+        let isKnown = false;
+        let nombreMayusculas = nombreTienda ? nombreTienda.toUpperCase() : "";
+
+        if (nombreTienda && tiendasConocidas.includes(nombreMayusculas)) {
+            isKnown = true;
+        }
+
+        // Construir las opciones del select
+        let selectHtml = `<select class="store-select" onchange="checkOtherShop(this, ${id})">`;
+        tiendasConocidas.forEach(opt => {
+            selectHtml += `<option value="${opt}" ${isKnown && opt === nombreMayusculas ? 'selected' : ''}>${opt}</option>`;
+        });
+        selectHtml += `<option value="OTHER SHOP" ${!isKnown && nombreTienda ? 'selected' : ''}>OTHER SHOP</option></select>`;
+
+        // Control del input personalizado
+        const customDisplay = (!isKnown && nombreTienda) ? "block" : "none";
+        const customValue = (!isKnown && nombreTienda) ? nombreTienda : "";
+
+        div.innerHTML = `
+            <div class="grid">
+                <div class="form-group">
+                    <label>Tienda</label>
+                    ${selectHtml}
+                    <input type="text" class="store-name-custom" id="custom-name-${id}" style="display:${customDisplay}; margin-top:10px;" placeholder="Escriba el nombre..." value="${customValue}">
+                    <div class="form-group hidden" id="rotative-container-${id}" style="margin-top: 10px; flex-direction: row; align-items: center; gap: 8px; display: none;">
+                        <input type="checkbox" class="store-rotative" style="width: 20px; height: 20px; cursor: pointer;">
+                        <label style="margin-bottom: 0;">Vitrina Rotativa</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Estatus</label>
+                    <select class="store-status" onchange="toggleStoreFields(this, ${id})">
+                        <option value="Visita realizada">Visita realizada</option>
+                        <option value="Visita realizada, pero...">Visita realizada, pero...</option>
+                        <option value="Informacion recopilada">Información recopilada</option>
+                        <option value="Vitrina arreglada">Vitrina arreglada</option>
+                        <option value="Problema con vitrina">Problema con vitrina</option>
+                        <option value="Entrega de material POP">Entrega de material POP</option>
+                        <option value="Entrega de obsequios">Entrega de obsequios</option>
+                        <option value="Carga de stock">Carga de stock</option>
+                        <option value="Carga de ventas">Carga de ventas</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group hidden" id="qty-container-${id}" style="margin-top:12px;">
+                <label>Cantidad</label><input type="number" class="store-qty">
+            </div>
+            <textarea class="store-actions" id="actions-input-${id}" style="margin-top:10px;" placeholder="Acciones realizadas o justificación..."></textarea>
+            <button type="button" class="btn-remove" onclick="document.getElementById('store-${id}').remove()">Eliminar Tienda</button>
+        `;
+        document.getElementById('stores-container').appendChild(div);
+
+        // Disparamos la validación inicial para que oculte el textarea si entra como "Visita realizada" por defecto
+        toggleStoreFields(div.querySelector('.store-status'), id);
+    }
+
+    function toggleStoreFields(select, id) {
+        const status = select.value;
+        const rotContainer = document.getElementById(`rotative-container-${id}`);
+        const qtyContainer = document.getElementById(`qty-container-${id}`);
+        const actionsInput = document.getElementById(`actions-input-${id}`); // Capturamos el textarea
+
+        // Lógica para Cantidad 
+        const mostrarQty = ["Vitrina arreglada", "Problema con vitrina", "Carga de ventas", "Carga de stock"].includes(status);
+        if (qtyContainer) {
+            qtyContainer.classList.toggle('hidden', !mostrarQty);
+        }
+
+        // Lógica para Vitrina Rotativa 
+        const esOpcionVitrina = (status === "Vitrina arreglada" || status === "Problemas de Vitrina" || status === "Problema con vitrina");
+
+        if (rotContainer) {
+            if (esOpcionVitrina) {
+                rotContainer.classList.remove('hidden');
+                rotContainer.style.display = 'flex'; 
+            } else {
+                rotContainer.classList.add('hidden');
+                rotContainer.style.display = 'none'; 
+                rotContainer.querySelector('.store-rotative').checked = false; 
+            }
+        }
+
+        // Lógica para ocultar el cuadro de texto de "Acciones / Justificación"
+        if (actionsInput) {
+            if (status === "Visita realizada") {
+                actionsInput.style.display = 'none'; // Lo ocultamos
+                actionsInput.value = ''; // Opcional: limpiamos el texto si lo ocultó
+            } else {
+                actionsInput.style.display = 'block'; // Lo mostramos
+            }
+        }
+    }
+
+    function checkOtherShop(select, id) {
+        document.getElementById(`custom-name-${id}`).style.display = (select.value === "OTHER SHOP") ? "block" : "none";
+    }
+
+    function getStoreName(block) {
+        const select = block.querySelector('.store-select');
+        return (select.value === "OTHER SHOP") ? block.querySelector('.store-name-custom').value : select.value;
+    }
+
+    // --- FOTOS E INPUTS ---
+    function handleImages(e) { handleFiles(e.target.files, 'Vitrina'); }
+    function handleCompImages(e) { handleFiles(e.target.files, 'Competencia'); }
+    
+    function handleFiles(files, defaultCat) {
+        Array.from(files).forEach(file => {
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                const base64Data = ev.target.result.split(',')[1]; 
+                photos.push({ 
+                    src: ev.target.result,
+                    base64: base64Data,
+                    mimeType: file.type,
+                    name: file.name,
+                    categoria: defaultCat, 
+                    nombreTienda: ""       
+                });
+                renderPhotos();
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    function renderPhotos() {
+        const container = document.getElementById('imagePreview');
+        container.innerHTML = '';
+        photos.forEach((p, i) => {
+            const item = document.createElement('div');
+            item.className = 'image-item';
+            item.innerHTML = `
+                <img src="${p.src}">
+                <div style="display:flex; flex-direction:column; gap:5px;">
+                    <input type="text" placeholder="Nombre de la tienda/ref" value="${p.nombreTienda}" onchange="photos[${i}].nombreTienda = this.value" style="padding:5px; font-size:12px;">
+                    <select onchange="photos[${i}].categoria = this.value" style="padding:5px; font-size:12px;">
+                        <option value="${p.categoria}">${p.categoria || "Seleccione Categoría..."}</option>
+                        <option value="Competencia">Competencia</option>
+                        <option value="Obsequios">Obsequios</option>
+                        <option value="Material POP">Material POP</option>
+                        <option value="Adjunto">Adjunto</option>
+                        <option value="Vitrina Despues">Vitrina Despues</option>
+                        <option value="Vitrina Antes">Vitrina Antes</option>
+                    </select>
+                    <button type="button" style="color:white; background:#dc3545; border:none; padding:5px; border-radius:4px; cursor:pointer;" onclick="photos.splice(${i},1); renderPhotos();">Eliminar</button>
+                </div>
+            `;
+            container.appendChild(item);
+        });
+    }
+
+    // --- 1. EXPORTACIÓN A GOOGLE SHEETS ---
+    async function enviarAGoogleSheets() {
+        if (!document.getElementById('staffName').value) { alert("Selecciona un especialista"); return; }
+
+        const btn = document.getElementById('btnSincronizar');
+        const originalText = btn.innerText;
+        btn.innerText = "Sincronizando a la Nube..."; 
+        btn.disabled = true;
+
+        const tiendasData = Array.from(document.querySelectorAll('.store-block')).map(b => ({
+            nombre: getStoreName(b),
+            estatus: b.querySelector('.store-status').value,
+            cantidad: b.querySelector('.store-qty').value || "N/A",
+            acciones: b.querySelector('.store-actions').value
+        }));
+
+        let tiendasProcesadas = [];
+
+        if (photos.length > 0) {
+            photos.forEach((p) => {
+                const baseTienda = tiendasData.find(t => t.nombre === p.nombreTienda) || {
+                    nombre: p.nombreTienda || "General/Adjunto",
+                    estatus: "Evidencia",
+                    cantidad: "N/A",
+                    acciones: "Foto adjunta sin bloque de tienda"
+                };
+                tiendasProcesadas.push({ ...baseTienda, foto: `${p.categoria}: ${p.src}` });
+            });
+        }
+
+        tiendasData.forEach(t => {
+            const yaTieneFoto = photos.some(p => p.nombreTienda === t.nombre);
+            if (!yaTieneFoto) { tiendasProcesadas.push({ ...t, foto: "" }); }
+        });
+
+        const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbzplj5TfAvr8VMtgqt1G1DRNUXGtJ8TQQtrn9bLtYjic46Q-4Eflc2C6iXSRq6LlJRoEQ/exec";
+
+        const baseData = {
+            fecha: document.getElementById('date').value,
+            especialista: document.getElementById('staffName').value,
+            cargo: document.getElementById('role').value,
+            region: document.getElementById('region').value,
+            competencia: document.getElementById('competitorActions').value,
+            dinamica: document.getElementById('marketDynamics').value,
+            
+            // Nuevos datos integrados a la Base Data
+            cargaStock: document.getElementById('cargaStockTotal').value || "0",
+            ventaCamonSemana: document.getElementById('ventasCamonSemana').value || "0",
+            ventaTecnoSemana: document.getElementById('ventasTecnoSemana').value || "0",
+            listaTiendasVisitadas: visitedStores.join(', '),
+
+            fotos: [] 
+        };
+
+        const payloadR1 = {
+            ...baseData,
+            tiendas: tiendasProcesadas, 
+            retailer: document.getElementById('retailerName').value,
+            tiendasObjetivo: document.getElementById('shopsQty').value,
+            metaCamon: document.getElementById('salesTarget').value,
+            ventaHoy: document.getElementById('todaySales').value,
+            acumulado: document.getElementById('accumulatedSales').value,
+            dcr: document.getElementById('dcrRate').value,
+            covPro: document.getElementById('coverage50Pro').value,
+            covUltra: document.getElementById('coverage50Ultra').value,
+            probStock: document.getElementById('stockIssues').value,
+        };
+
+        try {
+            await fetch(WEBHOOK_URL, { 
+                method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payloadR1) 
+            });
+
+            if (isR2Active() && document.getElementById('retailerName2').value !== "") {
+                const payloadR2 = {
+                    ...baseData, tiendas: [], retailer: document.getElementById('retailerName2').value,
+                    tiendasObjetivo: document.getElementById('shopsQty2').value,
+                    metaCamon: document.getElementById('salesTarget2').value,
+                    ventaHoy: document.getElementById('todaySales2').value,
+                    acumulado: document.getElementById('accumulatedSales2').value,
+                    dcr: document.getElementById('dcrRate2').value,
+                    covPro: document.getElementById('coverage50Pro2').value,
+                    covUltra: document.getElementById('coverage50Ultra2').value,
+                    probStock: document.getElementById('stockIssues2').value,
+                };
+                await fetch(WEBHOOK_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payloadR2) });
+            }
+            alert("¡Reporte enviado! Los links deberían aparecer en cada fila correspondiente.");
+        } catch (e) {
+            console.error(e);
+            alert("Error al conectar con la nube.");
+        } finally {
+            btn.innerText = originalText;
+            btn.disabled = false;
+        }
+    }
+
+    // --- 2. EXPORTAR WORD ---
+    function exportWord() {
+        const name = document.getElementById('staffName').value || 'Reporte';
+        const date = document.getElementById('date').value;
+        
+        let content = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+        <head><meta charset='utf-8'><title>Reporte Diario TECNO</title>
+        <style>body { font-family: Arial, sans-serif; } h2 { color: #0056b3; } h3 { border-bottom: 1px solid #ccc; padding-bottom: 5px; } table { border-collapse: collapse; width: 100%; } th, td { border: 1px solid #000; padding: 8px; text-align: left; } th { background-color: #f2f2f2; }</style>
+        </head><body>`;
+        
+        content += `<h2>REPORTE DIARIO TECNO</h2>`;
+        content += `<ul><li><b>Fecha:</b> ${date}</li><li><b>Especialista:</b> ${name}</li><li><b>Cargo:</b> ${document.getElementById('role').value}</li><li><b>Ruta/C.C:</b> ${document.getElementById('region').value}</li></ul>`;
+
+        content += `<h3>1. Ventas: ${document.getElementById('retailerName').value}</h3>`;
+        content += `<ul>
+            <li><b>Tiendas objetivo:</b> ${document.getElementById('shopsQty').value}</li>
+            <li><b>Meta CAMON:</b> ${document.getElementById('salesTarget').value}</li>
+            <li><b>Venta Hoy:</b> ${document.getElementById('todaySales').value}</li>
+            <li><b>Acumulado Mes:</b> ${document.getElementById('accumulatedSales').value}</li>
+            <li><b>Cargado al DCR:</b> ${document.getElementById('dcrRate').value}%</li>
+        </ul>`;
+        content += `<h4>Cobertura e Inventario:</h4><ul>
+            <li><b>Cobertura C50 Pro:</b> ${document.getElementById('coverage50Pro').value}</li>
+            <li><b>Cobertura C50 Ultra:</b> ${document.getElementById('coverage50Ultra').value}</li>
+            <li><b>Problemas de Stock:</b> ${document.getElementById('stockIssues').value}</li>
+        </ul>`;
+
+        if (isR2Active()) {
+            content += `<h3>1.1 Ventas: ${document.getElementById('retailerName2').value}</h3>`;
+            content += `<ul>
+                <li><b>Tiendas objetivo:</b> ${document.getElementById('shopsQty2').value}</li>
+                <li><b>Meta CAMON:</b> ${document.getElementById('salesTarget2').value}</li>
+                <li><b>Venta Hoy:</b> ${document.getElementById('todaySales2').value}</li>
+                <li><b>Acumulado Mes:</b> ${document.getElementById('accumulatedSales2').value}</li>
+                <li><b>Cargado al DCR:</b> ${document.getElementById('dcrRate2').value}%</li>
+            </ul>`;
+            content += `<h4>Cobertura e Inventario:</h4><ul>
+                <li><b>Cobertura C50 Pro:</b> ${document.getElementById('coverage50Pro2').value}</li>
+                <li><b>Cobertura C50 Ultra:</b> ${document.getElementById('coverage50Ultra2').value}</li>
+                <li><b>Problemas de Stock:</b> ${document.getElementById('stockIssues2').value}</li>
+            </ul>`;
+        }
+
+        content += `<h3>3. Análisis de Mercado</h3>`;
+        content += `<p><b>Acciones Competencia:</b> ${document.getElementById('competitorActions').value}</p>`;
+        content += `<p><b>Dinámica del Mercado:</b> ${document.getElementById('marketDynamics').value}</p>`;
+
+        content += `<h3>4. Resumen de actividades diarias</h3>`;
+        content += `<ul>
+            <li><b>Carga de stock:</b> ${document.getElementById('cargaStockTotal').value || 0} unidades</li>
+            <li><b>Venta Serie CAMON 50 (semana):</b> ${document.getElementById('ventasCamonSemana').value || 0}</li>
+            <li><b>Venta equipos Tecno (semana):</b> ${document.getElementById('ventasTecnoSemana').value || 0}</li>
+        </ul>`;
+
+        content += `<h4>Lista de Tiendas Visitadas Hoy:</h4><ol>`;
+        visitedStores.forEach(store => { content += `<li>${store}</li>`; });
+        content += `</ol>`;
+
+        content += `<h3>5. Detalle por tienda</h3><table><tr><th>Tienda</th><th>Estatus</th><th>Cant</th><th>Acciones</th></tr>`;
+        document.querySelectorAll('.store-block').forEach(b => {
+            content += `<tr>
+                <td>${getStoreName(b)}</td>
+                <td>${b.querySelector('.store-status').value}</td>
+                <td>${b.querySelector('.store-qty').value || '-'}</td>
+                <td>${b.querySelector('.store-actions').value}</td>
+            </tr>`;
+        });
+        content += `</table>`;
+
+        if (photos.length > 0) {
+            content += `<h3>6. Evidencia Fotográfica</h3>`;
+            photos.forEach(p => {
+                content += `
+                <div style="margin-bottom: 15px;">
+                    <p><b>Categoría:</b> ${p.categoria} | <b>Tienda/Ref:</b> ${p.nombreTienda}</p>
+                    <img src="${p.src}" width="200" height="200" style="width:200px; height:200px; object-fit:cover;">
+                </div>`;
+            });
+        }
+
+        content += `</body></html>`;
+
+        const blob = new Blob(['\ufeff', content], { type: 'application/msword' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `Reporte_${name}_${date}.doc`;
+        link.click();
+    }
+
+    // --- 3. EXPORTAR WHATSAPP (PLANTILLA EXACTA) ---
+    function copiarWhatsApp() {
+        let text = `_*Reporte de Gestión Diario TECNO*_\n\n`;
+        text += `Información General\n\n`;
+        text += `* Fecha: ${document.getElementById('date').value}\n`;
+        text += `* Especialista: ${document.getElementById('staffName').value}\n`;
+        text += `* Cargo: ${document.getElementById('role').value}\n`;
+        text += `* Región/Ruta: Barquisimeto | ${document.getElementById('region').value}\n\n`;
+
+        text += `1. *Ventas:*\n\n`;
+        
+        text += `_*Info sobre: ${document.getElementById('retailerName').value}*_\n`;
+        text += `* Tiendas objetivo: ${document.getElementById('shopsQty').value}\n\n`;
+        
+        text += `Meta CAMON 50: ${document.getElementById('salesTarget').value}\n`;
+        text += `Venta Hoy: ${document.getElementById('todaySales').value}\n`;
+        text += `Total acumulado: ${document.getElementById('accumulatedSales').value}\n`;
+        text += `Totalidad de stock cargado al DCR: ${document.getElementById('dcrRate').value}%\n\n`;
+
+        text += `-- *Cobertura e Inventario:* --\n\n`;
+        text += `Cobertura CN5c: ${document.getElementById('coverage50Pro').value}\n`;
+        text += `Cobertura CN7c: ${document.getElementById('coverage50Ultra').value}\n\n`;
+        text += `Problemas de stock: ${document.getElementById('stockIssues').value}\n\n`;
+
+        if (isR2Active() && document.getElementById('retailerName2').value !== "") {
+            text += `_*Info sobre: ${document.getElementById('retailerName2').value}*_\n`;
+            text += `* Tiendas objetivo: ${document.getElementById('shopsQty2').value}\n\n`;
+            text += `Meta CAMON 50: ${document.getElementById('salesTarget2').value}\n`;
+            text += `Venta Hoy: ${document.getElementById('todaySales2').value}\n`;
+            text += `Total acumulado: ${document.getElementById('accumulatedSales2').value}\n`;
+            text += `Totalidad de stock cargado al DCR: ${document.getElementById('dcrRate2').value}%\n\n`;
+            text += `-- *Cobertura e Inventario:* --\n\n`;
+            text += `Cobertura CN5c: ${document.getElementById('coverage50Pro2').value}\n`;
+            text += `Cobertura CN7c: ${document.getElementById('coverage50Ultra2').value}\n\n`;
+            text += `Problemas de stock: ${document.getElementById('stockIssues2').value}\n\n`;
+        }
+
+        text += `3. *Analisis de Mercado:*\n\n`;
+        text += `_Competencia:_\n${document.getElementById('competitorActions').value || 'Sin novedades'}\n\n`;
+        text += `_Mercado:_\n${document.getElementById('marketDynamics').value || 'Sin novedades'}\n\n`;
+
+        text += `4. *Resumen de actividades diarias:*\n\n`;
+        text += `- Carga de stock (${document.getElementById('cargaStockTotal').value || 0} unidades)\n\n`;
+        text += `- Venta Serie CAMON 50 _(ventas totales de la semana)_: ${document.getElementById('ventasCamonSemana').value || 0}\n\n`;
+        text += `- Venta equipos Tecno _(ventas generales de la semana)_: ${document.getElementById('ventasTecnoSemana').value || 0}\n\n`;
+        
+        text += ` • *Lista de Tiendas Visitadas Hoy:*\n\n`;
+        visitedStores.forEach((store, index) => {
+            text += `${index + 1}. ${store}\n`;
+        });
+        text += `\n`;
+
+        text += `5. *Detalle por tienda:*\n\n`;
+        document.querySelectorAll('.store-block').forEach(b => {
+            const qty = b.querySelector('.store-qty').value;
+            const isRot = b.querySelector('.store-rotative').checked ? " [🔄 Rotativa]" : "";
+            const act = b.querySelector('.store-actions').value;
+            
+            text += `*${getStoreName(b)}* - ${b.querySelector('.store-status').value}`;
+            if(qty) text += ` (${qty} unidades)`;
+            text += `\n`;
+            if(act) text += `   ↳ _${act}_\n`;
+            text += `\n`;
+        });
+
+        navigator.clipboard.writeText(text).then(() => alert("¡Plantilla copiada con éxito para WhatsApp!"));
+    }
+
+    // --- LÓGICA DE AUTOCOMPLETADO (PEGAR REPORTE) ---
+    function openPasteModal() {
+        document.getElementById('pasteModal').style.display = 'flex';
+        document.getElementById('pasteArea').value = ''; // Limpiamos al abrir
+        document.getElementById('pasteArea').focus();
+    }
+
+    function closePasteModal() {
+        document.getElementById('pasteModal').style.display = 'none';
+    }
+
+    function processPastedReport() {
+        const text = document.getElementById('pasteArea').value;
+        if (!text.trim()) {
+            alert("Por favor, pega el texto de un reporte primero.");
+            return;
+        }
+
+        // Función auxiliar para extraer datos usando expresiones regulares
+        const extractMatch = (regex) => {
+            const match = text.match(regex);
+            return match ? match[1].trim() : "";
+        };
+
+        // 1. Información General
+        const especialista = extractMatch(/\*\s*Especialista:\s*(.+)/i);
+        if (especialista) document.getElementById('staffName').value = especialista;
+
+        const cargo = extractMatch(/\*\s*Cargo:\s*(.+)/i);
+        if (cargo) document.getElementById('role').value = cargo;
+
+        // 2. Ventas (Minorista 1)
+        const retailer = extractMatch(/_\*Info sobre:\s*(.+?)\*_/i);
+        if (retailer) {
+            // Buscamos si existe en las opciones, si no, lo dejamos vacío
+            const selectRetailer = document.getElementById('retailerName');
+            Array.from(selectRetailer.options).forEach(opt => {
+                if(opt.value.toUpperCase() === retailer.toUpperCase()) selectRetailer.value = opt.value;
+            });
+            updateRetailerTitles(); // Actualizamos los títulos en pantalla
+        }
+
+        const tiendasObj = extractMatch(/\*\s*Tiendas objetivo:\s*(\d+)/i);
+        if (tiendasObj) document.getElementById('shopsQty').value = tiendasObj;
+
+        const meta = extractMatch(/Meta CAMON 50:\s*(.+)/i);
+        if (meta) document.getElementById('salesTarget').value = meta;
+
+        const acumulado = extractMatch(/Total acumulado:\s*(\d+)/i);
+        if (acumulado) document.getElementById('accumulatedSales').value = acumulado;
+
+        const dcr = extractMatch(/Totalidad de stock cargado al DCR:\s*([\d\.]+)%?/i);
+        if (dcr) document.getElementById('dcrRate').value = dcr;
+
+        // 3. Cobertura e Inventario
+        const cov5c = extractMatch(/Cobertura CN5c:\s*(.+)/i);
+        if (cov5c) document.getElementById('coverage50Pro').value = cov5c;
+
+        const cov7c = extractMatch(/Cobertura CN7c:\s*(.+)/i);
+        if (cov7c) document.getElementById('coverage50Ultra').value = cov7c;
+
+        const probStock = extractMatch(/Problemas de stock:\s*(.+)/i);
+        if (probStock) document.getElementById('stockIssues').value = probStock;
+
+        // 4. Análisis de Mercado (Multilínea)
+        const compMatch = text.match(/_Competencia:_\s*\n([\s\S]*?)(?=\n_Mercado:_)/i);
+        if (compMatch) document.getElementById('competitorActions').value = compMatch[1].trim();
+
+        const mercadoMatch = text.match(/_Mercado:_\s*\n([\s\S]*?)(?=\n4\.\s*\*Resumen|\n\n4\.)/i);
+        if (mercadoMatch) document.getElementById('marketDynamics').value = mercadoMatch[1].trim();
+
+        // 5. Resumen de actividades diarias
+        const ventaCamon = extractMatch(/- Venta Serie CAMON 50[^:]*:\s*(\d+)/i);
+        if (ventaCamon) document.getElementById('ventasCamonSemana').value = ventaCamon;
+
+        const ventaTecno = extractMatch(/- Venta equipos Tecno[^:]*:\s*(\d+)/i);
+        if (ventaTecno) document.getElementById('ventasTecnoSemana').value = ventaTecno;
+
+        // Cierra la ventana emergente al finalizar
+        closePasteModal();
+        alert("¡Datos rellenados correctamente!");
+    }
+
+    // --- AUTO-SELECCIÓN DE NOMBRE ---
+    document.addEventListener("DOMContentLoaded", () => {
+        const savedName = localStorage.getItem("tecno_user_name");
+        const staffSelect = document.getElementById("staffName");
+
+        if (savedName && staffSelect) {
+            const normalize = (t) => t.toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            const cleanSaved = normalize(savedName);
+            Array.from(staffSelect.options).forEach(option => {
+                if (normalize(option.value) === cleanSaved) {
+                    staffSelect.value = option.value;
+                }
+            });
+        }
+    });
+
+    //addStore(); // Inicializa con un bloque vacío
+</script>
+</body>
+</html>
