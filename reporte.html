@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Reporte Diario | TECNO TOOL</title>
+    <title>Reporte Diario TECNO | Compacto</title>
     <!-- Librerías requeridas -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
@@ -117,7 +117,10 @@
                 </div>
                 <div class="form-group">
                     <label class="form-label">Especialista</label>
-                    <input type="text" id="staffName" class="form-control" placeholder="Ej. Guillermo Rodríguez">
+                    <select id="staffName" class="form-control">
+                        <option value="Guillermo Rodríguez">Guillermo Rodríguez</option>
+                        <option value="José Reina">José Reina</option>
+                    </select>
                 </div>
             </div>
             <div class="form-group">
@@ -192,10 +195,10 @@
             </div>
         </div>
 
-        <!-- BOTÓN IA -->
+        <!-- BOTÓN IA GRATUITA -->
         <div class="form-group">
             <button type="button" class="btn" style="background: linear-gradient(90deg, #8b5cf6, #3b82f6);" onclick="mejorarTextosIA()">
-                ✨ Mejorar Textos con IA
+                ✨ Mejorar Textos con IA (Gratis)
             </button>
         </div>
 
@@ -211,7 +214,6 @@
 
 <!-- BARRA INFERIOR DE ACCIONES -->
 <div class="bottom-action-bar">
-    <!-- El enlace a la nube se deja intacto -->
     <button type="button" class="btn btn-outline" onclick="window.open('https://docs.google.com/spreadsheets/d/168u-0pUmNMGVExY8duQJksMGCAjfxyPd44q0P-ESoKk/edit?gid=0#gid=0', '_blank')">☁️ Nube</button>
     <button type="button" class="btn btn-success" onclick="copiarWhatsApp()">💬 WhatsApp</button>
     <button type="button" class="btn btn-primary" onclick="exportWord()">📄 Word</button>
@@ -238,12 +240,8 @@
 
 <script>
     // ==========================================
-    // CONFIGURACIÓN DE APIS Y WEBHOOKS
+    // WEBHOOK DE GOOGLE APPS SCRIPT
     // ==========================================
-    // 1. REEMPLAZA ESTO CON TU CLAVE REAL DE OPENAI
-    const OPENAI_API_KEY = "sk-efghijklmnop5678efghijklmnop5678efghijkl"; 
-    
-    // 2. REEMPLAZA ESTO CON LA URL QUE TE DÉ GOOGLE APPS SCRIPT AL IMPLEMENTAR
     const GOOGLE_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbwV51uff2TfeS1N7_b3kTAu5b6tdnWaJpJk16VFQYO2qymupV64ezF-llcvSt3-mjlyPw/exec";
     // ==========================================
 
@@ -384,14 +382,8 @@
         return text;
     }
 
-    // --- 5. INTELIGENCIA ARTIFICIAL (OPENAI) ---
+    // --- 5. INTELIGENCIA ARTIFICIAL (GRATUITA - POLLINATIONS AI) ---
     async function mejorarTextosIA() {
-        // Se asume que el usuario pondrá la clave arriba en la variable OPENAI_API_KEY
-        if (OPENAI_API_KEY.includes("TU_API_KEY_AQUI")) {
-            alert("⚠️ No has configurado tu clave de OpenAI en el código. Abre el código y reemplaza 'sk-TU_API_KEY_AQUI' con tu clave real.");
-            return;
-        }
-
         const targets = document.querySelectorAll('.IA-target');
         const showLoader = (show) => document.getElementById('loader-overlay').classList.toggle('hidden', !show);
         
@@ -401,29 +393,19 @@
         try {
             for (let el of targets) {
                 if(el.value.trim().length > 5) {
-                    const response = await fetch("https://api.openai.com/v1/chat/completions", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${OPENAI_API_KEY}` },
-                        body: JSON.stringify({
-                            model: "gpt-3.5-turbo",
-                            messages: [{
-                                role: "system", 
-                                content: "Eres un analista comercial de TECNO Mobile. Reescribe el siguiente texto de un reporte diario para que suene profesional, claro y corporativo, extendiéndolo ligeramente sin inventar cifras. No uses comillas. Mantén el texto en un solo párrafo."
-                            }, { role: "user", content: el.value }]
-                        })
-                    });
+                    // API libre de texto generativo sin claves
+                    const promptText = "Eres un analista comercial corporativo de TECNO Mobile. Reescribe el siguiente texto de reporte para que sea directo, profesional y claro, sin agregar información inventada ni usar comillas. Un solo párrafo: " + el.value;
+                    const response = await fetch(`https://text.pollinations.ai/prompt/${encodeURIComponent(promptText)}`);
                     
                     if(response.ok) {
-                        const data = await response.json();
-                        if(data.choices) el.value = data.choices[0].message.content.trim();
-                    } else {
-                        throw new Error("Clave inválida o límite excedido");
+                        const text = await response.text();
+                        el.value = text.trim();
                     }
                 }
             }
-            alert("✨ Textos mejorados con éxito.");
+            alert("✨ Textos mejorados con éxito (Gratis).");
         } catch(e) {
-            alert("❌ Error con la IA. Verifica tu API Key o conexión a internet.");
+            alert("❌ Error conectando con la IA gratuita. Verifica tu internet.");
         }
         showLoader(false);
     }
@@ -448,25 +430,39 @@
         addStoreDetailBlock("Bella Femmina", "Stock al día y organizado. A la espera de reposición del Spark 50 5G.", "Entregado POP.");
         
         document.getElementById('stockAlerts').value = "Actualmente cuentan con poco stock de Camon 50 Ultra.";
-        document.getElementById('compActions').value = "Infinix colocó material POP en nueva tienda (Cosmos).";
+        document.getElementById('compActions').value = "La competencia colocó material POP en nueva tienda e impulsó promociones con los asesores.";
         document.getElementById('marketDynamics').value = "Flujo medio a alto en los C.C.";
     }
 
     // --- 7. AUTOCOMPLETAR (PEGAR) ---
     function openPasteModal() { document.getElementById('pasteModal').style.display = 'flex'; document.getElementById('pasteArea').value = ''; }
+    
     function processPastedReport() {
         const text = document.getElementById('pasteArea').value;
         const e = (regex) => { const m = text.match(regex); return m ? m[1].trim() : ""; };
         
-        document.getElementById('staffName').value = e(/Esp\.:\s*(.+)/i) || document.getElementById('staffName').value;
+        // Determinar Especialista (desplegable)
+        const nameMatch = e(/Esp\.:\s*([^\n\|]+)/i);
+        if(nameMatch.toLowerCase().includes("jos")) {
+            document.getElementById('staffName').value = "José Reina";
+        } else if(nameMatch.toLowerCase().includes("guillermo")) {
+            document.getElementById('staffName').value = "Guillermo Rodríguez";
+        }
+
         document.getElementById('ruta').value = e(/Ruta:\s*(.+)/i) || "";
         document.getElementById('objetivo').value = e(/Objetivo:\s*(.+)/i) || "";
         document.getElementById('metaC50').value = e(/Meta C50:\s*(\d+)/i) || "";
+        document.getElementById('ventaHoy').value = e(/Venta Hoy:\s*(\d+)/i) || "";
         document.getElementById('acumulado').value = e(/Acumulado:\s*(\d+)/i) || "";
         document.getElementById('semC50').value = e(/Venta Semanal:\s*(\d+)\s*\(C50\)/i) || "";
         document.getElementById('semTecno').value = e(/\|\s*(\d+)\s*\(Total Tecno\)/i) || "";
         document.getElementById('cobertura').value = e(/Cobertura.*?:\s*([\d\/]+)/i) || "";
         document.getElementById('dcr').value = e(/Carga DCR:\s*(\d+)/i) || "";
+        
+        // Nuevas extracciones para Alertas, Competencia y Tráfico
+        document.getElementById('stockAlerts').value = e(/ALERTAS DE STOCK\n▪️\s*(.+)/i) || "";
+        document.getElementById('compActions').value = e(/Competencia:\s*(.+)/i) || "";
+        document.getElementById('marketDynamics').value = e(/Tráfico:\s*(.+)/i) || "";
         
         document.getElementById('pasteModal').style.display = 'none';
     }
@@ -480,7 +476,7 @@
             reader.onload = (ev) => {
                 photos.push({ 
                     src: ev.target.result, 
-                    tag: 'Adjunto', // Default
+                    tag: 'Adjunto',
                     desc: '' 
                 });
                 renderPhotos();
@@ -507,7 +503,7 @@
         });
     }
 
-    // --- 9. EXPORTAR WORD TOTAL ---
+    // --- 9. EXPORTAR WORD TOTAL (IMÁGENES FORZADAS A 300x300) ---
     function exportWord() {
         let content = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
         <head><meta charset='utf-8'><title>Reporte Diario TECNO</title></head>
@@ -521,11 +517,13 @@
         if (photos.length > 0) {
             content += `<h3>📸 Evidencia Fotográfica</h3>`;
             photos.forEach(p => {
+                // Etiqueta img forzando estrictamente el tamaño 300x300
                 content += `
                     <div style="margin-bottom: 20px; border: 1px solid #ccc; padding: 10px;">
                         <p><b>Etiqueta:</b> ${p.tag}</p>
                         ${p.desc ? `<p><b>Descripción:</b> ${p.desc}</p>` : ''}
-                        <img src="${p.src}" width="400" style="max-width: 100%; border: 1px solid #000;" />
+                        <br>
+                        <img src="${p.src}" width="300" height="300" style="display:block; margin: 10px 0;" />
                     </div>
                 `;
             });
@@ -542,14 +540,13 @@
     // --- 10. SINCRONIZACIÓN GOOGLE SHEETS (WEBHOOK POST) ---
     async function enviarAGoogleSheets() {
         if (GOOGLE_WEBHOOK_URL.includes("TU_WEBHOOK_AQUI")) {
-            alert("⚠️ Aún no has configurado la URL de App Script. Revisa las instrucciones en la respuesta del chat.");
+            alert("⚠️ Aún no has configurado la URL de App Script.");
             return;
         }
 
         const btn = document.getElementById('btnSincronizar');
         btn.innerText = "Sincronizando..."; btn.disabled = true;
 
-        // Recolectar datos de novedades
         let novedades = [];
         document.querySelectorAll('[id^="detail-"]').forEach(block => {
             const t = block.querySelector('.detail-tienda').value;
@@ -558,7 +555,6 @@
             if(t) novedades.push(`${t}: ${d} [${n}]`);
         });
 
-        // Crear JSON Payload
         const payload = {
             fecha: document.getElementById('date').value,
             especialista: document.getElementById('staffName').value,
@@ -579,7 +575,6 @@
         };
 
         try {
-            // El mode 'no-cors' es necesario para evitar bloqueos del navegador hacia Google Script
             await fetch(GOOGLE_WEBHOOK_URL, {
                 method: 'POST',
                 mode: 'no-cors',
