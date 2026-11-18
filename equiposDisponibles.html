@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Inventario de Equipos - TECNO</title>
-  <link rel="icon" type="image/png" href="https://guillermorodfer04dev.github.io/REPORT/TECNO-TOOL-icon.png">
+  <link rel="icon" type="image/png" href="TECNO-TOOL-icon.png">
   <style>
     :root {
       --primary: #0066ff;
@@ -72,23 +72,26 @@
   </style>
 
   <script src="auth_guard.js"></script>
+    <link rel="stylesheet" href="site.css">
+    <script src="site.js"></script>
 </head>
-<body>
+<body class="page-inventory">
 
 <div class="container">
   
   <header>
+    <a href="index.html" class="site-home-link">← Inicio</a>
     <h2>📦 Registro de Inventario</h2>
     <div>
-      <span id="counter" style="color: #666; font-size: 0.85rem; font-weight: 600; margin-right: 15px;">0 Tiendas</span>
-      <a href="https://docs.google.com/spreadsheets/d/1frMMsfmN-azH3ZsNtt5CB4niF4GzirZXKxWKIVSyRwY/edit?gid=0#gid=0" target="_blank" class="btn btn-nube-ir">☁️ Ir a la nube</a>
+      <span id="counter" style="color: var(--text-muted); font-size: 0.85rem; font-weight: 600; margin-right: 15px;">0 Tiendas</span>
+      <a href="https://docs.google.com/spreadsheets/d/1frMMsfmN-azH3ZsNtt5CB4niF4GzirZXKxWKIVSyRwY/edit?gid=0#gid=0" target="_blank" rel="noopener noreferrer" class="btn btn-nube-ir">☁️ Ir a la nube</a>
     </div>
   </header>
 
   <div class="section-panel">
     <div class="section-header">
       <span>⚙️ Listado de Equipos a Reconocer</span>
-      <span style="font-size: 0.7rem; font-weight: normal; color:#777;">(Uno por línea)</span>
+      <span style="font-size: 0.7rem; font-weight: normal; color: var(--text-muted);">(Uno por línea)</span>
     </div>
     <textarea id="device-config" rows="4" placeholder="Ejemplo:&#10;SPARK 40 PRO+&#10;Camon 40 pro">SPARK 50
 SPARK 40 PRO+
@@ -156,15 +159,15 @@ CAMON 30S PRO</textarea>
       
       devicesHTML += `
         <div class="device-item">
-          <label>${device}</label>
-          <input type="number" class="device-input" data-device="${device}" placeholder="0" min="0" value="${value}">
+          <label>${escapeHTML(device)}</label>
+          <input type="number" class="device-input" data-device="${escapeHTML(device)}" placeholder="0" min="0" value="${escapeHTML(value)}">
         </div>
       `;
     });
 
     card.innerHTML = `
       <div class="store-header">
-        <input type="text" class="tienda-nombre" placeholder="Nombre de la Tienda" value="${tiendaNombre}" required>
+        <input type="text" class="tienda-nombre" placeholder="Nombre de la Tienda" value="${escapeHTML(tiendaNombre)}" required>
         <select class="key-retailer">
           <option value="" ${kaSelected === "" ? "selected" : ""}>-- Key Retailer --</option>
           <option value="GLOBAL CELL" ${kaSelected === "GLOBAL CELL" ? "selected" : ""}>GLOBAL CELL</option>

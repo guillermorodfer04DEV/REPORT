@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Listado Binance ID - TECNO</title>
-  <link rel="icon" type="image/png" href="https://guillermorodfer04dev.github.io/REPORT/TECNO-TOOL-icon.png">
+  <link rel="icon" type="image/png" href="TECNO-TOOL-icon.png">
   <style>
     :root {
       --primary: #0066ff;
@@ -74,15 +74,17 @@
   </style>
 
   <script src="auth_guard.js"></script>
+    <link rel="stylesheet" href="site.css">
+    <script src="site.js"></script>
 </head>
-<body>
+<body class="page-binance">
 
 <div class="container">
   <button class="btn-back" onclick="volverMenu()">← Volver al Menú Principal</button>
 
   <header>
     <h2>Carga de Datos (Binance ID)</h2>
-    <div id="counter" style="color: #666; font-size: 0.8rem;">0 registro(s)</div>
+    <div id="counter" style="color: var(--text-muted); font-size: 0.8rem;">0 registro(s)</div>
   </header>
 
   <button class="btn-toggle-paste" onclick="togglePasteArea()">
@@ -90,10 +92,10 @@
   </button>
 
   <div class="paste-section" id="paste-section">
-    <p style="margin-top:0; font-size:0.85rem; color:#555;">Pega aquí los mensajes directamente. Soporta múltiples formatos simultáneamente.</p>
+    <p style="margin-top:0; font-size:0.85rem; color: var(--text-muted);">Pega aquí los mensajes directamente. Soporta múltiples formatos simultáneamente.</p>
     
     <div style="margin-bottom: 10px;">
-      <label style="font-size: 0.85rem; font-weight: bold; color: #333;">Asignar Key Retailer a todas estas filas:</label>
+      <label style="font-size: 0.85rem; font-weight: bold; color: var(--text);">Asignar Key Retailer a todas estas filas:</label>
       <select id="global-ka" style="width: 100%; margin-top: 5px; margin-bottom: 10px;">
         <option value="">-- Autodetectar según el nombre de la tienda --</option>
         <option value="GLOBAL CELL">GLOBAL CELL</option>
@@ -123,7 +125,7 @@
   <button class="btn btn-add" onclick="addRow()">+ Añadir fila manualmente</button>
   
   <button class="btn btn-submit" id="submit-btn" onclick="sendData()">Subir Data al Excel</button>
-  <a href="https://docs.google.com/spreadsheets/d/1jxtciGW1QgATZehf190-s-SuUDB3BxeL0tjooWx-kdI/edit?usp=sharing" target="_blank" class="btn-nube">☁️ Ir a la nube</a>
+  <a href="https://docs.google.com/spreadsheets/d/1jxtciGW1QgATZehf190-s-SuUDB3BxeL0tjooWx-kdI/edit?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn-nube">☁️ Ir a la nube</a>
   <div id="status"></div>
 </div>
 
@@ -167,18 +169,18 @@
     const idValue = pendiente ? "EN ESPERA" : id;
 
     div.innerHTML = `
-      <input type="text" class="nombre" placeholder="Nombre y Apellido" value="${nombre}" required>
+      <input type="text" class="nombre" placeholder="Nombre y Apellido" value="${escapeHTML(nombre)}" required>
       
       <div class="id-container">
-        <input type="text" class="uid" placeholder="ID" value="${idValue}" ${idDisabled} required>
+        <input type="text" class="uid" placeholder="ID" value="${escapeHTML(idValue)}" ${idDisabled} required>
         <label class="chk-wrapper" title="Marcar como pendiente">
           <span>Espera</span>
           <input type="checkbox" class="chk-pendiente" onchange="togglePending(this)" ${chkChecked}>
         </label>
       </div>
 
-      <input type="text" class="contacto" placeholder="0412..." value="${contacto}">
-      <input type="text" class="tienda" placeholder="Sucursal" value="${tienda}">
+      <input type="text" class="contacto" placeholder="0412..." value="${escapeHTML(contacto)}">
+      <input type="text" class="tienda" placeholder="Sucursal" value="${escapeHTML(tienda)}">
       
       <select class="key-retailer">
         <option value="" ${ka === "" ? "selected" : ""}>-- Seleccionar --</option>
