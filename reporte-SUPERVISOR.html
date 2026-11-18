@@ -1,11 +1,10 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <link rel="icon" type="image/png" href="https://guillermorodfer04dev.github.io/REPORT/TECNO-TOOL-icon.png">
+    <link rel="icon" type="image/png" href="TECNO-TOOL-icon.png">
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reporte Diario TECNO - Supervisor</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         :root { --tecno-blue: #0056b3; --tecno-green: #217346; --bg: #f4f7f9; }
         * { box-sizing: border-box; font-family: 'Segoe UI', Roboto, sans-serif; }
@@ -38,13 +37,15 @@
         
         .model-header { font-weight: bold; color: var(--tecno-blue); margin-top: 15px; border-bottom: 1px solid #ddd; padding-bottom: 5px; }
     </style>
+    <link rel="stylesheet" href="site.css">
+    <script src="site.js"></script>
 </head>
-<body>
+<body class="page-supervisor">
 
 <div class="container">
 
     <button type="button" onclick="window.location.href='index.html'" 
-    style="background: #6c757d; color: white; border: none; padding: 10px 16px; border-radius: 8px; font-weight: bold; cursor: pointer; margin-bottom: 20px; font-size: 13px; display: flex; align-items: center; gap: 8px;">
+    style="background: var(--surface-light); color: white; border: none; padding: 10px 16px; border-radius: 8px; font-weight: bold; cursor: pointer; margin-bottom: 20px; font-size: 13px; display: flex; align-items: center; gap: 8px;">
     🏠 Volver al Inicio
     </button>
 
@@ -132,8 +133,8 @@
         <div id="issues-container"></div>
 
         <div class="btn-group">
-            <button type="button" class="btn-final" style="background: #2b579a;" onclick="exportWord()">Exportar Word (Plantilla)</button>
-            <button type="button" class="btn-final" style="background: #17a2b8;" onclick="window.open('https://docs.google.com/spreadsheets/d/168u-0pUmNMGVExY8duQJksMGCAjfxyPd44q0P-ESoKk/edit?gid=0#gid=0', '_blank')">☁️ Ir a la Nube</button>
+            <button type="button" class="btn-final" style="background: var(--primary);" onclick="exportWord()">Exportar Word (Plantilla)</button>
+            <button type="button" class="btn-final" style="background: var(--primary);" onclick="window.open('https://docs.google.com/spreadsheets/d/168u-0pUmNMGVExY8duQJksMGCAjfxyPd44q0P-ESoKk/edit?gid=0#gid=0', '_blank', 'noopener,noreferrer')">☁️ Ir a la Nube</button>
         </div>
     </form>
 </div>
@@ -161,58 +162,14 @@
         document.getElementById('issues-container').appendChild(div);
     }
 
-    function exportExcel() {
-        const data = [
-            ["SUPERVISOR DAILY WORK REPORT - TECNO"],
-            ["Date", document.getElementById('date').value],
-            ["Reported By", document.getElementById('staffName').value],
-            ["", ""],
-            ["1. PRODUCT COVERAGE STATUS"],
-            ["Model", "Total Key Retailer Shops Targeted", "Shops Covered", "Coverage Rate", "Issues & Next Actions"],
-            ["CN5c", document.getElementById('c50proTarget').value, document.getElementById('c50proCovered').value, document.getElementById('c50proRate').value, document.getElementById('c50proIssues').value],
-            ["CN7c", document.getElementById('c50uTarget').value, document.getElementById('c50uCovered').value, document.getElementById('c50uRate').value, document.getElementById('c50uIssues').value],
-            ["High Performing", document.getElementById('highPerformers').value],
-            ["Low Performing", document.getElementById('lowPerformers').value],
-            ["", ""],
-            ["2. SO ACHIEVEMENT"],
-            ["Model", "Today Activated", "Monthly SO Target", "Monthly SO Achieved", "Achievement Rate"],
-            ["CN5c", document.getElementById('c50proToday').value, document.getElementById('c50proMonthTarget').value, document.getElementById('c50proMonthAchieved').value, document.getElementById('c50proAchieveRate').value],
-            ["CN7c", document.getElementById('c50uToday').value, document.getElementById('c50uMonthTarget').value, document.getElementById('c50uMonthAchieved').value, document.getElementById('c50uAchieveRate').value],
-            ["", ""],
-            ["PERFORMANCE NOTES"],
-            ["Trend", document.getElementById('trend').value],
-            ["Key Drivers", document.getElementById('drivers').value],
-            ["Challenges", document.getElementById('challenges').value],
-            ["", ""],
-            ["3. DAILY ACTIVITIES", document.getElementById('dailyActivities').value],
-            ["4. COMPETITIVE INTEL", document.getElementById('marketIntel').value],
-            ["", ""],
-            ["5. ISSUES & SUPPORT REQUIRED"],
-            ["Issue Description", "Urgency", "Requested Support"]
-        ];
-
-        document.querySelectorAll('.issue-block').forEach(b => {
-            data.push([
-                b.querySelector('.issue-desc').value,
-                b.querySelector('.issue-urgency').value,
-                b.querySelector('.issue-support').value
-            ]);
-        });
-
-        const ws = XLSX.utils.aoa_to_sheet(data);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Supervisor Report");
-        XLSX.writeFile(wb, `Reporte_Supervisor_TECNO_${document.getElementById('staffName').value}.xlsx`);
-    }
-
     function exportWord() {
         let issuesTableRows = "";
         document.querySelectorAll('.issue-block').forEach(b => {
             issuesTableRows += `
                 <tr>
-                    <td style="border: 1px solid black; padding: 5px;">${b.querySelector('.issue-desc').value}</td>
-                    <td style="border: 1px solid black; padding: 5px;">${b.querySelector('.issue-urgency').value}</td>
-                    <td style="border: 1px solid black; padding: 5px;">${b.querySelector('.issue-support').value}</td>
+                    <td style="border: 1px solid black; padding: 5px;">${escapeHTML(b.querySelector('.issue-desc').value)}</td>
+                    <td style="border: 1px solid black; padding: 5px;">${escapeHTML(b.querySelector('.issue-urgency').value)}</td>
+                    <td style="border: 1px solid black; padding: 5px;">${escapeHTML(b.querySelector('.issue-support').value)}</td>
                 </tr>`;
         });
 
@@ -222,8 +179,8 @@
             <body style="font-family: Arial, sans-serif; font-size: 11pt;">
                 
                 <h2 style="text-align:center;">Supervisor Daily Work Report for TECNO CAMON 50 Series Launch</h2>
-                <p><b>Reporting Date:</b> ${document.getElementById('date').value} &nbsp;&nbsp;&nbsp; <b>Reported By:</b> ${document.getElementById('staffName').value}</p>
-                <p><b>Role:</b> ${document.getElementById('role').value}</p>
+                <p><b>Reporting Date:</b> ${escapeHTML(document.getElementById('date').value)} &nbsp;&nbsp;&nbsp; <b>Reported By:</b> ${escapeHTML(document.getElementById('staffName').value)}</p>
+                <p><b>Role:</b> ${escapeHTML(document.getElementById('role').value)}</p>
 
                 <h3>1. Product Coverage Status (CN5c & CN7c)</h3>
                 <p>This section tracks the penetration of the new CAMON 50 models into the retail network.</p>
@@ -238,24 +195,24 @@
                     </tr>
                     <tr>
                         <td style="border: 1px solid black; padding: 5px;">CN5c<br>(CAMON 50 PRO)</td>
-                        <td style="border: 1px solid black; padding: 5px;">${document.getElementById('c50proTarget').value}</td>
-                        <td style="border: 1px solid black; padding: 5px;">${document.getElementById('c50proCovered').value}</td>
-                        <td style="border: 1px solid black; padding: 5px;">${document.getElementById('c50proRate').value}</td>
-                        <td style="border: 1px solid black; padding: 5px;">${document.getElementById('c50proIssues').value}</td>
+                        <td style="border: 1px solid black; padding: 5px;">${escapeHTML(document.getElementById('c50proTarget').value)}</td>
+                        <td style="border: 1px solid black; padding: 5px;">${escapeHTML(document.getElementById('c50proCovered').value)}</td>
+                        <td style="border: 1px solid black; padding: 5px;">${escapeHTML(document.getElementById('c50proRate').value)}</td>
+                        <td style="border: 1px solid black; padding: 5px;">${escapeHTML(document.getElementById('c50proIssues').value)}</td>
                     </tr>
                     <tr>
                         <td style="border: 1px solid black; padding: 5px;">CN7c<br>(CAMON 50 ULTRA 5G)</td>
-                        <td style="border: 1px solid black; padding: 5px;">${document.getElementById('c50uTarget').value}</td>
-                        <td style="border: 1px solid black; padding: 5px;">${document.getElementById('c50uCovered').value}</td>
-                        <td style="border: 1px solid black; padding: 5px;">${document.getElementById('c50uRate').value}</td>
-                        <td style="border: 1px solid black; padding: 5px;">${document.getElementById('c50uIssues').value}</td>
+                        <td style="border: 1px solid black; padding: 5px;">${escapeHTML(document.getElementById('c50uTarget').value)}</td>
+                        <td style="border: 1px solid black; padding: 5px;">${escapeHTML(document.getElementById('c50uCovered').value)}</td>
+                        <td style="border: 1px solid black; padding: 5px;">${escapeHTML(document.getElementById('c50uRate').value)}</td>
+                        <td style="border: 1px solid black; padding: 5px;">${escapeHTML(document.getElementById('c50uIssues').value)}</td>
                     </tr>
                 </table>
 
                 <br>
                 <p><b>Key Retailer (KR) Coverage Analysis:</b></p>
-                <p><b>High Performing Retailers:</b> ${document.getElementById('highPerformers').value}</p>
-                <p><b>Low Performing Retailers:</b> ${document.getElementById('lowPerformers').value}</p>
+                <p><b>High Performing Retailers:</b> ${escapeHTML(document.getElementById('highPerformers').value)}</p>
+                <p><b>Low Performing Retailers:</b> ${escapeHTML(document.getElementById('lowPerformers').value)}</p>
                 <p>These are priority for follow-up.</p>
 
                 <h3>2. SO (Sell-Out) Achievement</h3>
@@ -271,32 +228,32 @@
                     </tr>
                     <tr>
                         <td style="border: 1px solid black; padding: 5px;">CN5c (CAMON 50 PRO)</td>
-                        <td style="border: 1px solid black; padding: 5px;">${document.getElementById('c50proToday').value}</td>
-                        <td style="border: 1px solid black; padding: 5px;">${document.getElementById('c50proMonthTarget').value}</td>
-                        <td style="border: 1px solid black; padding: 5px;">${document.getElementById('c50proMonthAchieved').value}</td>
-                        <td style="border: 1px solid black; padding: 5px;">${document.getElementById('c50proAchieveRate').value}</td>
+                        <td style="border: 1px solid black; padding: 5px;">${escapeHTML(document.getElementById('c50proToday').value)}</td>
+                        <td style="border: 1px solid black; padding: 5px;">${escapeHTML(document.getElementById('c50proMonthTarget').value)}</td>
+                        <td style="border: 1px solid black; padding: 5px;">${escapeHTML(document.getElementById('c50proMonthAchieved').value)}</td>
+                        <td style="border: 1px solid black; padding: 5px;">${escapeHTML(document.getElementById('c50proAchieveRate').value)}</td>
                     </tr>
                     <tr>
                         <td style="border: 1px solid black; padding: 5px;">CN7c (CAMON 50 ULTRA 5G)</td>
-                        <td style="border: 1px solid black; padding: 5px;">${document.getElementById('c50uToday').value}</td>
-                        <td style="border: 1px solid black; padding: 5px;">${document.getElementById('c50uMonthTarget').value}</td>
-                        <td style="border: 1px solid black; padding: 5px;">${document.getElementById('c50uMonthAchieved').value}</td>
-                        <td style="border: 1px solid black; padding: 5px;">${document.getElementById('c50uAchieveRate').value}</td>
+                        <td style="border: 1px solid black; padding: 5px;">${escapeHTML(document.getElementById('c50uToday').value)}</td>
+                        <td style="border: 1px solid black; padding: 5px;">${escapeHTML(document.getElementById('c50uMonthTarget').value)}</td>
+                        <td style="border: 1px solid black; padding: 5px;">${escapeHTML(document.getElementById('c50uMonthAchieved').value)}</td>
+                        <td style="border: 1px solid black; padding: 5px;">${escapeHTML(document.getElementById('c50uAchieveRate').value)}</td>
                     </tr>
                 </table>
 
                 <br>
                 <p><b>Performance Notes:</b></p>
-                <p><b>Trend:</b> ${document.getElementById('trend').value}</p>
-                <p><b>Key Drivers:</b> ${document.getElementById('drivers').value}</p>
-                <p><b>Challenges:</b> ${document.getElementById('challenges').value}</p>
+                <p><b>Trend:</b> ${escapeHTML(document.getElementById('trend').value)}</p>
+                <p><b>Key Drivers:</b> ${escapeHTML(document.getElementById('drivers').value)}</p>
+                <p><b>Challenges:</b> ${escapeHTML(document.getElementById('challenges').value)}</p>
 
                 <h3>3. Daily Activities & Execution</h3>
                 <p>Document the key tasks performed during the day, focusing on those that support product coverage and sales.</p>
-                <p>${document.getElementById('dailyActivities').value}</p>
+                <p>${escapeHTML(document.getElementById('dailyActivities').value)}</p>
 
                 <h3>4. Competitive Intelligence & Market Dynamics</h3>
-                <p>${document.getElementById('marketIntel').value}</p>
+                <p>${escapeHTML(document.getElementById('marketIntel').value)}</p>
 
                 <h3>5. Issues & Support Required</h3>
                 <p>List any problems encountered during the day that require assistance from the team or management.</p>

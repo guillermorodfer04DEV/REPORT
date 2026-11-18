@@ -2,16 +2,16 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Scanner & QR</title>
     <link rel="icon" type="image/png" href="TECNO-TOOL-icon.png">
     
     <!-- Librerías para Escanear y Generar QR -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js" integrity="sha384-c9d8RFSL+u3exBOJ4Yp3HUJXS4znl9f+z66d1y54ig+ea249SpqR+w1wyvXz/lk+" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" integrity="sha384-3zSEDfvllQohrq0PHL1fOXJuC/jSOO34H46t6UQfobFOmxE5BpjjaIJY5F2/bMnU" crossorigin="anonymous"></script>
     
     <!-- Librería Tesseract.js para extraer texto de imágenes -->
-    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4.1.4/dist/tesseract.min.js" integrity="sha384-+56qagDlzJ3YYkDcyAXRdhrP7/+ai8qJcS6HpjACl2idDoCyCqRf5VVi7E/XkGae" crossorigin="anonymous"></script>
 
     <style>
         :root { 
@@ -207,8 +207,10 @@
             height: auto;
         }
     </style>
+    <link rel="stylesheet" href="site.css">
+    <script src="site.js"></script>
 </head>
-<body>
+<body class="page-tools">
 
     <!-- ================= MENÚ PRINCIPAL ================= -->
     <div id="view-menu" class="main-menu-wrapper">
@@ -429,12 +431,14 @@
                 const item = document.createElement('div');
                 item.className = 'scanned-item';
                 item.innerHTML = `
-                    <span class="scanned-text">${text}</span>
+                    <span class="scanned-text">${escapeHTML(text)}</span>
                     <div class="sale-actions" style="gap: 4px;">
-                        <button class="btn-action-small" onclick="copySingleText('${text}')" title="Copiar">📋</button>
-                        <button class="btn-action-small" style="background: rgba(239, 68, 68, 0.1);" onclick="deleteSingleScan('${text}')" title="Eliminar">🗑️</button>
+                        <button class="btn-action-small" title="Copiar">📋</button>
+                        <button class="btn-action-small" style="background: rgba(239, 68, 68, 0.1);" title="Eliminar">🗑️</button>
                     </div>
                 `;
+                item.querySelector('[title="Copiar"]').onclick = () => copySingleText(text);
+                item.querySelector('[title="Eliminar"]').onclick = () => deleteSingleScan(text);
                 list.appendChild(item);
             });
             document.getElementById('scan-count').innerText = scannedSet.size;
@@ -488,9 +492,10 @@
                 row.style.marginBottom = '5px';
                 row.style.padding = '8px';
                 row.innerHTML = `
-                    <span class="scanned-text" style="font-size:0.9rem;">${code}</span>
-                    <button class="btn btn-success" style="width: auto; padding: 4px 8px; font-size:0.8rem;" onclick="resolveConflict('${code}')">Agregar</button>
+                    <span class="scanned-text" style="font-size:0.9rem;">${escapeHTML(code)}</span>
+                    <button class="btn btn-success" style="width: auto; padding: 4px 8px; font-size:0.8rem;">Agregar</button>
                 `;
+                row.querySelector('button').onclick = () => resolveConflict(code);
                 listDiv.appendChild(row);
             });
             bubble.classList.remove('hidden');
@@ -617,13 +622,15 @@
                 row.className = 'scanned-item';
                 row.innerHTML = `
                     <span class="scanned-text">
-                        <span class="index-badge">(${item.imgIndex}. ${item.imeiIndex}.)</span> ${item.text}
+                        <span class="index-badge">(${escapeHTML(item.imgIndex)}. ${escapeHTML(item.imeiIndex)}.)</span> ${escapeHTML(item.text)}
                     </span>
                     <div class="sale-actions" style="gap: 4px;">
-                        <button class="btn-action-small" onclick="copySingleText('${item.text}')" title="Copiar">📋</button>
-                        <button class="btn-action-small" style="background: rgba(239, 68, 68, 0.1);" onclick="deleteImgScan('${item.id}')" title="Eliminar">🗑️</button>
+                        <button class="btn-action-small" title="Copiar">📋</button>
+                        <button class="btn-action-small" style="background: rgba(239, 68, 68, 0.1);" title="Eliminar">🗑️</button>
                     </div>
                 `;
+                row.querySelector('[title="Copiar"]').onclick = () => copySingleText(item.text);
+                row.querySelector('[title="Eliminar"]').onclick = () => deleteImgScan(item.id);
                 list.appendChild(row);
             });
             document.getElementById('img-scan-count').innerText = imageScannedData.length;
@@ -681,7 +688,7 @@
                 const card = document.createElement('div');
                 card.className = 'sale-card qr-item';
                 card.innerHTML = `
-                    <span class="equipo-name" style="color: var(--primary);">${index + 1}. <span style="color: var(--text);">${text}</span></span>
+                    <span class="equipo-name" style="color: var(--primary);">${index + 1}. <span style="color: var(--text);">${escapeHTML(text)}</span></span>
                     <div class="qr-canvas"></div>
                 `;
                 container.appendChild(card);

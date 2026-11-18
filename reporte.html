@@ -1,13 +1,12 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <link rel="icon" type="image/png" href="https://guillermorodfer04dev.github.io/REPORT/TECNO-TOOL-icon.png">
+    <link rel="icon" type="image/png" href="TECNO-TOOL-icon.png">
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reporte de Cierre | TECNO TOOL</title>
     <!-- Librerías requeridas -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js" integrity="sha384-GJqSu7vueQ9qN0E9yLPb3Wtpd7OrgK8KmYzC8T1IysG1bcvxvIO4qtYR/D3A991F" crossorigin="anonymous"></script>
     <style>
         :root { 
             --bg: #0f172a; --surface: #1e293b; --surface-light: #334155; 
@@ -96,10 +95,13 @@
         .hidden { display: none !important; }
         textarea { resize: vertical; min-height: 60px;}
     </style>
+    <link rel="stylesheet" href="site.css">
+    <script src="site.js"></script>
 </head>
-<body>
+<body class="page-report">
 
 <header>
+    <a href="index.html" class="site-home-link">← Inicio</a>
     <button type="button" class="btn btn-outline btn-sm" onclick="rellenarTest()">🧪 Test</button>
     <h2>TECNO REPORTE</h2>
     <button type="button" class="btn btn-warning btn-sm" onclick="openPasteModal()">📋 Pegar</button>
@@ -215,7 +217,7 @@
 
 <!-- BARRA INFERIOR DE ACCIONES -->
 <div class="bottom-action-bar">
-    <button type="button" class="btn btn-outline" onclick="window.open('https://docs.google.com/spreadsheets/d/168u-0pUmNMGVExY8duQJksMGCAjfxyPd44q0P-ESoKk/edit?gid=0#gid=0', '_blank')">☁️ Nube</button>
+    <button type="button" class="btn btn-outline" onclick="window.open('https://docs.google.com/spreadsheets/d/168u-0pUmNMGVExY8duQJksMGCAjfxyPd44q0P-ESoKk/edit?gid=0#gid=0', '_blank', 'noopener,noreferrer')">☁️ Nube</button>
     <button type="button" class="btn btn-success" onclick="copiarWhatsApp()">💬 WhatsApp</button>
     <button type="button" class="btn btn-primary" onclick="exportWord()">📄 Word</button>
     <button type="button" class="btn" style="background: var(--accent);" id="btnSincronizar" onclick="enviarAGoogleSheets()">💾 Excel</button>
@@ -268,7 +270,7 @@
             const li = document.createElement('li');
             li.className = 'visited-item';
             li.innerHTML = `
-                <span>${store}</span>
+                <span>${escapeHTML(store)}</span>
                 <button type="button" class="btn-remove-item" onclick="visitedStores.splice(${index},1); renderVisitedStores();">X</button>
             `;
             list.appendChild(li);
@@ -286,11 +288,11 @@
         
         div.innerHTML = `
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                <input type="text" class="form-control detail-tienda" placeholder="Nombre Tienda" value="${tienda}" style="width: 70%; font-weight:bold;">
+                <input type="text" class="form-control detail-tienda" placeholder="Nombre Tienda" value="${escapeHTML(tienda)}" style="width: 70%; font-weight:bold;">
                 <button type="button" class="btn-delete" onclick="document.getElementById('detail-${id}').remove()">X</button>
             </div>
-            <textarea class="form-control detail-desc IA-target" placeholder="Detalle de inventario, stock o exhibición..." style="margin-bottom:8px; min-height:45px;">${detalle}</textarea>
-            <textarea class="form-control detail-nota IA-target" placeholder="Nota/Acción: Ej. Se reorganizó exhibición..." style="min-height:45px; border-color: var(--warning);">${nota}</textarea>
+            <textarea class="form-control detail-desc IA-target" placeholder="Detalle de inventario, stock o exhibición..." style="margin-bottom:8px; min-height:45px;">${escapeHTML(detalle)}</textarea>
+            <textarea class="form-control detail-nota IA-target" placeholder="Nota/Acción: Ej. Se reorganizó exhibición..." style="min-height:45px; border-color: var(--warning);">${escapeHTML(nota)}</textarea>
         `;
         container.appendChild(div);
     }
@@ -493,11 +495,11 @@
             let optionsHTML = categories.map(opt => `<option value="${opt}" ${p.tag === opt ? 'selected' : ''}>${opt}</option>`).join('');
             c.innerHTML += `
                 <div class="image-item">
-                    <img src="${p.src}">
+                    <img src="${escapeHTML(p.src)}">
                     <select class="form-control" onchange="photos[${i}].tag = this.value">
                         ${optionsHTML}
                     </select>
-                    <input type="text" class="form-control" placeholder="Escribe información adicional..." value="${p.desc}" onchange="photos[${i}].desc = this.value">
+                    <input type="text" class="form-control" placeholder="Escribe información adicional..." value="${escapeHTML(p.desc)}" onchange="photos[${i}].desc = this.value">
                     <button type="button" class="btn btn-delete" style="width:100%" onclick="photos.splice(${i},1); renderPhotos()">Eliminar Imagen</button>
                 </div>
             `;
@@ -511,7 +513,7 @@
         <body style="font-family: Arial, sans-serif;">`;
         
         // Convertir saltos de línea a <br>
-        const textReport = buildTextReport().replace(/\n/g, '<br>');
+        const textReport = escapeHTML(buildTextReport()).replace(/\n/g, '<br>');
         
         content += `<div style="padding-bottom: 20px;">${textReport}</div>`;
         
@@ -521,10 +523,10 @@
                 // Etiqueta img forzando estrictamente el tamaño 300x300
                 content += `
                     <div style="margin-bottom: 20px; border: 1px solid #ccc; padding: 10px;">
-                        <p><b>Etiqueta:</b> ${p.tag}</p>
-                        ${p.desc ? `<p><b>Descripción:</b> ${p.desc}</p>` : ''}
+                        <p><b>Etiqueta:</b> ${escapeHTML(p.tag)}</p>
+                        ${p.desc ? `<p><b>Descripción:</b> ${escapeHTML(p.desc)}</p>` : ''}
                         <br>
-                        <img src="${p.src}" width="300" height="300" style="display:block; margin: 10px 0;" />
+                        <img src="${escapeHTML(p.src)}" width="300" height="300" style="display:block; margin: 10px 0;" />
                     </div>
                 `;
             });

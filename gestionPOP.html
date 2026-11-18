@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+  <title>Gestión POP | TECNO TOOL</title>
   <base target="_top">
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     :root { 
       --bg: #0f172a; --surface: #1e293b; --surface-light: #334155; 
@@ -108,8 +109,10 @@
     
     .hidden { display: none !important; }
   </style>
+    <link rel="stylesheet" href="site.css">
+    <script src="site.js"></script>
 </head>
-<body>
+<body class="page-pop">
 
 <div id="loader-overlay">
   <div class="spinner"></div>
@@ -117,6 +120,7 @@
 </div>
 
 <header>
+  <a href="index.html" class="site-home-link">← Inicio</a>
   <button class="btn-back hidden" id="btn-volver" onclick="showMenu()">❮ Volver</button>
   <h2>📱 TECNO TOOL V3</h2>
 </header>
@@ -228,18 +232,18 @@
       
       let equiposHTML = tienda.equipos.map((eq, eIdx) => `
         <div class="equipo-row">
-          <span class="equipo-name">${eq.nombre}</span>
+          <span class="equipo-name">${escapeHTML(eq.nombre)}</span>
           <div class="qty-control">
             <button class="btn-qty" onclick="changeQty(${tIdx}, ${eIdx}, -1)">-</button>
-            <span class="qty-val">${eq.cantidad}</span>
+            <span class="qty-val">${escapeHTML(eq.cantidad)}</span>
             <button class="btn-qty" onclick="changeQty(${tIdx}, ${eIdx}, 1)">+</button>
           </div>
         </div>`).join('');
 
       card.innerHTML = `
         <div class="form-group" style="margin-bottom: 12px;">
-          <input type="text" class="form-control" style="font-weight:bold; font-size:1rem; border:none; padding:4px 0;" value="${tienda.nombreTienda}" onchange="inventarioData[${tIdx}].nombreTienda = this.value">
-          <small style="color:var(--primary); font-weight:600; font-size:0.7rem;">${tienda.keyRetailer}</small>
+          <input type="text" class="form-control" style="font-weight:bold; font-size:1rem; border:none; padding:4px 0;" value="${escapeHTML(tienda.nombreTienda)}" onchange="inventarioData[${tIdx}].nombreTienda = this.value">
+          <small style="color:var(--primary); font-weight:600; font-size:0.7rem;">${escapeHTML(tienda.keyRetailer)}</small>
         </div>
         <div>${equiposHTML}</div>
       `;
@@ -255,7 +259,7 @@
   function actualizarDropdownsVentas(datos) {
     document.querySelectorAll('.v-tienda').forEach(sel => {
       const val = sel.value;
-      sel.innerHTML = '<option value="">Seleccione tienda...</option>' + datos.map(t => `<option value="${t.nombreTienda}">${t.nombreTienda}</option>`).join('');
+      sel.innerHTML = '<option value="">Seleccione tienda...</option>' + datos.map(t => `<option value="${escapeHTML(t.nombreTienda)}">${escapeHTML(t.nombreTienda)}</option>`).join('');
       sel.value = val;
     });
   }
@@ -275,7 +279,7 @@
       </div>
       <div class="form-group">
         <label class="form-label">Equipo</label>
-        <select class="v-equipo form-control">${equiposUnicos.map(e => `<option>${e}</option>`).join('')}</select>
+        <select class="v-equipo form-control">${equiposUnicos.map(e => `<option>${escapeHTML(e)}</option>`).join('')}</select>
       </div>
       <div class="form-group" style="margin-bottom:0;">
         <label class="form-label">Evidencia Fotográfica</label>

@@ -1,12 +1,11 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <link rel="icon" type="image/png" href="https://guillermorodfer04dev.github.io/REPORT/TECNO-TOOL-icon.png">
+    <link rel="icon" type="image/png" href="TECNO-TOOL-icon.png">
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reporte Diario | TECNO TOOL</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js" integrity="sha384-GJqSu7vueQ9qN0E9yLPb3Wtpd7OrgK8KmYzC8T1IysG1bcvxvIO4qtYR/D3A991F" crossorigin="anonymous"></script>
     <style>
         :root {
             --tecno-blue: #0056b3;
@@ -45,8 +44,10 @@
         .btn-remove-item { background: #dc3545; color: white; border: none; border-radius: 50%; width: 28px; height: 28px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 16px;}
         .ocr-loader { font-size: 13px; color: #e67e22; display: none; margin-top: 8px; font-weight: bold; }
     </style>
+    <link rel="stylesheet" href="site.css">
+    <script src="site.js"></script>
 </head>
-<body>
+<body class="page-backup">
 
 <!-- Botón para abrir el menú de Autocompletado -->
 <button type="button" class="btn-back-menu" style="left: auto; right: 15px; background-color: var(--tecno-orange); color: white; border-color: #d35400;" onclick="openPasteModal()">
@@ -55,12 +56,12 @@
 
 <!-- Ventana emergente (Modal) para pegar el texto -->
 <div id="pasteModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:10000; justify-content:center; align-items:center; backdrop-filter: blur(3px);">
-    <div style="background:white; padding:20px; border-radius:12px; width:90%; max-width:550px; box-shadow:0 5px 15px rgba(0,0,0,0.3);">
+    <div style="background: var(--surface); padding:20px; border-radius:12px; width:90%; max-width:550px; box-shadow:0 5px 15px rgba(0,0,0,0.3);">
         <h3 style="margin-top:0; color:var(--tecno-blue);">Pegar Reporte Anterior</h3>
-        <p style="font-size:13px; color:#555;">Pega aquí tu plantilla de WhatsApp para autocompletar la información base. <em>(Ventas Hoy y Venta Real no se llenarán para que las ingreses manualmente)</em>.</p>
+        <p style="font-size:13px; color: var(--text-muted);">Pega aquí tu plantilla de WhatsApp para autocompletar la información base. <em>(Ventas Hoy y Venta Real no se llenarán para que las ingreses manualmente)</em>.</p>
         <textarea id="pasteArea" rows="12" style="width:100%; padding:10px; border:1px solid #ccc; border-radius:8px; resize:vertical; font-family:monospace; font-size:12px;" placeholder="Pega el reporte aquí..."></textarea>
         <div style="display:flex; gap:10px; margin-top:15px; justify-content:flex-end;">
-            <button type="button" onclick="closePasteModal()" style="padding:10px 15px; border:none; border-radius:6px; background:#e0e0e0; color:#333; font-weight:bold; cursor:pointer;">Cancelar</button>
+            <button type="button" onclick="closePasteModal()" style="padding:10px 15px; border:none; border-radius:6px; background: var(--surface-light); color: var(--text); font-weight:bold; cursor:pointer;">Cancelar</button>
             <button type="button" onclick="processPastedReport()" style="padding:10px 15px; border:none; border-radius:6px; background:var(--tecno-blue); color:white; font-weight:bold; cursor:pointer;">Rellenar Formulario</button>
         </div>
     </div>
@@ -177,9 +178,9 @@
             <div class="form-group"><label>Venta equipos Tecno (General semana)</label><input type="number" id="ventasTecnoSemana" placeholder="Ej: 45"></div>
         </div>
 
-        <div class="form-group" style="margin-top: 20px; background: #eef2f5; padding: 15px; border-radius: 8px; border: 1px dashed #ccc;">
+        <div class="form-group" style="margin-top: 20px; background: var(--surface); padding: 15px; border-radius: 8px; border: 1px dashed var(--surface-light);">
             <label style="color: var(--tecno-blue); font-size: 14px;"><strong>Automatizar "Lista de Tiendas Visitadas"</strong></label>
-            <p style="font-size: 12px; margin: 5px 0 10px 0; color: #666;">Sube la captura de la app para extraer los nombres automáticamente.</p>
+            <p style="font-size: 12px; margin: 5px 0 10px 0; color: var(--text-muted);">Sube la captura de la app para extraer los nombres automáticamente.</p>
             <input type="file" id="ocrImageInput" accept="image/*" onchange="processOCR(event)">
             <div id="ocrLoader" class="ocr-loader">🔄 Escaneando imagen... por favor espera.</div>
         </div>
@@ -202,12 +203,12 @@
 
         <div class="btn-group">
             <button type="button" class="btn-final" id="btnSincronizar" style="background: var(--tecno-green);" onclick="enviarAGoogleSheets()">Exportar Excel A La Nube</button>
-            <button type="button" class="btn-final" style="background: #2b579a;" onclick="exportWord()">Descargar Word</button>
+            <button type="button" class="btn-final" style="background: var(--primary);" onclick="exportWord()">Descargar Word</button>
             <button type="button" class="btn-final" style="background: var(--wsp-green);" onclick="copiarWhatsApp()">Copiar para WhatsApp</button>
         </div>
 
         <div class="btn-group2">
-            <a href="https://docs.google.com/spreadsheets/d/168u-0pUmNMGVExY8duQJksMGCAjfxyPd44q0P-ESoKk/edit?gid=0#gid=0" target="_blank" class="btn-final" style="background: #4dabf7; margin-top: 25px; display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <a href="https://docs.google.com/spreadsheets/d/168u-0pUmNMGVExY8duQJksMGCAjfxyPd44q0P-ESoKk/edit?gid=0#gid=0" target="_blank" rel="noopener noreferrer" class="btn-final" style="background: var(--primary); margin-top: 25px; display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
                 Ir a la Nube
             </a>
         </div>
@@ -276,9 +277,9 @@
             
             // Reemplazamos el span por un input editable sin bordes
             li.innerHTML = `
-                <input type="text" value="${store}" 
+                <input type="text" value="${escapeHTML(store)}"
                        onchange="updateVisitedStore(${index}, this.value)" 
-                       style="border: none; background: transparent; font-weight: 600; font-size: 14px; width: 100%; outline: none; color: #333;">
+                       style="border: none; background: transparent; font-weight: 600; font-size: 14px; width: 100%; outline: none; color: var(--text);">
                        
                 <button type="button" class="btn-remove-item" onclick="removeVisitedStoreByIndex(${index})">-</button>
             `;
@@ -418,7 +419,7 @@
                 <div class="form-group">
                     <label>Tienda</label>
                     ${selectHtml}
-                    <input type="text" class="store-name-custom" id="custom-name-${id}" style="display:${customDisplay}; margin-top:10px;" placeholder="Escriba el nombre..." value="${customValue}">
+                    <input type="text" class="store-name-custom" id="custom-name-${id}" style="display:${customDisplay}; margin-top:10px;" placeholder="Escriba el nombre..." value="${escapeHTML(customValue)}">
                     <div class="form-group hidden" id="rotative-container-${id}" style="margin-top: 10px; flex-direction: row; align-items: center; gap: 8px; display: none;">
                         <input type="checkbox" class="store-rotative" style="width: 20px; height: 20px; cursor: pointer;">
                         <label style="margin-bottom: 0;">Vitrina Rotativa</label>
@@ -527,11 +528,11 @@
             const item = document.createElement('div');
             item.className = 'image-item';
             item.innerHTML = `
-                <img src="${p.src}">
+                <img src="${escapeHTML(p.src)}">
                 <div style="display:flex; flex-direction:column; gap:5px;">
-                    <input type="text" placeholder="Nombre de la tienda/ref" value="${p.nombreTienda}" onchange="photos[${i}].nombreTienda = this.value" style="padding:5px; font-size:12px;">
+                    <input type="text" placeholder="Nombre de la tienda/ref" value="${escapeHTML(p.nombreTienda)}" onchange="photos[${i}].nombreTienda = this.value" style="padding:5px; font-size:12px;">
                     <select onchange="photos[${i}].categoria = this.value" style="padding:5px; font-size:12px;">
-                        <option value="${p.categoria}">${p.categoria || "Seleccione Categoría..."}</option>
+                        <option value="${escapeHTML(p.categoria)}">${escapeHTML(p.categoria || "Seleccione Categoría...")}</option>
                         <option value="Competencia">Competencia</option>
                         <option value="Obsequios">Obsequios</option>
                         <option value="Material POP">Material POP</option>
@@ -655,60 +656,60 @@
         </head><body>`;
         
         content += `<h2>REPORTE DIARIO TECNO</h2>`;
-        content += `<ul><li><b>Fecha:</b> ${date}</li><li><b>Especialista:</b> ${name}</li><li><b>Cargo:</b> ${document.getElementById('role').value}</li><li><b>Ruta/C.C:</b> ${document.getElementById('region').value}</li></ul>`;
+        content += `<ul><li><b>Fecha:</b> ${escapeHTML(date)}</li><li><b>Especialista:</b> ${escapeHTML(name)}</li><li><b>Cargo:</b> ${escapeHTML(document.getElementById('role').value)}</li><li><b>Ruta/C.C:</b> ${escapeHTML(document.getElementById('region').value)}</li></ul>`;
 
-        content += `<h3>1. Ventas: ${document.getElementById('retailerName').value}</h3>`;
+        content += `<h3>1. Ventas: ${escapeHTML(document.getElementById('retailerName').value)}</h3>`;
         content += `<ul>
-            <li><b>Tiendas objetivo:</b> ${document.getElementById('shopsQty').value}</li>
-            <li><b>Meta CAMON:</b> ${document.getElementById('salesTarget').value}</li>
-            <li><b>Venta Hoy:</b> ${document.getElementById('todaySales').value}</li>
-            <li><b>Acumulado Mes:</b> ${document.getElementById('accumulatedSales').value}</li>
-            <li><b>Cargado al DCR:</b> ${document.getElementById('dcrRate').value}%</li>
+            <li><b>Tiendas objetivo:</b> ${escapeHTML(document.getElementById('shopsQty').value)}</li>
+            <li><b>Meta CAMON:</b> ${escapeHTML(document.getElementById('salesTarget').value)}</li>
+            <li><b>Venta Hoy:</b> ${escapeHTML(document.getElementById('todaySales').value)}</li>
+            <li><b>Acumulado Mes:</b> ${escapeHTML(document.getElementById('accumulatedSales').value)}</li>
+            <li><b>Cargado al DCR:</b> ${escapeHTML(document.getElementById('dcrRate').value)}%</li>
         </ul>`;
         content += `<h4>Cobertura e Inventario:</h4><ul>
-            <li><b>Cobertura C50 Pro:</b> ${document.getElementById('coverage50Pro').value}</li>
-            <li><b>Cobertura C50 Ultra:</b> ${document.getElementById('coverage50Ultra').value}</li>
-            <li><b>Problemas de Stock:</b> ${document.getElementById('stockIssues').value}</li>
+            <li><b>Cobertura C50 Pro:</b> ${escapeHTML(document.getElementById('coverage50Pro').value)}</li>
+            <li><b>Cobertura C50 Ultra:</b> ${escapeHTML(document.getElementById('coverage50Ultra').value)}</li>
+            <li><b>Problemas de Stock:</b> ${escapeHTML(document.getElementById('stockIssues').value)}</li>
         </ul>`;
 
         if (isR2Active()) {
-            content += `<h3>1.1 Ventas: ${document.getElementById('retailerName2').value}</h3>`;
+            content += `<h3>1.1 Ventas: ${escapeHTML(document.getElementById('retailerName2').value)}</h3>`;
             content += `<ul>
-                <li><b>Tiendas objetivo:</b> ${document.getElementById('shopsQty2').value}</li>
-                <li><b>Meta CAMON:</b> ${document.getElementById('salesTarget2').value}</li>
-                <li><b>Venta Hoy:</b> ${document.getElementById('todaySales2').value}</li>
-                <li><b>Acumulado Mes:</b> ${document.getElementById('accumulatedSales2').value}</li>
-                <li><b>Cargado al DCR:</b> ${document.getElementById('dcrRate2').value}%</li>
+                <li><b>Tiendas objetivo:</b> ${escapeHTML(document.getElementById('shopsQty2').value)}</li>
+                <li><b>Meta CAMON:</b> ${escapeHTML(document.getElementById('salesTarget2').value)}</li>
+                <li><b>Venta Hoy:</b> ${escapeHTML(document.getElementById('todaySales2').value)}</li>
+                <li><b>Acumulado Mes:</b> ${escapeHTML(document.getElementById('accumulatedSales2').value)}</li>
+                <li><b>Cargado al DCR:</b> ${escapeHTML(document.getElementById('dcrRate2').value)}%</li>
             </ul>`;
             content += `<h4>Cobertura e Inventario:</h4><ul>
-                <li><b>Cobertura C50 Pro:</b> ${document.getElementById('coverage50Pro2').value}</li>
-                <li><b>Cobertura C50 Ultra:</b> ${document.getElementById('coverage50Ultra2').value}</li>
-                <li><b>Problemas de Stock:</b> ${document.getElementById('stockIssues2').value}</li>
+                <li><b>Cobertura C50 Pro:</b> ${escapeHTML(document.getElementById('coverage50Pro2').value)}</li>
+                <li><b>Cobertura C50 Ultra:</b> ${escapeHTML(document.getElementById('coverage50Ultra2').value)}</li>
+                <li><b>Problemas de Stock:</b> ${escapeHTML(document.getElementById('stockIssues2').value)}</li>
             </ul>`;
         }
 
         content += `<h3>3. Análisis de Mercado</h3>`;
-        content += `<p><b>Acciones Competencia:</b> ${document.getElementById('competitorActions').value}</p>`;
-        content += `<p><b>Dinámica del Mercado:</b> ${document.getElementById('marketDynamics').value}</p>`;
+        content += `<p><b>Acciones Competencia:</b> ${escapeHTML(document.getElementById('competitorActions').value)}</p>`;
+        content += `<p><b>Dinámica del Mercado:</b> ${escapeHTML(document.getElementById('marketDynamics').value)}</p>`;
 
         content += `<h3>4. Resumen de actividades diarias</h3>`;
         content += `<ul>
-            <li><b>Carga de stock:</b> ${document.getElementById('cargaStockTotal').value || 0} unidades</li>
-            <li><b>Venta Serie CAMON 50 (semana):</b> ${document.getElementById('ventasCamonSemana').value || 0}</li>
-            <li><b>Venta equipos Tecno (semana):</b> ${document.getElementById('ventasTecnoSemana').value || 0}</li>
+            <li><b>Carga de stock:</b> ${escapeHTML(document.getElementById('cargaStockTotal').value || 0)} unidades</li>
+            <li><b>Venta Serie CAMON 50 (semana):</b> ${escapeHTML(document.getElementById('ventasCamonSemana').value || 0)}</li>
+            <li><b>Venta equipos Tecno (semana):</b> ${escapeHTML(document.getElementById('ventasTecnoSemana').value || 0)}</li>
         </ul>`;
 
         content += `<h4>Lista de Tiendas Visitadas Hoy:</h4><ol>`;
-        visitedStores.forEach(store => { content += `<li>${store}</li>`; });
+        visitedStores.forEach(store => { content += `<li>${escapeHTML(store)}</li>`; });
         content += `</ol>`;
 
         content += `<h3>5. Detalle por tienda</h3><table><tr><th>Tienda</th><th>Estatus</th><th>Cant</th><th>Acciones</th></tr>`;
         document.querySelectorAll('.store-block').forEach(b => {
             content += `<tr>
-                <td>${getStoreName(b)}</td>
-                <td>${b.querySelector('.store-status').value}</td>
-                <td>${b.querySelector('.store-qty').value || '-'}</td>
-                <td>${b.querySelector('.store-actions').value}</td>
+                <td>${escapeHTML(getStoreName(b))}</td>
+                <td>${escapeHTML(b.querySelector('.store-status').value)}</td>
+                <td>${escapeHTML(b.querySelector('.store-qty').value || '-')}</td>
+                <td>${escapeHTML(b.querySelector('.store-actions').value)}</td>
             </tr>`;
         });
         content += `</table>`;
@@ -718,8 +719,8 @@
             photos.forEach(p => {
                 content += `
                 <div style="margin-bottom: 15px;">
-                    <p><b>Categoría:</b> ${p.categoria} | <b>Tienda/Ref:</b> ${p.nombreTienda}</p>
-                    <img src="${p.src}" width="200" height="200" style="width:200px; height:200px; object-fit:cover;">
+                    <p><b>Categoría:</b> ${escapeHTML(p.categoria)} | <b>Tienda/Ref:</b> ${escapeHTML(p.nombreTienda)}</p>
+                    <img src="${escapeHTML(p.src)}" width="200" height="200" style="width:200px; height:200px; object-fit:cover;">
                 </div>`;
             });
         }
